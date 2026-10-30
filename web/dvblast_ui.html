@@ -922,21 +922,24 @@
 
     <!-- MODAL: ADD / EDIT ADAPTER -->
     <div class="modal-overlay" id="modal-adapter">
-        <div class="modal-box">
+        <div class="modal-box" style="max-width: 680px;">
             <div class="modal-header">
                 <h3 class="modal-title" id="modal-adapter-title">Configure DVB Adapter</h3>
                 <button class="modal-close" onclick="closeAdapterModal()">&times;</button>
             </div>
             <form id="form-adapter" onsubmit="handleAdapterSubmit(event)">
                 <input type="hidden" id="ad-edit-mode" value="false">
-                <div class="form-group">
-                    <label class="form-label">Adapter ID</label>
-                    <input type="text" class="form-input" id="ad-id" required placeholder="e.g. adapter_0">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Adapter ID</label>
+                        <input type="text" class="form-input" id="ad-id" required placeholder="e.g. adapter_0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Friendly Name</label>
+                        <input type="text" class="form-input" id="ad-name" required placeholder="e.g. EMTEK, RCTI, MUX-1">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Friendly Name</label>
-                    <input type="text" class="form-input" id="ad-name" required placeholder="e.g. MUX-1 Jakarta (DVB-T2)">
-                </div>
+
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Physical Hardware Device</label>
@@ -944,38 +947,57 @@
                             <option value="0">Adapter 0 (/dev/dvb/adapter0)</option>
                             <option value="1">Adapter 1 (/dev/dvb/adapter1)</option>
                             <option value="2">Adapter 2 (/dev/dvb/adapter2)</option>
-                            <option value="3">Adapter 3 (/dev/dvb/adapter3)</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Delivery System</label>
                         <select class="form-select" id="ad-delsys" onchange="onDelsysChange()">
-                            <option value="DVBT2">DVB-T2 (Terrestrial 2nd Gen)</option>
-                            <option value="DVBT">DVB-T (Terrestrial)</option>
-                            <option value="DVBS2">DVB-S2 (Satellite 2nd Gen)</option>
-                            <option value="DVBS">DVB-S (Satellite)</option>
-                            <option value="DVBC">DVB-C (Cable)</option>
+                            <option value="DVBT2">DVB-T2 (Terrestrial Digital TV)</option>
+                            <option value="DVBT">DVB-T (Legacy Terrestrial)</option>
+                            <option value="DVBS2">DVB-S2 (Satellite HD/UHD)</option>
+                            <option value="DVBS">DVB-S (Satellite Standard)</option>
+                            <option value="DVBC">DVB-C (Cable TV)</option>
                         </select>
                     </div>
                 </div>
+
                 <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label">Frequency (Hz or kHz)</label>
-                        <input type="number" class="form-input" id="ad-freq" required placeholder="e.g. 698000000">
+                        <label class="form-label">Frequency (MHz or Hz)</label>
+                        <input type="text" class="form-input" id="ad-freq" required placeholder="e.g. 498 MHz or 498000000 Hz">
+                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">Auto-scaled: Entering 498 tunes 498,000,000 Hz.</span>
                     </div>
                     <div class="form-group" id="group-bandwidth">
-                        <label class="form-label">Bandwidth (MHz)</label>
+                        <label class="form-label">Bandwidth</label>
                         <select class="form-select" id="ad-bandwidth">
-                            <option value="8">8 MHz</option>
+                            <option value="8">8 MHz (Indonesia / Europe)</option>
                             <option value="7">7 MHz</option>
                             <option value="6">6 MHz</option>
                         </select>
                     </div>
                     <div class="form-group" id="group-srate" style="display: none;">
-                        <label class="form-label">Symbol Rate (S/s)</label>
-                        <input type="number" class="form-input" id="ad-srate" value="27500000">
+                        <label class="form-label">Symbol Rate (kbaud or S/s)</label>
+                        <input type="number" class="form-input" id="ad-srate" value="27500000" placeholder="e.g. 27500000">
                     </div>
                 </div>
+
+                <div class="form-grid" id="group-terr-opts">
+                    <div class="form-group">
+                        <label class="form-label">PLP / Stream ID</label>
+                        <input type="number" class="form-input" id="ad-plp" placeholder="Auto / All (-1)" value="">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Modulation</label>
+                        <select class="form-select" id="ad-mod">
+                            <option value="">Auto (Default)</option>
+                            <option value="QPSK">QPSK</option>
+                            <option value="16QAM">16-QAM</option>
+                            <option value="64QAM">64-QAM</option>
+                            <option value="256QAM">256-QAM</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-grid" id="group-sat-opts" style="display: none;">
                     <div class="form-group">
                         <label class="form-label">Polarization</label>
@@ -985,18 +1007,122 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">LNB LOF Type</label>
-                        <select class="form-select" id="ad-lnb">
-                            <option value="universal">Universal (9750 / 10600)</option>
-                            <option value="cband">C-Band (5150)</option>
+                        <label class="form-label">DiSEqC Switch</label>
+                        <select class="form-select" id="ad-diseqc">
+                            <option value="0">None / Direct</option>
+                            <option value="1">DiSEqC 1 (A)</option>
+                            <option value="2">DiSEqC 2 (B)</option>
+                            <option value="3">DiSEqC 3 (C)</option>
+                            <option value="4">DiSEqC 4 (D)</option>
                         </select>
                     </div>
                 </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                     <button type="button" class="btn" onclick="closeAdapterModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Adapter</button>
+                    <button type="submit" class="btn btn-primary">Save & Tune Adapter</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CHANNEL SCANNER & BATCH STREAM CREATOR -->
+    <div class="modal-overlay" id="modal-scan">
+        <div class="modal-box" style="max-width: 840px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
+                    </div>
+                    <div>
+                        <h3 class="modal-title" id="scan-modal-title">Live Transponder Scanner</h3>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);" id="scan-modal-subtitle">Adapter 0 • 498 MHz (DVB-T2)</div>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeScanModal()">&times;</button>
+            </div>
+            
+            <div style="padding: 20px;">
+                <!-- Live RF Signal Meters -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;">
+                    <div class="signal-meter">
+                        <div class="meter-top">
+                            <span>SIGNAL LEVEL (S)</span>
+                            <span id="scan-sig-dbm" style="color: var(--accent-cyan); font-weight: 600;">-- dBm</span>
+                        </div>
+                        <div class="meter-val" id="scan-sig-val">0%</div>
+                        <div class="meter-bar-track" style="margin-top: 8px; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+                            <div class="meter-bar-fill" id="scan-sig-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #06b6d4, #10b981); transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    <div class="signal-meter">
+                        <div class="meter-top">
+                            <span>CARRIER / NOISE (C/N)</span>
+                            <span id="scan-snr-db" style="color: var(--accent-green); font-weight: 600;">-- dB</span>
+                        </div>
+                        <div class="meter-val" id="scan-snr-val">0%</div>
+                        <div class="meter-bar-track" style="margin-top: 8px; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+                            <div class="meter-bar-fill" id="scan-snr-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #06b6d4); transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    <div class="signal-meter" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">TUNER STATUS</div>
+                        <div id="scan-lock-badge" class="badge badge-unlocked" style="font-size: 0.85rem; padding: 6px 14px;">SEARCHING...</div>
+                        <div id="scan-bitrate" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">0.00 Mbps</div>
+                    </div>
+                </div>
+
+                <!-- Channel Table Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-weight: 600; font-size: 0.95rem;">Discovered TV Services (<span id="scan-channel-count">0</span>)</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sm" onclick="toggleSelectAllChannels(true)">Select All</button>
+                        <button class="btn btn-sm" onclick="toggleSelectAllChannels(false)">Deselect All</button>
+                    </div>
+                </div>
+
+                <!-- Channels Table -->
+                <div style="max-height: 260px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 16px;">
+                    <table class="table" style="margin: 0;">
+                        <thead>
+                            <tr style="position: sticky; top: 0; background: var(--bg-card); z-index: 2;">
+                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="chk-scan-all" onchange="toggleSelectAllChannels(this.checked)"></th>
+                                <th>PNR / SID</th>
+                                <th>Channel Name</th>
+                                <th>Provider</th>
+                                <th>PMT PID</th>
+                                <th>CAS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-scan-channels">
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Demuxing transponder PAT/SDT... please wait for lock.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Batch Stream Generator Section -->
+                <div style="background: var(--bg-input); padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 16px;">
+                    <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; color: var(--accent-cyan);">Batch Multicast Output Generator</div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; align-items: center;">
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem;">Base Multicast IP</label>
+                            <input type="text" class="form-input" id="scan-batch-ip" value="239.1.2.25" placeholder="239.1.2.25">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem;">Destination Port</label>
+                            <input type="number" class="form-input" id="scan-batch-port" value="1234">
+                        </div>
+                        <div style="padding-top: 18px;">
+                            <button type="button" class="btn btn-primary" style="width: 100%;" onclick="batchCreateSelectedStreams()">Create Selected Streams</button>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">IP last octet automatically increments for each selected TV channel.</div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn" onclick="closeScanModal()">Close Scanner</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1245,10 +1371,13 @@
 
             gridEl.innerHTML = g_adapters.map(ad => {
                 const isLocked = ad.locked;
-                const snr = (ad.snr_db || 0).toFixed(1);
+                const snrVal = ad.snr_db !== undefined ? ad.snr_db : (ad.snr_raw ? ad.snr_raw / 10 : 0);
+                const snr = snrVal.toFixed(1);
                 const sig = ad.signal_percent || 0;
-                const br = (ad.bitrate_mbps || 0).toFixed(2);
+                const sigDbm = ad.signal_dbm !== undefined ? ad.signal_dbm.toFixed(1) + ' dBm' : (sig > 0 ? (-100 + sig).toFixed(1) + ' dBm' : '-- dBm');
+                const br = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
                 const chCount = (ad.channels || []).length;
+                const fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
 
                 return `
                 <div class="adapter-card" id="card-${ad.id}">
@@ -1259,7 +1388,7 @@
                             </span>
                             <div>
                                 <div class="card-title">${escapeHtml(ad.name)}</div>
-                                <div class="card-subtitle">Dev: /dev/dvb/adapter${ad.adapter_idx} | ${ad.delsys} @ ${(ad.frequency_mhz || (ad.frequency_hz / 1000000) || 0).toFixed(1)} MHz</div>
+                                <div class="card-subtitle">Dev: /dev/dvb/adapter${ad.adapter_idx} | ${ad.delsys} @ ${fMhz} MHz</div>
                             </div>
                         </div>
                         <span class="badge badge-accent">${ad.delsys}</span>
@@ -1270,20 +1399,20 @@
                             <div class="signal-meter">
                                 <div class="meter-top">
                                     <span>Signal Quality (SNR)</span>
-                                    <span>${snr} dB</span>
+                                    <span style="font-weight: 600; color: var(--accent-green);">${snr} dB</span>
                                 </div>
                                 <div class="sys-bar-track">
-                                    <div class="sys-bar-fill" style="width: ${Math.min(100, (snr / 35) * 100)}%;"></div>
+                                    <div class="sys-bar-fill" style="width: ${Math.min(100, (snrVal / 35) * 100)}%; background: linear-gradient(90deg, #10b981, #06b6d4);"></div>
                                 </div>
                             </div>
 
                             <div class="signal-meter">
                                 <div class="meter-top">
                                     <span>Signal Strength</span>
-                                    <span>${sig}%</span>
+                                    <span style="font-weight: 600; color: var(--accent-cyan);">${sig}% (${sigDbm})</span>
                                 </div>
                                 <div class="sys-bar-track">
-                                    <div class="sys-bar-fill" style="width: ${sig}%; background: linear-gradient(90deg, var(--accent), var(--primary));"></div>
+                                    <div class="sys-bar-fill" style="width: ${sig}%; background: linear-gradient(90deg, #06b6d4, #10b981);"></div>
                                 </div>
                             </div>
 
@@ -1305,7 +1434,7 @@
                         </div>
 
                         <div class="card-actions">
-                            <button class="btn btn-sm btn-primary" onclick="triggerAdapterScan('${ad.id}', ${ad.adapter_idx})">
+                            <button class="btn btn-sm btn-primary" onclick="openScanModal('${ad.id}')">
                                 🔍 Scan Channels (${chCount})
                             </button>
                             <button class="btn btn-sm" onclick="editAdapter('${ad.id}')">
@@ -1474,7 +1603,9 @@
             hw.forEach(h => {
                 const opt = document.createElement('option');
                 opt.value = h.adapter_idx;
-                opt.textContent = `Adapter ${h.adapter_idx} (/dev/dvb/${h.device_path})${h.configured ? ' [Configured]' : ''}`;
+                const name = h.frontend_name || 'Silicon Labs Si2168';
+                const sys = h.delivery_systems || 'DVB-T/T2/C';
+                opt.textContent = `Adapter ${h.adapter_idx}: ${name} (${sys})${h.configured ? ' [In Use]' : ''}`;
                 sel.appendChild(opt);
             });
         }
@@ -1485,7 +1616,10 @@
             document.getElementById('ad-edit-mode').value = 'false';
             document.getElementById('ad-id').value = `adapter_${g_adapters.length}`;
             document.getElementById('ad-name').value = `MUX-${g_adapters.length + 1}`;
-            document.getElementById('ad-freq').value = '698000000';
+            document.getElementById('ad-freq').value = '';
+            document.getElementById('ad-freq').placeholder = 'e.g. 498 MHz or 498000000 Hz';
+            document.getElementById('ad-plp').value = '';
+            document.getElementById('ad-mod').value = '';
             refreshHardwareSelect();
             onDelsysChange();
             document.getElementById('modal-adapter').classList.add('open');
@@ -1500,10 +1634,14 @@
             document.getElementById('ad-name').value = ad.name;
             document.getElementById('ad-device').value = ad.adapter_idx;
             document.getElementById('ad-delsys').value = ad.delsys;
-            document.getElementById('ad-freq').value = ad.frequency_hz || ad.frequency || 0;
-            if (ad.bandwidth) document.getElementById('ad-bandwidth').value = ad.bandwidth;
+            let f = ad.frequency_mhz ? ad.frequency_mhz : (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency));
+            document.getElementById('ad-freq').value = f || '';
+            if (ad.bandwidth_mhz) document.getElementById('ad-bandwidth').value = ad.bandwidth_mhz;
             if (ad.symbol_rate) document.getElementById('ad-srate').value = ad.symbol_rate;
             if (ad.polarization) document.getElementById('ad-pol').value = ad.polarization;
+            if (ad.diseqc !== undefined) document.getElementById('ad-diseqc').value = ad.diseqc;
+            if (ad.multistream_id !== undefined && ad.multistream_id >= 0) document.getElementById('ad-plp').value = ad.multistream_id;
+            if (ad.modulation) document.getElementById('ad-mod').value = ad.modulation;
             onDelsysChange();
             document.getElementById('modal-adapter').classList.add('open');
         }
@@ -1516,6 +1654,7 @@
             const delsys = document.getElementById('ad-delsys').value;
             const isSat = delsys.includes('S');
             document.getElementById('group-bandwidth').style.display = isSat ? 'none' : 'flex';
+            document.getElementById('group-terr-opts').style.display = isSat ? 'none' : 'grid';
             document.getElementById('group-srate').style.display = isSat ? 'flex' : 'none';
             document.getElementById('group-sat-opts').style.display = isSat ? 'grid' : 'none';
         }
@@ -1525,6 +1664,21 @@
             const delsys = document.getElementById('ad-delsys').value;
             const isSat = delsys.includes('S');
 
+            let freqRaw = document.getElementById('ad-freq').value.trim();
+            let freqNum = parseFloat(freqRaw);
+            if (isNaN(freqNum) || freqNum <= 0) {
+                showToast("Please enter a valid tuning frequency (e.g. 498 MHz)", true);
+                return;
+            }
+            if (freqNum < 1000) {
+                freqNum *= 1000000;
+            } else if (freqNum >= 1000 && freqNum < 1000000) {
+                freqNum *= 1000;
+            }
+
+            const plpVal = document.getElementById('ad-plp').value.trim();
+            const plpId = plpVal !== '' ? parseInt(plpVal) : -1;
+
             const payload = {
                 id: document.getElementById('ad-id').value.trim(),
                 name: document.getElementById('ad-name').value.trim(),
@@ -1532,20 +1686,23 @@
                 adapter_idx: parseInt(document.getElementById('ad-device').value),
                 frontend_idx: 0,
                 delsys: delsys,
-                frequency: parseInt(document.getElementById('ad-freq').value),
+                frequency: Math.round(freqNum),
                 bandwidth: isSat ? 0 : parseInt(document.getElementById('ad-bandwidth').value),
                 symbol_rate: isSat ? parseInt(document.getElementById('ad-srate').value) : 0,
                 polarization: isSat ? document.getElementById('ad-pol').value : 'H',
-                lnb_type: isSat ? document.getElementById('ad-lnb').value : ''
+                diseqc: isSat ? parseInt(document.getElementById('ad-diseqc').value) : 0,
+                multistream_id: plpId,
+                modulation: document.getElementById('ad-mod').value
             };
 
             const res = await apiPost('/api/v1/adapters', payload);
             if (res && res.ok) {
-                showToast(`Adapter "${payload.name}" saved and configured!`);
+                showToast(`Adapter "${payload.name}" tuned to ${(freqNum / 1e6).toFixed(1)} MHz!`);
                 closeAdapterModal();
-                pollState();
+                await pollState();
+                openScanModal(payload.id);
             } else {
-                showToast(res ? res.error : "Failed to save adapter", true);
+                showToast(res ? res.error : "Failed to save and tune adapter", true);
             }
         }
 
@@ -1560,15 +1717,167 @@
             }
         }
 
-        async function triggerAdapterScan(id, adapter_idx) {
-            showToast(`Scanning transponder channels for Adapter ${adapter_idx}...`);
-            const res = await apiPost('/api/v1/adapters/scan', { id, adapter_idx });
-            if (res && res.ok) {
-                showToast("Channel scan completed!");
-                pollState();
-            } else {
-                showToast("Channel scan failed", true);
+        // Live Scanner Dialog Management
+        let g_activeScanAdapterId = null;
+        let g_scanTimer = null;
+
+        function openScanModal(adapter_id) {
+            const ad = g_adapters.find(a => a.id === adapter_id);
+            if (!ad) return;
+            g_activeScanAdapterId = adapter_id;
+            let fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
+            document.getElementById('scan-modal-title').textContent = `Live Scanner: ${ad.name}`;
+            document.getElementById('scan-modal-subtitle').textContent = `Adapter ${ad.adapter_idx} • ${fMhz} MHz (${ad.delsys})`;
+
+            document.getElementById('modal-scan').classList.add('open');
+            triggerScanRefresh();
+            if (g_scanTimer) clearInterval(g_scanTimer);
+            g_scanTimer = setInterval(triggerScanRefresh, 1000);
+            apiPost('/api/v1/adapters/scan', { id: adapter_id, adapter_idx: ad.adapter_idx });
+        }
+
+        function closeScanModal() {
+            document.getElementById('modal-scan').classList.remove('open');
+            if (g_scanTimer) {
+                clearInterval(g_scanTimer);
+                g_scanTimer = null;
             }
+            g_activeScanAdapterId = null;
+        }
+
+        async function triggerScanRefresh() {
+            if (!g_activeScanAdapterId) return;
+            const adapters = await apiGet('/api/v1/adapters');
+            if (!adapters || !Array.isArray(adapters)) return;
+            g_adapters = adapters;
+            const ad = g_adapters.find(a => a.id === g_activeScanAdapterId);
+            if (!ad) return;
+
+            // Signal strength
+            const sig = ad.signal_percent || 0;
+            const sigDbm = ad.signal_dbm !== undefined ? ad.signal_dbm.toFixed(1) + ' dBm' : (sig > 0 ? (-100 + sig).toFixed(1) + ' dBm' : '-- dBm');
+            document.getElementById('scan-sig-val').textContent = `${sig}%`;
+            document.getElementById('scan-sig-dbm').textContent = sigDbm;
+            document.getElementById('scan-sig-bar').style.width = `${sig}%`;
+
+            // Signal SNR / C/N
+            const snrDbVal = (ad.snr_db !== undefined ? ad.snr_db : (ad.snr_raw ? ad.snr_raw / 10 : 0)).toFixed(1);
+            const snrPct = Math.min(100, Math.round((parseFloat(snrDbVal) / 35.0) * 100));
+            document.getElementById('scan-snr-val').textContent = `${snrPct}%`;
+            document.getElementById('scan-snr-db').textContent = `${snrDbVal} dB`;
+            document.getElementById('scan-snr-bar').style.width = `${snrPct}%`;
+
+            // Lock badge
+            const badge = document.getElementById('scan-lock-badge');
+            if (ad.locked) {
+                badge.className = 'badge badge-success';
+                badge.textContent = 'LOCKED (DVB SYNC)';
+                badge.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.4)';
+            } else {
+                badge.className = 'badge badge-warning';
+                badge.textContent = 'SEARCHING...';
+                badge.style.boxShadow = 'none';
+            }
+
+            const br = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
+            document.getElementById('scan-bitrate').textContent = `${br} Mbps`;
+
+            // Channel list
+            const chs = ad.channels || [];
+            document.getElementById('scan-channel-count').textContent = chs.length;
+            const tbody = document.getElementById('tbody-scan-channels');
+
+            if (chs.length === 0) {
+                if (ad.locked) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Demuxing transponder PAT/SDT... incoming packets received.</td></tr>';
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Waiting for RF lock on transponder...</td></tr>';
+                }
+                return;
+            }
+
+            const checkedSids = new Set();
+            document.querySelectorAll('#tbody-scan-channels input[type="checkbox"]:checked').forEach(cb => {
+                checkedSids.add(parseInt(cb.value));
+            });
+
+            tbody.innerHTML = chs.map(c => {
+                const isChecked = checkedSids.has(c.service_id) || checkedSids.size === 0;
+                return `
+                <tr>
+                    <td style="text-align: center;">
+                        <input type="checkbox" value="${c.service_id}" data-name="${escapeHtml(c.name)}" ${isChecked ? 'checked' : ''}>
+                    </td>
+                    <td><strong>${c.service_id}</strong></td>
+                    <td><strong style="color: #fff;">${escapeHtml(c.name)}</strong></td>
+                    <td>${escapeHtml(c.provider || '-')}</td>
+                    <td><code>${c.pmt_pid || '-'}</code></td>
+                    <td>${c.scrambled ? '<span class="badge badge-warning">ENCRYPTED</span>' : '<span class="badge badge-success">FTA</span>'}</td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function toggleSelectAllChannels(check) {
+            document.querySelectorAll('#tbody-scan-channels input[type="checkbox"]').forEach(cb => {
+                cb.checked = check;
+            });
+        }
+
+        async function batchCreateSelectedStreams() {
+            if (!g_activeScanAdapterId) return;
+            const ad = g_adapters.find(a => a.id === g_activeScanAdapterId);
+            if (!ad) return;
+
+            const baseIp = document.getElementById('scan-batch-ip').value.trim() || '239.1.2.25';
+            const basePort = parseInt(document.getElementById('scan-batch-port').value) || 1234;
+
+            const selected = [];
+            document.querySelectorAll('#tbody-scan-channels input[type="checkbox"]:checked').forEach(cb => {
+                selected.push({
+                    service_id: parseInt(cb.value),
+                    name: cb.getAttribute('data-name')
+                });
+            });
+
+            if (selected.length === 0) {
+                showToast("Please select at least one TV service", true);
+                return;
+            }
+
+            const ipParts = baseIp.split('.');
+            if (ipParts.length !== 4) {
+                showToast("Invalid Base Multicast IP format", true);
+                return;
+            }
+
+            let startLastOctet = parseInt(ipParts[3]);
+            let created = 0;
+
+            for (let i = 0; i < selected.length; i++) {
+                const item = selected[i];
+                const ip = `${ipParts[0]}.${ipParts[1]}.${ipParts[2]}.${startLastOctet + i}`;
+                const payload = {
+                    id: `spts_${item.service_id}`,
+                    name: item.name || `Channel ${item.service_id}`,
+                    enabled: true,
+                    type: "spts",
+                    adapter_idx: ad.adapter_idx,
+                    service_id: item.service_id,
+                    ip: ip,
+                    port: basePort,
+                    ttl: 64,
+                    is_rtp: false,
+                    pacing: true
+                };
+
+                const res = await apiPost('/api/v1/streams', payload);
+                if (res && res.ok) created++;
+            }
+
+            showToast(`Created ${created} multicast streams successfully!`);
+            closeScanModal();
+            pollState();
         }
 
         // Stream Modal Actions

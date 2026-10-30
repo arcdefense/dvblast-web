@@ -81,7 +81,7 @@ extern int i_frontend;
 static void web_telemetry_cb(struct ev_loop *loop, struct ev_timer *w, int revents)
 {
     (void)loop; (void)w; (void)revents;
-    if ( pf_Open == dvb_Open && i_frequency > 0 && i_frontend >= 0 )
+    if ( pf_Open == dvb_Open && i_frontend >= 0 )
     {
         struct ret_frontend_status st;
         ssize_t sz = sizeof(st);
@@ -89,7 +89,9 @@ static void web_telemetry_cb(struct ev_loop *loop, struct ev_timer *w, int reven
         {
             bool locked = (st.i_status & FE_HAS_LOCK) != 0;
             uint16_t sig_pct = (uint16_t)((st.i_strength * 100) / 65535);
-            web_state_update_adapter_signal(i_adapter, locked, sig_pct, st.i_snr, st.i_ber, 0);
+            web_state_update_adapter_signal_ext(i_adapter, locked, sig_pct,
+                                                dvb_live_snr_db, dvb_live_signal_dbm,
+                                                st.i_ber, 0);
         }
     }
     web_state_calc_bitrates();

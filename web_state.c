@@ -206,14 +206,15 @@ web_adapter_t *web_state_find_adapter_by_idx(int adapter_idx) {
     return NULL;
 }
 
-void web_state_update_adapter_signal(int adapter_idx, bool locked, uint16_t strength, uint16_t snr, uint32_t ber, uint32_t ucb) {
+void web_state_update_adapter_signal_ext(int adapter_idx, bool locked, uint16_t strength, float snr_db, float signal_dbm, uint32_t ber, uint32_t ucb) {
     pthread_mutex_lock(&g_gateway.lock);
     for (int i = 0; i < g_gateway.num_adapters; i++) {
         if (g_gateway.adapters[i].adapter_idx == adapter_idx) {
             g_gateway.adapters[i].locked = locked;
             g_gateway.adapters[i].signal_percent = strength;
-            g_gateway.adapters[i].snr_raw = snr;
-            g_gateway.adapters[i].snr_db = (float)snr / 655.35f;
+            g_gateway.adapters[i].snr_db = snr_db;
+            g_gateway.adapters[i].signal_dbm = signal_dbm;
+            g_gateway.adapters[i].snr_raw = (uint16_t)(snr_db * 10.0f);
             g_gateway.adapters[i].ber = ber;
             g_gateway.adapters[i].ucb = ucb;
             g_gateway.adapters[i].last_status_time = time(NULL);
@@ -221,6 +222,12 @@ void web_state_update_adapter_signal(int adapter_idx, bool locked, uint16_t stre
         }
     }
     pthread_mutex_unlock(&g_gateway.lock);
+}
+
+void web_state_update_adapter_signal(int adapter_idx, bool locked, uint16_t strength, uint16_t snr, uint32_t ber, uint32_t ucb) {
+    float snr_db = (float)snr / 655.35f;
+    float signal_dbm = -100.0f + (float)strength;
+    web_state_update_adapter_signal_ext(adapter_idx, locked, strength, snr_db, signal_dbm, ber, ucb);
 }
 
 void web_state_clear_adapter_channels(int adapter_idx) {
@@ -702,6 +709,7 @@ json_t *web_state_adapters_to_json(void) {
         json_object_set_new(obj, "snr_raw", json_integer(ad->snr_raw));
         json_object_set_new(obj, "snr_db", json_real((double)ad->snr_db));
         json_object_set_new(obj, "signal_percent", json_integer(ad->signal_percent));
+        json_object_set_new(obj, "signal_dbm", json_real((double)ad->signal_dbm));
         json_object_set_new(obj, "ber", json_integer(ad->ber));
         json_object_set_new(obj, "ucb", json_integer(ad->ucb));
         json_object_set_new(obj, "bitrate_bps", json_integer(ad->bitrate_bps));

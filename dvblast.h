@@ -330,6 +330,13 @@ void dvb_OpenSec( void );
 void dvb_WriteSec( block_t *p_ts );
 uint8_t dvb_FrontendStatus( uint8_t *p_answer, ssize_t *pi_size );
 extern int i_frontend;
+extern float dvb_live_signal_dbm;
+extern float dvb_live_snr_db;
+void dvb_CloseDevices( void );
+bool dvb_TuneFrontend(int adapter, int frontend, uint64_t freq_hz, int bw_mhz,
+                      const char *delsys, int stream_id, const char *modulation,
+                      const char *guard, const char *transmit, int symbol_rate,
+                      int voltage, int diseqc, int tone);
 
 void udp_Open( void );
 void udp_Reset( void );

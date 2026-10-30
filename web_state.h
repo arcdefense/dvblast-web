@@ -62,6 +62,7 @@ typedef struct {
     uint16_t snr_raw;
     float    snr_db;
     uint16_t signal_percent;
+    float    signal_dbm;
     uint32_t ber;
     uint32_t ucb;
     uint32_t bitrate_bps;
@@ -149,6 +150,7 @@ bool web_state_delete_adapter(const char *id);
 web_adapter_t *web_state_find_adapter(const char *id);
 web_adapter_t *web_state_find_adapter_by_idx(int adapter_idx);
 void web_state_update_adapter_signal(int adapter_idx, bool locked, uint16_t strength, uint16_t snr, uint32_t ber, uint32_t ucb);
+void web_state_update_adapter_signal_ext(int adapter_idx, bool locked, uint16_t strength, float snr_db, float signal_dbm, uint32_t ber, uint32_t ucb);
 void web_state_add_adapter_channel(int adapter_idx, const channel_info_t *ch);
 void web_state_clear_adapter_channels(int adapter_idx);
 

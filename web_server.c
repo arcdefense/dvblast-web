@@ -146,7 +146,21 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         ad.adapter_idx = (int)json_integer_value(json_object_get(payload, "adapter_idx"));
         ad.frontend_idx = (int)json_integer_value(json_object_get(payload, "frontend_idx"));
         snprintf(ad.delsys, sizeof(ad.delsys), "%s", (del && *del) ? del : "DVBT2");
-        ad.frequency = (uint64_t)json_integer_value(json_object_get(payload, "frequency"));
+
+        json_t *j_freq = json_object_get(payload, "frequency");
+        double freq_val = 0.0;
+        if (json_is_string(j_freq)) {
+            freq_val = atof(json_string_value(j_freq));
+        } else if (json_is_number(j_freq)) {
+            freq_val = json_number_value(j_freq);
+        }
+        if (freq_val > 0.0 && freq_val < 1000.0) {
+            freq_val *= 1000000.0; /* e.g. 498 MHz -> 498000000 Hz */
+        } else if (freq_val >= 1000.0 && freq_val < 1000000.0) {
+            freq_val *= 1000.0;    /* e.g. 498000 kHz -> 498000000 Hz */
+        }
+        ad.frequency = (uint64_t)freq_val;
+
         ad.symbol_rate = (uint32_t)json_integer_value(json_object_get(payload, "symbol_rate"));
         ad.bandwidth = (int)json_integer_value(json_object_get(payload, "bandwidth"));
         if (ad.bandwidth <= 0) ad.bandwidth = 8;

@@ -33,8 +33,14 @@ bool web_manager_tune_adapter(int adapter_idx) {
     i_satnum = ad->diseqc;
     b_tone = ad->tone;
 
-    dvb_Reset();
-    return true;
+    bool ok = dvb_TuneFrontend(ad->adapter_idx, ad->frontend_idx, ad->frequency,
+                               ad->bandwidth, ad->delsys, ad->multistream_id,
+                               ad->modulation, NULL, NULL, (int)ad->symbol_rate,
+                               ad->voltage, ad->diseqc, ad->tone);
+    if (ok) {
+        demux_ExtractDiscoveredChannels();
+    }
+    return ok;
 }
 
 bool web_manager_add_adapter(const web_adapter_t *ad) {
@@ -55,10 +61,7 @@ bool web_manager_delete_adapter(const char *id) {
     if (!ad) return false;
 
     if (i_adapter == ad->adapter_idx) {
-        if (i_frontend >= 0) {
-            close(i_frontend);
-            i_frontend = -1;
-        }
+        dvb_CloseDevices();
         i_frequency = 0;
     }
 
