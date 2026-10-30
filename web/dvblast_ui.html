@@ -3070,21 +3070,6 @@
             showToast("Importing content...");
             setTimeout(() => showToast("Import completed successfully"), 1200);
         }
-;
-                const res = await fetch('/api/v1/modules/cas', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-                if (res.ok) {
-                    showToast("CAS Newcamd settings successfully saved");
-                } else {
-                    showToast("Failed to save CAS settings", true);
-                }
-            } catch (e) {
-                showToast("Error saving CAS settings", true);
-            }
-        }
 
         async function triggerEpgScan() {
             try {
