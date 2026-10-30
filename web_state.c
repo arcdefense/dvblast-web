@@ -7,7 +7,6 @@
 #include "modules/hls/hls.h"
 #include "modules/epg/epg.h"
 #include "modules/general/general.h"
-#include "modules/license/license.h"
 #include "modules/groups/groups.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -726,7 +725,6 @@ bool web_state_save_json(const char *path) {
 
     /* Modules Settings */
     json_object_set_new(root, "settings", general_to_json());
-    json_object_set_new(root, "license", license_to_json());
     json_object_set_new(root, "categories", groups_to_json());
     json_object_set_new(root, "http_play", http_play_to_json());
     json_object_set_new(root, "http_auth", http_auth_to_json());
@@ -1177,7 +1175,6 @@ json_t *web_state_config_to_json(void) {
     }
     json_object_set_new(root, "streams", s_arr);
     json_object_set_new(root, "settings", general_to_json());
-    json_object_set_new(root, "license", license_to_json());
     json_object_set_new(root, "categories", groups_to_json());
     json_object_set_new(root, "descramble", softcam_csa_to_json());
     json_object_set_new(root, "http_play", http_play_to_json());
