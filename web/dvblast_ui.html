@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DVBlast Web Gateway</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2306b6d4'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z'/></svg>">
+    <style>
+        :root {
+            --bg-base: #0b1120;
+            --bg-card: #131c31;
+            --bg-card-hover: #1e293b;
+            --bg-input: #0f172a;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #06b6d4;
+            --primary-hover: #0891b2;
+            --primary-glow: rgba(6, 182, 212, 0.25);
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top Navigation Bar */
+        header {
+            background: rgba(19, 28, 49, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0 24px;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--bg-input);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-tab {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: #0b1120;
+            font-weight: 700;
+        }
+
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        /* Main Container */
+        main {
+            max-width: 1400px;
+            width: 100%;
+            margin: 24px auto;
+            padding: 0 24px;
+            flex: 1;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.25s ease forwards;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Metric Grid */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .metric-card.accent::after { background: var(--accent); }
+        .metric-card.success::after { background: var(--success); }
+        .metric-card.warning::after { background: var(--warning); }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .metric-sub {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .meter-bar-container {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-input);
+            border-radius: 4px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .meter-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        /* Section Layouts */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Forms & Inputs */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-input, .form-select, .form-textarea {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--bg-card-hover);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #334155;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #0b1120;
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* Table */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background: var(--bg-input);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-danger  { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-primary { background: rgba(6, 182, 212, 0.15); color: var(--primary); border: 1px solid rgba(6, 182, 212, 0.3); }
+
+        /* Modal Dialog */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(11, 17, 32, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 540px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Terminal Logs */
+        .log-terminal {
+            background: #050811;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.85rem;
+            height: 480px;
+            overflow-y: auto;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .log-line {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .log-time { color: #64748b; }
+        .log-level-INFO  { color: #38bdf8; font-weight: bold; }
+        .log-level-WARN  { color: #fbbf24; font-weight: bold; }
+        .log-level-ERROR { color: #f87171; font-weight: bold; }
+
+        /* Code Editor */
+        .json-editor {
+            width: 100%;
+            height: 420px;
+            background: #050811;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: #38bdf8;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="header-content">
+            <div class="brand">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="var(--primary)">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
+                </svg>
+                <span>DVBLAST</span>
+                <span class="brand-badge">WEB GATEWAY</span>
+            </div>
+
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="tab-dashboard">Dashboard</button>
+                <button class="nav-tab" data-tab="tab-tuner">Tuner & Scan</button>
+                <button class="nav-tab" data-tab="tab-streams">Multicast Outputs</button>
+                <button class="nav-tab" data-tab="tab-softcam">SoftCAM</button>
+                <button class="nav-tab" data-tab="tab-config">System Config</button>
+                <button class="nav-tab" data-tab="tab-logs">Console Logs</button>
+            </nav>
+
+            <div class="header-status">
+                <div class="live-dot" title="Live Telemetry Connected"></div>
+                <span id="header-uptime" style="font-size: 0.85rem; color: var(--text-muted);">Uptime: 0s</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Views -->
+    <main>
+
+        <!-- DASHBOARD TAB -->
+        <div id="tab-dashboard" class="tab-pane active">
+            <!-- Telemetry Gauges -->
+            <div class="metric-grid">
+                <div class="metric-card success">
+                    <div class="metric-label">Tuner Lock Status</div>
+                    <div class="metric-value" id="val-lock">
+                        <span class="badge badge-success" id="badge-lock">LOCKED</span>
+                    </div>
+                    <div class="metric-sub" id="val-delsys-freq">DVB-T2 @ 698.0 MHz</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">Signal Quality (SNR)</div>
+                    <div class="metric-value">
+                        <span id="val-snr">28.4</span> <span class="metric-sub">dB</span>
+                    </div>
+                    <div class="meter-bar-container">
+                        <div class="meter-bar-fill" id="bar-snr" style="width: 85%;"></div>
+                    </div>
+                </div>
+
+                <div class="metric-card accent">
+                    <div class="metric-label">Signal Strength</div>
+                    <div class="metric-value">
+                        <span id="val-signal">78</span> <span class="metric-sub">%</span>
+                    </div>
+                    <div class="meter-bar-container">
+                        <div class="meter-bar-fill" id="bar-signal" style="width: 78%; background: linear-gradient(90deg, var(--accent), var(--primary));"></div>
+                    </div>
+                </div>
+
+                <div class="metric-card warning">
+                    <div class="metric-label">Total Ingest Bitrate</div>
+                    <div class="metric-value">
+                        <span id="val-bitrate">34.82</span> <span class="metric-sub">Mbps</span>
+                    </div>
+                    <div class="metric-sub" id="val-packets-count">Packets: 0</div>
+                </div>
+            </div>
+
+            <!-- Active Outputs Summary -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Active Multicast Streams</div>
+                    <button class="btn btn-primary btn-sm" onclick="openAddStreamModal()">+ New Stream</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="table-dashboard-streams">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Stream Name</th>
+                                <th>Target Multicast</th>
+                                <th>Service ID</th>
+                                <th>Pacing</th>
+                                <th>Bitrate</th>
+                                <th>Sent Packets</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-dashboard-streams">
+                            <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">No multicast streams configured.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TUNER & SCAN TAB -->
+        <div id="tab-tuner" class="tab-pane">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Tuner Hardware & Frequency Tuning</div>
+                </div>
+                <form id="form-tune" onsubmit="handleTuneSubmit(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">DVB Adapter</label>
+                            <select class="form-select" id="tune-adapter">
+                                <option value="0">Adapter 0 (/dev/dvb/adapter0)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Delivery System</label>
+                            <select class="form-select" id="tune-delsys">
+                                <option value="DVBT2">DVB-T2</option>
+                                <option value="DVBT">DVB-T</option>
+                                <option value="DVBS2">DVB-S2</option>
+                                <option value="DVBS">DVB-S</option>
+                                <option value="DVBC">DVB-C</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Frequency (Hz or kHz)</label>
+                            <input type="number" class="form-input" id="tune-freq" value="698000000" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Bandwidth (MHz)</label>
+                            <select class="form-select" id="tune-bandwidth">
+                                <option value="8">8 MHz</option>
+                                <option value="7">7 MHz</option>
+                                <option value="6">6 MHz</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Symbol Rate (DVB-S/C)</label>
+                            <input type="number" class="form-input" id="tune-srate" value="27500000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Polarization</label>
+                            <select class="form-select" id="tune-pol">
+                                <option value="H">Horizontal (18V)</option>
+                                <option value="V">Vertical (13V)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button type="submit" class="btn btn-primary">Tune Frontend</button>
+                        <button type="button" class="btn" onclick="triggerChannelScan()">Scan Transponder</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Discovered Channels Table -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Discovered Transponder Channels</div>
+                    <span id="scan-status" class="metric-sub">Ready</span>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>SID (PNR)</th>
+                                <th>Channel Name</th>
+                                <th>Provider</th>
+                                <th>PMT</th>
+                                <th>Video PID</th>
+                                <th>Audio PIDs</th>
+                                <th>Access (CAS)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-channels">
+                            <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">No channels scanned yet. Click "Scan Transponder" to discover programs.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- STREAMS TAB -->
+        <div id="tab-streams" class="tab-pane">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Multicast Output Routes</div>
+                    <button class="btn btn-primary" onclick="openAddStreamModal()">+ Add Multicast Output</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Enabled</th>
+                                <th>Target Multicast IP:Port</th>
+                                <th>Service ID</th>
+                                <th>Packet Pacing</th>
+                                <th>Bitrate</th>
+                                <th>Packets</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-all-streams">
+                            <tr><td colspan="9" style="text-align: center; color: var(--text-muted);">No streams configured.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SOFTCAM TAB -->
+        <div id="tab-softcam" class="tab-pane">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">SoftCAM Key Management (BISS / Constant CW)</div>
+                    <button class="btn btn-primary btn-sm" onclick="openAddKeyModal()">+ Add Descramble Key</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Key ID</th>
+                                <th>Name</th>
+                                <th>Target SID</th>
+                                <th>Key (Hex)</th>
+                                <th>Status</th>
+                                <th>Descrambled Packets</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-softcam">
+                            <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No SoftCAM keys registered.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIG TAB -->
+        <div id="tab-config" class="tab-pane">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Gateway Configuration (JSON)</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sm" onclick="loadConfigJson()">Reload from Disk</button>
+                        <button class="btn btn-primary btn-sm" onclick="saveConfigJson()">Save & Apply</button>
+                    </div>
+                </div>
+                <textarea class="json-editor" id="config-json-textarea"></textarea>
+            </div>
+        </div>
+
+        <!-- LOGS TAB -->
+        <div id="tab-logs" class="tab-pane">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Realtime System Terminal</div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" class="form-input" id="log-search" placeholder="Filter logs..." style="padding: 6px 12px; font-size: 0.85rem;">
+                        <button class="btn btn-sm" onclick="clearLogsUI()">Clear</button>
+                    </div>
+                </div>
+                <div class="log-terminal" id="log-console">
+                    <!-- Logs stream in here -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Add/Edit Stream -->
+    <div class="modal-overlay" id="modal-stream">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-stream-title">Create Multicast Stream</h3>
+                <button class="modal-close" onclick="closeStreamModal()">&times;</button>
+            </div>
+            <form id="form-stream" onsubmit="handleStreamSubmit(event)">
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label">Stream ID</label>
+                    <input type="text" class="form-input" id="stream-id" required placeholder="e.g. stream_ch1">
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label">Stream Name</label>
+                    <input type="text" class="form-input" id="stream-name" placeholder="Channel 1 Live">
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label">Service ID (SID / PNR)</label>
+                    <input type="number" class="form-input" id="stream-sid" value="0" placeholder="0 for Full MPTS">
+                </div>
+                <div class="form-grid" style="margin-bottom: 12px;">
+                    <div class="form-group">
+                        <label class="form-label">Multicast Target IP</label>
+                        <input type="text" class="form-input" id="stream-ip" value="239.255.1.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Port</label>
+                        <input type="number" class="form-input" id="stream-port" value="5000" required>
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-bottom: 16px;">
+                    <div class="form-group">
+                        <label class="form-label">Protocol</label>
+                        <select class="form-select" id="stream-protocol">
+                            <option value="udp">Raw UDP</option>
+                            <option value="rtp">RTP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Packet Pacing</label>
+                        <select class="form-select" id="stream-pacing">
+                            <option value="true">Enabled (Anti-Drop)</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn" onclick="closeStreamModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Stream</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add SoftCAM Key -->
+    <div class="modal-overlay" id="modal-key">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Add SoftCAM Descramble Key</h3>
+                <button class="modal-close" onclick="closeKeyModal()">&times;</button>
+            </div>
+            <form id="form-key" onsubmit="handleKeySubmit(event)">
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label">Key ID</label>
+                    <input type="text" class="form-input" id="key-id" required placeholder="e.g. biss_ch1">
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label">Channel / Match Name</label>
+                    <input type="text" class="form-input" id="key-name" placeholder="Channel Name">
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label">Service ID (SID / PNR)</label>
+                    <input type="number" class="form-input" id="key-sid" value="101" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label">Key Hex (BISS-1 / Constant CW)</label>
+                    <input type="text" class="form-input" id="key-hex" required placeholder="12, 16, or 32 Hex Characters (e.g. 11 22 33 44 55 66 77 88)">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn" onclick="closeKeyModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Key</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Tab Navigation
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                const target = document.getElementById(tab.dataset.tab);
+                if (target) target.classList.add('active');
+                if (tab.dataset.tab === 'tab-config') loadConfigJson();
+            });
+        });
+
+        // API Helpers
+        async function apiGet(endpoint) {
+            try {
+                const res = await fetch(endpoint);
+                return await res.json();
+            } catch (e) {
+                console.error("API GET Error:", endpoint, e);
+                return null;
+            }
+        }
+
+        async function apiPost(endpoint, data) {
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                return await res.json();
+            } catch (e) {
+                console.error("API POST Error:", endpoint, e);
+                return null;
+            }
+        }
+
+        // Live Telemetry Update
+        async function updateTelemetry() {
+            const data = await apiGet('/api/v1/telemetry');
+            if (!data) return;
+
+            document.getElementById('header-uptime').textContent = `Uptime: ${formatDuration(data.uptime_seconds || 0)}`;
+
+            const t = data.tuner || {};
+            const isLocked = t.locked;
+            const badgeLock = document.getElementById('badge-lock');
+            badgeLock.textContent = isLocked ? 'LOCKED' : 'SEARCHING';
+            badgeLock.className = `badge ${isLocked ? 'badge-success' : 'badge-danger'}`;
+
+            document.getElementById('val-delsys-freq').textContent = `${t.delsys || 'DVB'} @ ${(t.frequency_mhz || (t.frequency_hz / 1000000) || 0).toFixed(1)} MHz`;
+
+            const snr = t.snr_db || 0;
+            document.getElementById('val-snr').textContent = snr.toFixed(1);
+            document.getElementById('bar-snr').style.width = `${Math.min(100, Math.max(0, (snr / 35) * 100))}%`;
+
+            const sig = t.signal_percent || 0;
+            document.getElementById('val-signal').textContent = sig;
+            document.getElementById('bar-signal').style.width = `${sig}%`;
+
+            const br = data.input_bitrate_mbps || ((data.input_bitrate_bps || 0) / 1000000);
+            document.getElementById('val-bitrate').textContent = br.toFixed(2);
+            document.getElementById('val-packets-count').textContent = `Packets: ${(data.total_input_packets || 0).toLocaleString()}`;
+        }
+
+        // Channels Loader
+        async function loadChannels() {
+            const channels = await apiGet('/api/v1/frontend/channels');
+            if (!channels || !Array.isArray(channels)) return;
+
+            const tbody = document.getElementById('tbody-channels');
+            if (channels.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">No channels discovered yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = channels.map(c => `
+                <tr>
+                    <td><strong>${c.service_id}</strong></td>
+                    <td><strong>${escapeHtml(c.name || 'Service ' + c.service_id)}</strong></td>
+                    <td>${escapeHtml(c.provider || '-')}</td>
+                    <td><code>${c.pmt_pid || '-'}</code></td>
+                    <td><code>${c.video_pid || '-'}</code></td>
+                    <td><code>${(c.audio_pids || []).map(a => a.pid).join(', ') || '-'}</code></td>
+                    <td>
+                        <span class="badge ${c.scrambled ? 'badge-warning' : 'badge-success'}">
+                            ${c.scrambled ? 'ENCRYPTED' : 'CLEAR'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="quickCreateStream(${c.service_id}, '${escapeHtml(c.name)}')">
+                            + Stream
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Streams Loader
+        async function loadStreams() {
+            const streams = await apiGet('/api/v1/mux/outputs');
+            if (!streams || !Array.isArray(streams)) return;
+
+            const updateTbody = (tbodyId, isDash) => {
+                const tbody = document.getElementById(tbodyId);
+                if (!tbody) return;
+                if (streams.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="${isDash ? 8 : 9}" style="text-align:center; color:var(--text-muted);">No multicast streams configured.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = streams.map(s => `
+                    <tr>
+                        ${isDash ? '' : `<td><code>${escapeHtml(s.id)}</code></td>`}
+                        <td><span class="badge ${s.enabled ? 'badge-success' : 'badge-danger'}">${s.enabled ? 'RUNNING' : 'DISABLED'}</span></td>
+                        <td><strong>${escapeHtml(s.name || s.id)}</strong></td>
+                        <td><code>${s.is_rtp ? 'rtp' : 'udp'}://${escapeHtml(s.ip)}:${s.port}</code></td>
+                        <td><code>${s.service_id === 0 ? 'MPTS (All)' : s.service_id}</code></td>
+                        <td><span class="badge ${s.pacing ? 'badge-primary' : 'badge-warning'}">${s.pacing ? 'PACED' : 'OFF'}</span></td>
+                        <td>${((s.bitrate_bps || 0) / 1000000).toFixed(2)} Mbps</td>
+                        <td>${(s.packets_sent || 0).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteStream('${escapeHtml(s.id)}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            };
+
+            updateTbody('tbody-dashboard-streams', true);
+            updateTbody('tbody-all-streams', false);
+        }
+
+        // SoftCAM Loader
+        async function loadSoftcam() {
+            const keys = await apiGet('/api/v1/descramble/keys');
+            if (!keys || !Array.isArray(keys)) return;
+
+            const tbody = document.getElementById('tbody-softcam');
+            if (keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No SoftCAM keys registered.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = keys.map(k => `
+                <tr>
+                    <td><code>${escapeHtml(k.id)}</code></td>
+                    <td><strong>${escapeHtml(k.name || k.id)}</strong></td>
+                    <td><code>${k.service_id === 0 ? 'All' : k.service_id}</code></td>
+                    <td><code>${escapeHtml(k.key)}</code></td>
+                    <td><span class="badge ${k.valid ? 'badge-success' : 'badge-danger'}">${k.valid ? 'VALID CW' : 'INVALID'}</span></td>
+                    <td>${(k.descrambled_packets || 0).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteKey('${escapeHtml(k.id)}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Logs Loader
+        async function loadLogs() {
+            const logs = await apiGet('/api/v1/system/logs?limit=100');
+            if (!logs || !Array.isArray(logs)) return;
+
+            const consoleElem = document.getElementById('log-console');
+            const search = document.getElementById('log-search').value.toLowerCase();
+
+            consoleElem.innerHTML = logs
+                .filter(l => !search || (l.message && l.message.toLowerCase().includes(search)))
+                .map(l => {
+                    const d = new Date(l.timestamp * 1000);
+                    const timeStr = d.toLocaleTimeString();
+                    return `<div class="log-line">
+                        <span class="log-time">[${timeStr}]</span>
+                        <span class="log-level-${l.level}">[${l.level}]</span>
+                        <span>${escapeHtml(l.message)}</span>
+                    </div>`;
+                }).join('');
+        }
+
+        // Tuner & Scan Actions
+        async function handleTuneSubmit(e) {
+            e.preventDefault();
+            const payload = {
+                adapter: parseInt(document.getElementById('tune-adapter').value),
+                delsys: document.getElementById('tune-delsys').value,
+                frequency: parseInt(document.getElementById('tune-freq').value),
+                bandwidth: parseInt(document.getElementById('tune-bandwidth').value),
+                symbol_rate: parseInt(document.getElementById('tune-srate').value),
+                polarization: document.getElementById('tune-pol').value
+            };
+
+            const res = await apiPost('/api/v1/frontend/tune', payload);
+            if (res && res.ok) {
+                alert("Tune command sent successfully!");
+                updateTelemetry();
+            } else {
+                alert("Failed to tune frontend: " + (res?.error || "Unknown error"));
+            }
+        }
+
+        async function triggerChannelScan() {
+            const statusElem = document.getElementById('scan-status');
+            statusElem.textContent = "Scanning transponder (reading PAT/PMT/SDT)...";
+            const res = await apiPost('/api/v1/frontend/scan', {});
+            if (res && res.ok) {
+                statusElem.textContent = `Scan complete: ${res.channels ? res.channels.length : 0} channels found.`;
+                loadChannels();
+            } else {
+                statusElem.textContent = "Scan failed.";
+            }
+        }
+
+        // Stream Modal Actions
+        function openAddStreamModal() {
+            document.getElementById('modal-stream-title').textContent = "Create Multicast Stream";
+            document.getElementById('stream-id').value = "stream_" + Date.now();
+            document.getElementById('stream-name').value = "";
+            document.getElementById('stream-sid').value = "0";
+            document.getElementById('modal-stream').classList.add('open');
+        }
+
+        function quickCreateStream(sid, name) {
+            openAddStreamModal();
+            document.getElementById('stream-id').value = "ch_" + sid;
+            document.getElementById('stream-name').value = name;
+            document.getElementById('stream-sid').value = sid;
+            document.getElementById('stream-ip').value = "239.255.1." + ((sid % 250) + 1);
+        }
+
+        function closeStreamModal() {
+            document.getElementById('modal-stream').classList.remove('open');
+        }
+
+        async function handleStreamSubmit(e) {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('stream-id').value,
+                name: document.getElementById('stream-name').value,
+                service_id: parseInt(document.getElementById('stream-sid').value),
+                ip: document.getElementById('stream-ip').value,
+                port: parseInt(document.getElementById('stream-port').value),
+                is_rtp: document.getElementById('stream-protocol').value === 'rtp',
+                pacing: document.getElementById('stream-pacing').value === 'true',
+                enabled: true
+            };
+
+            const res = await apiPost('/api/v1/mux/outputs', payload);
+            if (res && res.ok) {
+                closeStreamModal();
+                loadStreams();
+            } else {
+                alert("Failed to save stream: " + (res?.error || "Unknown error"));
+            }
+        }
+
+        async function deleteStream(id) {
+            if (!confirm(`Delete stream ${id}?`)) return;
+            const res = await apiPost('/api/v1/mux/outputs/delete', { id });
+            if (res && res.ok) loadStreams();
+        }
+
+        // SoftCAM Modal Actions
+        function openAddKeyModal() {
+            document.getElementById('key-id').value = "key_" + Date.now();
+            document.getElementById('modal-key').classList.add('open');
+        }
+
+        function closeKeyModal() {
+            document.getElementById('modal-key').classList.remove('open');
+        }
+
+        async function handleKeySubmit(e) {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('key-id').value,
+                name: document.getElementById('key-name').value,
+                service_id: parseInt(document.getElementById('key-sid').value),
+                key: document.getElementById('key-hex').value,
+                enabled: true
+            };
+
+            const res = await apiPost('/api/v1/descramble/keys', payload);
+            if (res && res.ok) {
+                closeKeyModal();
+                loadSoftcam();
+            } else {
+                alert("Failed to save SoftCAM key: " + (res?.error || "Unknown error"));
+            }
+        }
+
+        async function deleteKey(id) {
+            if (!confirm(`Delete key ${id}?`)) return;
+            const res = await apiPost('/api/v1/descramble/keys/delete', { id });
+            if (res && res.ok) loadSoftcam();
+        }
+
+        // Config Actions
+        async function loadConfigJson() {
+            const data = await apiGet('/api/v1/system/config');
+            if (data) {
+                document.getElementById('config-json-textarea').value = JSON.stringify(data, null, 2);
+            }
+        }
+
+        async function saveConfigJson() {
+            try {
+                const jsonText = document.getElementById('config-json-textarea').value;
+                const parsed = JSON.parse(jsonText);
+                const res = await apiPost('/api/v1/system/config', parsed);
+                if (res && res.ok) {
+                    alert("Configuration saved and applied successfully!");
+                    updateTelemetry();
+                    loadStreams();
+                    loadSoftcam();
+                } else {
+                    alert("Failed to save config: " + (res?.error || "Unknown"));
+                }
+            } catch (err) {
+                alert("Invalid JSON format: " + err.message);
+            }
+        }
+
+        function clearLogsUI() {
+            document.getElementById('log-console').innerHTML = '';
+        }
+
+        // Utilities
+        function formatDuration(sec) {
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = sec % 60;
+            return `${h}h ${m}m ${s}s`;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Background Telemetry Polling (every 1.5 seconds)
+        setInterval(() => {
+            updateTelemetry();
+            if (document.getElementById('tab-logs').classList.contains('active')) {
+                loadLogs();
+            }
+        }, 1500);
+
+        // Initial Load
+        updateTelemetry();
+        loadChannels();
+        loadStreams();
+        loadSoftcam();
+        loadLogs();
+    </script>
+</body>
+</html>
