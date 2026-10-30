@@ -188,4 +188,5 @@ DVBlast Web Gateway provides a comprehensive JSON REST API:
 
 * **License**: GNU General Public License version 2 ([GPL-2.0](COPYING)).
 * **Original Project**: Developed by the [VideoLAN team](https://www.videolan.org/projects/dvblast.html) (Christophe Massiot, Jean-Paul Saman, Marian Durkovic, and contributors).
+* **Original Documentation**: See the original [README](README) file for upstream legacy DVBlast plain-text documentation.
 * **Enhanced Web Distribution**: Maintained by [arcdefense](https://github.com/arcdefense/dvblast-web).
