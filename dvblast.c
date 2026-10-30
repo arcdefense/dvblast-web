@@ -76,28 +76,20 @@ static char *psz_web_host = NULL;
 static char *psz_json_config = NULL;
 static bool b_web_enabled = true;
 static struct ev_timer web_telemetry_watcher;
+extern int i_frontend;
 
 static void web_telemetry_cb(struct ev_loop *loop, struct ev_timer *w, int revents)
 {
     (void)loop; (void)w; (void)revents;
-    if ( pf_Open == dvb_Open && i_frequency > 0 )
+    if ( pf_Open == dvb_Open && i_frequency > 0 && i_frontend >= 0 )
     {
         struct ret_frontend_status st;
         ssize_t sz = sizeof(st);
         if ( dvb_FrontendStatus((uint8_t *)&st, &sz) == RET_FRONTEND_STATUS )
         {
-            tuner_state_t t;
-            memset(&t, 0, sizeof(t));
-            t.locked = (st.i_status & FE_HAS_LOCK) != 0;
-            t.signal_percent = (uint16_t)((st.i_strength * 100) / 65535);
-            t.snr_raw = st.i_snr;
-            t.snr_db = (float)st.i_snr / 655.35f;
-            t.ber = st.i_ber;
-            t.frequency = i_frequency;
-            t.bandwidth = i_bandwidth;
-            t.symbol_rate = i_srate;
-            if ( psz_delsys ) snprintf(t.delsys, sizeof(t.delsys), "%s", psz_delsys);
-            web_state_update_tuner(&t);
+            bool locked = (st.i_status & FE_HAS_LOCK) != 0;
+            uint16_t sig_pct = (uint16_t)((st.i_strength * 100) / 65535);
+            web_state_update_adapter_signal(i_adapter, locked, sig_pct, st.i_snr, st.i_ber, 0);
         }
     }
     web_state_calc_bitrates();

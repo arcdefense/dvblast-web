@@ -24,9 +24,9 @@ static struct MHD_Daemon *g_mhd_daemon = NULL;
 static void add_cors_headers(struct MHD_Response *response) {
     if (!response) return;
     MHD_add_response_header(response, "Access-Control-Allow-Origin", "*");
-    MHD_add_response_header(response, "Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+    MHD_add_response_header(response, "Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, HEAD");
     MHD_add_response_header(response, "Access-Control-Allow-Headers", "Content-Type, Authorization");
-    MHD_add_response_header(response, "Server", "DVBlast-Web-Gateway");
+    MHD_add_response_header(response, "Server", "DVBlast-Web-Gateway/2.0");
 }
 
 static int send_response(struct MHD_Connection *conn, int status_code,
@@ -65,35 +65,43 @@ static int send_json_error(struct MHD_Connection *conn, int status_code, const c
 }
 
 static int handle_get_request(struct MHD_Connection *conn, const char *url) {
+    /* UI Page */
     if (strcmp(url, "/") == 0 || strcmp(url, "/index.html") == 0) {
         return send_response(conn, 200, "text/html; charset=utf-8", web_ui_html, web_ui_html_len);
     }
 
-    if (strcmp(url, "/api/v1/telemetry") == 0) {
+    /* System Telemetry */
+    if (strcmp(url, "/api/v1/system") == 0 || strcmp(url, "/api/v1/telemetry") == 0) {
         return send_json(conn, 200, web_state_telemetry_to_json());
     }
 
-    if (strcmp(url, "/api/v1/hardware/tuners") == 0) {
-        return send_json(conn, 200, web_state_tuners_to_json());
+    /* Configured Adapters */
+    if (strcmp(url, "/api/v1/adapters") == 0 || strcmp(url, "/api/v1/frontend/channels") == 0) {
+        return send_json(conn, 200, web_state_adapters_to_json());
     }
 
-    if (strcmp(url, "/api/v1/frontend/channels") == 0) {
-        return send_json(conn, 200, web_state_channels_to_json());
+    /* Hardware Detection */
+    if (strcmp(url, "/api/v1/hardware") == 0 || strcmp(url, "/api/v1/hardware/tuners") == 0) {
+        return send_json(conn, 200, web_state_hardware_to_json());
     }
 
-    if (strcmp(url, "/api/v1/mux/outputs") == 0) {
+    /* Configured Streams */
+    if (strcmp(url, "/api/v1/streams") == 0 || strcmp(url, "/api/v1/mux/outputs") == 0) {
         return send_json(conn, 200, web_state_streams_to_json());
     }
 
-    if (strcmp(url, "/api/v1/descramble/keys") == 0) {
+    /* SoftCAM Keys */
+    if (strcmp(url, "/api/v1/softcam") == 0 || strcmp(url, "/api/v1/descramble/keys") == 0) {
         return send_json(conn, 200, softcam_csa_to_json());
     }
 
-    if (strcmp(url, "/api/v1/system/config") == 0) {
+    /* Full System Configuration */
+    if (strcmp(url, "/api/v1/config") == 0 || strcmp(url, "/api/v1/system/config") == 0) {
         return send_json(conn, 200, web_state_config_to_json());
     }
 
-    if (strncmp(url, "/api/v1/system/logs", 19) == 0) {
+    /* Logs */
+    if (strcmp(url, "/api/v1/logs") == 0 || strncmp(url, "/api/v1/system/logs", 19) == 0) {
         return send_json(conn, 200, web_state_logs_to_json(100));
     }
 
@@ -107,89 +115,198 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         payload = json_loads(body, 0, &jerr);
     }
 
-    if (strcmp(url, "/api/v1/frontend/tune") == 0) {
+    /* ===================================================================== */
+    /*  ADAPTERS API                                                         */
+    /* ===================================================================== */
+
+    if (strcmp(url, "/api/v1/adapters") == 0 || strcmp(url, "/api/v1/frontend/tune") == 0) {
         if (!payload || !json_is_object(payload)) {
             if (payload) json_decref(payload);
-            return send_json_error(conn, 400, "Invalid JSON body for tune");
+            return send_json_error(conn, 400, "Invalid JSON body for adapter configuration");
         }
-        tuner_state_t t;
-        memset(&t, 0, sizeof(t));
-        t.adapter = (int)json_integer_value(json_object_get(payload, "adapter"));
-        const char *del = json_string_value(json_object_get(payload, "delsys"));
-        if (del) snprintf(t.delsys, sizeof(t.delsys), "%s", del);
-        t.frequency = (uint64_t)json_integer_value(json_object_get(payload, "frequency"));
-        t.bandwidth = (int)json_integer_value(json_object_get(payload, "bandwidth"));
-        t.symbol_rate = (uint32_t)json_integer_value(json_object_get(payload, "symbol_rate"));
-        const char *pol = json_string_value(json_object_get(payload, "polarization"));
-        if (pol) snprintf(t.polarization, sizeof(t.polarization), "%s", pol);
-        if (strcmp(t.polarization, "V") == 0 || strcmp(t.polarization, "13") == 0) t.voltage = 13;
-        else t.voltage = 18;
 
-        bool ok = web_manager_tune(&t);
-        json_decref(payload);
-        return ok ? send_json_ok(conn, "Frontend tuned successfully") : send_json_error(conn, 500, "Frontend tuning failed");
-    }
+        web_adapter_t ad;
+        memset(&ad, 0, sizeof(ad));
 
-    if (strcmp(url, "/api/v1/frontend/scan") == 0) {
-        if (payload) json_decref(payload);
-        web_manager_trigger_scan();
-        json_t *res = json_object();
-        json_object_set_new(res, "ok", json_true());
-        json_object_set_new(res, "channels", web_state_channels_to_json());
-        return send_json(conn, 200, res);
-    }
-
-    if (strcmp(url, "/api/v1/mux/outputs") == 0) {
-        if (!payload || !json_is_object(payload)) {
-            if (payload) json_decref(payload);
-            return send_json_error(conn, 400, "Invalid JSON payload for stream output");
-        }
-        web_stream_config_t st;
-        memset(&st, 0, sizeof(st));
         const char *id = json_string_value(json_object_get(payload, "id"));
         const char *nm = json_string_value(json_object_get(payload, "name"));
-        const char *ip = json_string_value(json_object_get(payload, "ip"));
-        const char *ifc = json_string_value(json_object_get(payload, "iface"));
+        const char *del = json_string_value(json_object_get(payload, "delsys"));
+        const char *pol = json_string_value(json_object_get(payload, "polarization"));
+        const char *lnb = json_string_value(json_object_get(payload, "lnb_type"));
+        const char *mod = json_string_value(json_object_get(payload, "modulation"));
 
-        if (!id || !ip) {
+        if (!id || !*id) {
             json_decref(payload);
-            return send_json_error(conn, 400, "Missing required stream fields: 'id' and 'ip'");
+            return send_json_error(conn, 400, "Missing required field: 'id'");
         }
 
-        snprintf(st.id, sizeof(st.id), "%s", id);
-        snprintf(st.name, sizeof(st.name), "%s", (nm && *nm) ? nm : id);
-        snprintf(st.ip, sizeof(st.ip), "%s", ip);
-        if (ifc) snprintf(st.iface, sizeof(st.iface), "%s", ifc);
-        st.port = (int)json_integer_value(json_object_get(payload, "port"));
-        if (st.port <= 0) st.port = 5000;
-        st.service_id = (uint16_t)json_integer_value(json_object_get(payload, "service_id"));
-        st.ttl = (int)json_integer_value(json_object_get(payload, "ttl"));
-        if (st.ttl <= 0) st.ttl = 16;
-        st.is_rtp = json_is_true(json_object_get(payload, "is_rtp"));
-        st.pacing = !json_is_false(json_object_get(payload, "pacing"));
-        st.enabled = !json_is_false(json_object_get(payload, "enabled"));
+        snprintf(ad.id, sizeof(ad.id), "%s", id);
+        snprintf(ad.name, sizeof(ad.name), "%s", (nm && *nm) ? nm : id);
+        ad.enabled = !json_is_false(json_object_get(payload, "enabled"));
+        ad.adapter_idx = (int)json_integer_value(json_object_get(payload, "adapter_idx"));
+        ad.frontend_idx = (int)json_integer_value(json_object_get(payload, "frontend_idx"));
+        snprintf(ad.delsys, sizeof(ad.delsys), "%s", (del && *del) ? del : "DVBT2");
+        ad.frequency = (uint64_t)json_integer_value(json_object_get(payload, "frequency"));
+        ad.symbol_rate = (uint32_t)json_integer_value(json_object_get(payload, "symbol_rate"));
+        ad.bandwidth = (int)json_integer_value(json_object_get(payload, "bandwidth"));
+        if (ad.bandwidth <= 0) ad.bandwidth = 8;
+        snprintf(ad.polarization, sizeof(ad.polarization), "%s", (pol && *pol) ? pol : "H");
 
-        bool ok = web_manager_add_stream(&st);
+        if (strcmp(ad.polarization, "V") == 0 || strcmp(ad.polarization, "13") == 0) {
+            ad.voltage = 13;
+        } else {
+            ad.voltage = 18;
+        }
+
+        ad.tone = (int)json_integer_value(json_object_get(payload, "tone"));
+        ad.diseqc = (int)json_integer_value(json_object_get(payload, "diseqc"));
+        if (lnb) snprintf(ad.lnb_type, sizeof(ad.lnb_type), "%s", lnb);
+        if (mod) snprintf(ad.modulation, sizeof(ad.modulation), "%s", mod);
+        ad.multistream_id = (int)json_integer_value(json_object_get(payload, "multistream_id"));
+
+        bool ok = web_manager_add_adapter(&ad);
         json_decref(payload);
-        return ok ? send_json_ok(conn, "Stream created/updated") : send_json_error(conn, 500, "Failed to create stream");
+        return ok ? send_json_ok(conn, "Adapter saved and configured") : send_json_error(conn, 500, "Failed to configure adapter");
     }
 
-    if (strcmp(url, "/api/v1/mux/outputs/delete") == 0) {
+    if (strcmp(url, "/api/v1/adapters/delete") == 0) {
         if (!payload || !json_is_object(payload)) {
             if (payload) json_decref(payload);
             return send_json_error(conn, 400, "Invalid JSON body");
         }
         const char *id = json_string_value(json_object_get(payload, "id"));
-        if (!id) {
+        if (!id || !*id) {
             json_decref(payload);
-            return send_json_error(conn, 400, "Missing stream 'id'");
+            return send_json_error(conn, 400, "Missing required field: 'id'");
+        }
+        bool ok = web_manager_delete_adapter(id);
+        json_decref(payload);
+        return ok ? send_json_ok(conn, "Adapter deleted") : send_json_error(conn, 404, "Adapter not found");
+    }
+
+    if (strcmp(url, "/api/v1/adapters/scan") == 0 || strcmp(url, "/api/v1/frontend/scan") == 0) {
+        int adapter_idx = 0;
+        if (payload && json_is_object(payload)) {
+            const char *id = json_string_value(json_object_get(payload, "id"));
+            if (id) {
+                web_adapter_t *ad = web_state_find_adapter(id);
+                if (ad) adapter_idx = ad->adapter_idx;
+            } else {
+                adapter_idx = (int)json_integer_value(json_object_get(payload, "adapter_idx"));
+            }
+        }
+        if (payload) json_decref(payload);
+
+        web_manager_trigger_scan(adapter_idx);
+        json_t *res = json_object();
+        json_object_set_new(res, "ok", json_true());
+        json_object_set_new(res, "adapters", web_state_adapters_to_json());
+        return send_json(conn, 200, res);
+    }
+
+    /* ===================================================================== */
+    /*  STREAMS API                                                          */
+    /* ===================================================================== */
+
+    if (strcmp(url, "/api/v1/streams") == 0 || strcmp(url, "/api/v1/mux/outputs") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body for stream");
+        }
+
+        web_stream_config_t st;
+        memset(&st, 0, sizeof(st));
+
+        const char *id = json_string_value(json_object_get(payload, "id"));
+        const char *nm = json_string_value(json_object_get(payload, "name"));
+        const char *tp = json_string_value(json_object_get(payload, "type"));
+        const char *in = json_string_value(json_object_get(payload, "input_url"));
+        const char *out = json_string_value(json_object_get(payload, "output_url"));
+        const char *ip = json_string_value(json_object_get(payload, "ip"));
+        const char *bk = json_string_value(json_object_get(payload, "biss_key"));
+
+        if (!id || !*id) {
+            json_decref(payload);
+            return send_json_error(conn, 400, "Missing required field: 'id'");
+        }
+
+        snprintf(st.id, sizeof(st.id), "%s", id);
+        snprintf(st.name, sizeof(st.name), "%s", (nm && *nm) ? nm : id);
+        snprintf(st.type, sizeof(st.type), "%s", (tp && *tp) ? tp : "spts");
+        if (in) snprintf(st.input_url, sizeof(st.input_url), "%s", in);
+        if (out) snprintf(st.output_url, sizeof(st.output_url), "%s", out);
+        if (bk) snprintf(st.biss_key, sizeof(st.biss_key), "%s", bk);
+
+        st.enabled = !json_is_false(json_object_get(payload, "enabled"));
+        st.adapter_idx = (int)json_integer_value(json_object_get(payload, "adapter_idx"));
+        st.service_id = (uint16_t)json_integer_value(json_object_get(payload, "service_id"));
+        st.port = (int)json_integer_value(json_object_get(payload, "port"));
+        if (st.port <= 0) st.port = 5000;
+
+        if (ip && *ip) {
+            snprintf(st.ip, sizeof(st.ip), "%s", ip);
+        } else if (out && *out) {
+            /* Parse IP from output_url e.g. udp://239.255.1.1:5000 */
+            const char *p = strstr(out, "://");
+            p = p ? (p + 3) : out;
+            char hostbuf[64];
+            snprintf(hostbuf, sizeof(hostbuf), "%s", p);
+            char *colon = strchr(hostbuf, ':');
+            if (colon) {
+                *colon = '\0';
+                st.port = atoi(colon + 1);
+            }
+            snprintf(st.ip, sizeof(st.ip), "%s", hostbuf);
+        } else {
+            snprintf(st.ip, sizeof(st.ip), "239.255.1.1");
+        }
+
+        st.ttl = (int)json_integer_value(json_object_get(payload, "ttl"));
+        if (st.ttl <= 0) st.ttl = 16;
+        st.is_rtp = json_is_true(json_object_get(payload, "is_rtp"));
+        st.pacing = !json_is_false(json_object_get(payload, "pacing"));
+
+        bool ok = web_manager_add_stream(&st);
+        json_decref(payload);
+        return ok ? send_json_ok(conn, "Stream saved and route configured") : send_json_error(conn, 500, "Failed to configure stream");
+    }
+
+    if (strcmp(url, "/api/v1/streams/delete") == 0 || strcmp(url, "/api/v1/mux/outputs/delete") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        const char *id = json_string_value(json_object_get(payload, "id"));
+        if (!id || !*id) {
+            json_decref(payload);
+            return send_json_error(conn, 400, "Missing required field: 'id'");
         }
         bool ok = web_manager_delete_stream(id);
         json_decref(payload);
         return ok ? send_json_ok(conn, "Stream deleted") : send_json_error(conn, 404, "Stream not found");
     }
 
-    if (strcmp(url, "/api/v1/descramble/keys") == 0) {
+    if (strcmp(url, "/api/v1/streams/toggle") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        const char *id = json_string_value(json_object_get(payload, "id"));
+        bool enabled = !json_is_false(json_object_get(payload, "enabled"));
+        if (!id || !*id) {
+            json_decref(payload);
+            return send_json_error(conn, 400, "Missing required field: 'id'");
+        }
+        bool ok = web_manager_toggle_stream(id, enabled);
+        json_decref(payload);
+        return ok ? send_json_ok(conn, "Stream state toggled") : send_json_error(conn, 404, "Stream not found");
+    }
+
+    /* ===================================================================== */
+    /*  SOFTCAM API                                                          */
+    /* ===================================================================== */
+
+    if (strcmp(url, "/api/v1/softcam") == 0 || strcmp(url, "/api/v1/descramble/keys") == 0) {
         if (!payload || !json_is_object(payload)) {
             if (payload) json_decref(payload);
             return send_json_error(conn, 400, "Invalid JSON body for SoftCAM key");
@@ -210,7 +327,7 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         return ok ? send_json_ok(conn, "SoftCAM key saved") : send_json_error(conn, 500, "Failed to set SoftCAM key");
     }
 
-    if (strcmp(url, "/api/v1/descramble/keys/delete") == 0) {
+    if (strcmp(url, "/api/v1/softcam/delete") == 0 || strcmp(url, "/api/v1/descramble/keys/delete") == 0) {
         if (!payload || !json_is_object(payload)) {
             if (payload) json_decref(payload);
             return send_json_error(conn, 400, "Invalid JSON body");
@@ -226,12 +343,15 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         return ok ? send_json_ok(conn, "SoftCAM key deleted") : send_json_error(conn, 404, "Key not found");
     }
 
-    if (strcmp(url, "/api/v1/system/config") == 0) {
+    /* ===================================================================== */
+    /*  CONFIGURATION API                                                    */
+    /* ===================================================================== */
+
+    if (strcmp(url, "/api/v1/config") == 0 || strcmp(url, "/api/v1/system/config") == 0) {
         if (!payload || !json_is_object(payload)) {
             if (payload) json_decref(payload);
             return send_json_error(conn, 400, "Invalid JSON payload for config");
         }
-        /* Save payload directly */
         char tmp_path[300];
         snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", g_gateway.config_file);
         int res = json_dump_file(payload, tmp_path, JSON_INDENT(2));
@@ -246,25 +366,17 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         return send_json_error(conn, 500, "Failed to write configuration file");
     }
 
-    if (strcmp(url, "/api/v1/system/reload") == 0) {
-        if (payload) json_decref(payload);
-        web_state_load_json(g_gateway.config_file);
-        web_manager_sync_outputs();
-        return send_json_ok(conn, "Gateway reloaded");
-    }
-
     if (payload) json_decref(payload);
     return send_json_error(conn, 404, "Endpoint Not Found");
 }
 
 static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
-                                   const char *url, const char *method,
-                                   const char *version, const char *upload_data,
-                                   size_t *upload_data_size, void **con_cls) {
+                                    const char *url, const char *method,
+                                    const char *version, const char *upload_data,
+                                    size_t *upload_data_size, void **con_cls) {
     (void)cls; (void)version;
 
     if (*con_cls == NULL) {
-        /* New request */
         http_request_ctx_t *ctx = calloc(1, sizeof(http_request_ctx_t));
         if (!ctx) return MHD_NO;
         snprintf(ctx->method, sizeof(ctx->method), "%s", method);
@@ -275,15 +387,12 @@ static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
 
     http_request_ctx_t *ctx = (http_request_ctx_t *)*con_cls;
 
-    /* Handle upload data for POST/PUT */
-    if (*upload_data_size > 0) {
+    if (*upload_data_size != 0) {
         if (ctx->size + *upload_data_size > POST_BUFFER_MAX) {
             *upload_data_size = 0;
             return MHD_NO;
         }
-        char *new_buf = realloc(ctx->data, ctx->size + *upload_data_size + 1);
-        if (!new_buf) return MHD_NO;
-        ctx->data = new_buf;
+        ctx->data = realloc(ctx->data, ctx->size + *upload_data_size + 1);
         memcpy(ctx->data + ctx->size, upload_data, *upload_data_size);
         ctx->size += *upload_data_size;
         ctx->data[ctx->size] = '\0';
@@ -291,7 +400,7 @@ static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
         return MHD_YES;
     }
 
-    /* Handle preflight CORS OPTIONS */
+    /* Handle OPTIONS pre-flight */
     if (strcasecmp(method, "OPTIONS") == 0) {
         struct MHD_Response *resp = MHD_create_response_from_buffer(0, "", MHD_RESPMEM_PERSISTENT);
         add_cors_headers(resp);
@@ -300,50 +409,48 @@ static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
         return ret;
     }
 
-    if (strcasecmp(method, "GET") == 0) {
+    if (strcasecmp(method, "GET") == 0 || strcasecmp(method, "HEAD") == 0) {
         return handle_get_request(conn, url);
     } else if (strcasecmp(method, "POST") == 0) {
-        return handle_post_request(conn, url, ctx->data);
-    } else if (strcasecmp(method, "DELETE") == 0) {
-        /* Support DELETE as well */
         return handle_post_request(conn, url, ctx->data);
     }
 
     return send_json_error(conn, 405, "Method Not Allowed");
 }
 
-static void request_completed_callback(void *cls, struct MHD_Connection *conn,
-                                       void **con_cls, enum MHD_RequestTerminationCode toe) {
+static void request_completed(void *cls, struct MHD_Connection *conn,
+                              void **con_cls, enum MHD_RequestTerminationCode toe) {
     (void)cls; (void)conn; (void)toe;
     http_request_ctx_t *ctx = (http_request_ctx_t *)*con_cls;
     if (ctx) {
-        free(ctx->data);
+        if (ctx->data) free(ctx->data);
         free(ctx);
         *con_cls = NULL;
     }
 }
 
 bool web_server_start(int port, const char *host) {
-    if (g_mhd_daemon) return true;
+    if (g_mhd_daemon) {
+        web_state_log("WARN", "Web server already running");
+        return true;
+    }
 
     (void)host;
-    int listen_port = (port > 0) ? port : 8088;
-
     g_mhd_daemon = MHD_start_daemon(
-        MHD_USE_AUTO | MHD_USE_INTERNAL_POLLING_THREAD | MHD_USE_ERROR_LOG,
-        (uint16_t)listen_port,
+        MHD_USE_SELECT_INTERNALLY,
+        port,
         NULL, NULL,
         &http_handler, NULL,
-        MHD_OPTION_NOTIFY_COMPLETED, &request_completed_callback, NULL,
+        MHD_OPTION_NOTIFY_COMPLETED, &request_completed, NULL,
         MHD_OPTION_END
     );
 
     if (!g_mhd_daemon) {
-        web_state_log("ERROR", "Failed to start Web Server on port %d", listen_port);
+        web_state_log("ERROR", "Failed to start HTTP server on port %d", port);
         return false;
     }
 
-    web_state_log("INFO", "Web Server started on http://0.0.0.0:%d/", listen_port);
+    web_state_log("INFO", "HTTP Server running at http://0.0.0.0:%d", port);
     return true;
 }
 
@@ -351,10 +458,6 @@ void web_server_stop(void) {
     if (g_mhd_daemon) {
         MHD_stop_daemon(g_mhd_daemon);
         g_mhd_daemon = NULL;
-        web_state_log("INFO", "Web Server stopped");
+        web_state_log("INFO", "HTTP Server stopped");
     }
-}
-
-bool web_server_is_running(void) {
-    return (g_mhd_daemon != NULL);
 }

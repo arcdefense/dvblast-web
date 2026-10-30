@@ -73,7 +73,8 @@
 
 int i_dvr_buffer_size = DVR_BUFFER_SIZE;
 
-static int i_frontend, i_dvr, i_sec;
+int i_frontend = -1;
+static int i_dvr = -1, i_sec = -1;
 static struct ev_io frontend_watcher, dvr_watcher;
 static struct ev_timer lock_watcher, mute_watcher, print_watcher;
 static fe_status_t i_last_status;
@@ -221,7 +222,7 @@ static void DVRRead(struct ev_loop *loop, struct ev_io *w, int revents)
     }
     else if ( i_len > 0 )
     {
-        web_state_update_input_stats( i_len, i_len / TS_SIZE );
+        web_state_update_input_stats( i_adapter, i_len, i_len / TS_SIZE );
     }
     i_len /= TS_SIZE;
 

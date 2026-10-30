@@ -11,6 +11,53 @@
 
 gateway_state_t g_gateway;
 
+/* CPU calculation state */
+static unsigned long long prev_user = 0, prev_nice = 0, prev_system = 0, prev_idle = 0, prev_iowait = 0;
+static float g_cpu_usage = 0.0f;
+
+static void read_system_cpu(void) {
+    FILE *fp = fopen("/proc/stat", "r");
+    if (!fp) return;
+
+    char line[256];
+    if (fgets(line, sizeof(line), fp)) {
+        unsigned long long user, nice, system, idle, iowait;
+        if (sscanf(line, "cpu %llu %llu %llu %llu %llu", &user, &nice, &system, &idle, &iowait) == 5) {
+            unsigned long long total = (user - prev_user) + (nice - prev_nice) +
+                                      (system - prev_system) + (idle - prev_idle) +
+                                      (iowait - prev_iowait);
+            unsigned long long work = (user - prev_user) + (nice - prev_nice) +
+                                     (system - prev_system);
+            if (total > 0) {
+                g_cpu_usage = ((float)work / (float)total) * 100.0f;
+            }
+            prev_user = user;
+            prev_nice = nice;
+            prev_system = system;
+            prev_idle = idle;
+            prev_iowait = iowait;
+        }
+    }
+    fclose(fp);
+}
+
+static void read_system_ram(uint64_t *out_total_kb, uint64_t *out_available_kb) {
+    *out_total_kb = 0;
+    *out_available_kb = 0;
+    FILE *fp = fopen("/proc/meminfo", "r");
+    if (!fp) return;
+
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+        if (strncmp(line, "MemTotal:", 9) == 0) {
+            sscanf(line + 9, "%lu", out_total_kb);
+        } else if (strncmp(line, "MemAvailable:", 13) == 0) {
+            sscanf(line + 13, "%lu", out_available_kb);
+        }
+    }
+    fclose(fp);
+}
+
 void web_state_init(int http_port, const char *http_host, const char *config_file) {
     memset(&g_gateway, 0, sizeof(g_gateway));
     pthread_mutex_init(&g_gateway.lock, NULL);
@@ -23,17 +70,12 @@ void web_state_init(int http_port, const char *http_host, const char *config_fil
     g_gateway.start_time = time(NULL);
     g_gateway.last_bitrate_calc = g_gateway.start_time;
 
-    /* Default tuner values */
-    g_gateway.tuner.adapter = 0;
-    g_gateway.tuner.frontend = 0;
-    snprintf(g_gateway.tuner.delsys, sizeof(g_gateway.tuner.delsys), "DVBT2");
-    g_gateway.tuner.bandwidth = 8;
-    g_gateway.tuner.frequency = 698000000;
-    g_gateway.tuner.symbol_rate = 27500000;
-    snprintf(g_gateway.tuner.polarization, sizeof(g_gateway.tuner.polarization), "H");
-    g_gateway.tuner.voltage = 18;
+    /* Clean initial state: 0 adapters, 0 streams */
+    g_gateway.num_adapters = 0;
+    g_gateway.num_streams = 0;
 
-    web_state_log("INFO", "DVBlast Gateway State initialized on port %d", g_gateway.http_port);
+    read_system_cpu();
+    web_state_log("INFO", "DVBlast Gateway initialized on port %d (Clean state: 0 adapters, 0 streams)", g_gateway.http_port);
 }
 
 void web_state_cleanup(void) {
@@ -52,7 +94,6 @@ void web_state_log(const char *level, const char *fmt, ...) {
     pthread_mutex_lock(&g_gateway.lock);
     int idx = (g_gateway.log_head + g_gateway.log_count) % MAX_LOG_ENTRIES;
     if (g_gateway.log_count >= MAX_LOG_ENTRIES) {
-        /* Overwrite oldest */
         g_gateway.log_head = (g_gateway.log_head + 1) % MAX_LOG_ENTRIES;
     } else {
         g_gateway.log_count++;
@@ -65,7 +106,6 @@ void web_state_log(const char *level, const char *fmt, ...) {
     snprintf(entry->message, sizeof(entry->message), "%s", buf);
     pthread_mutex_unlock(&g_gateway.lock);
 
-    /* Also print to stderr for console visibility */
     char timestr[32];
     struct tm tm_buf;
     localtime_r(&now, &tm_buf);
@@ -73,104 +113,199 @@ void web_state_log(const char *level, const char *fmt, ...) {
     fprintf(stderr, "[%s] [%s] %s\n", timestr, level ? level : "INFO", buf);
 }
 
-void web_state_update_tuner(const tuner_state_t *tuner) {
-    if (!tuner) return;
-    pthread_mutex_lock(&g_gateway.lock);
-    g_gateway.tuner.locked = tuner->locked;
-    g_gateway.tuner.snr_raw = tuner->snr_raw;
-    g_gateway.tuner.snr_db = tuner->snr_db;
-    g_gateway.tuner.signal_percent = tuner->signal_percent;
-    g_gateway.tuner.ber = tuner->ber;
-    g_gateway.tuner.ucb = tuner->ucb;
-    g_gateway.tuner.last_status_time = time(NULL);
-    if (tuner->frequency > 0) g_gateway.tuner.frequency = tuner->frequency;
-    if (tuner->bandwidth > 0) g_gateway.tuner.bandwidth = tuner->bandwidth;
-    if (tuner->symbol_rate > 0) g_gateway.tuner.symbol_rate = tuner->symbol_rate;
-    if (tuner->delsys[0]) snprintf(g_gateway.tuner.delsys, sizeof(g_gateway.tuner.delsys), "%s", tuner->delsys);
-    pthread_mutex_unlock(&g_gateway.lock);
-}
+/* ========================================================================= */
+/*  ADAPTERS MANAGEMENT                                                      */
+/* ========================================================================= */
 
-void web_state_update_input_stats(uint64_t bytes, uint64_t packets) {
-    pthread_mutex_lock(&g_gateway.lock);
-    g_gateway.total_input_bytes += bytes;
-    g_gateway.total_input_packets += packets;
-    pthread_mutex_unlock(&g_gateway.lock);
-}
-
-void web_state_calc_bitrates(void) {
-    pthread_mutex_lock(&g_gateway.lock);
-    time_t now = time(NULL);
-    double elapsed = difftime(now, g_gateway.last_bitrate_calc);
-    if (elapsed >= 1.0) {
-        uint64_t delta_bytes = g_gateway.total_input_bytes - g_gateway.last_calc_bytes;
-        g_gateway.input_bitrate_bps = (uint32_t)((delta_bytes * 8) / elapsed);
-        g_gateway.last_calc_bytes = g_gateway.total_input_bytes;
-        g_gateway.last_bitrate_calc = now;
-    }
-    pthread_mutex_unlock(&g_gateway.lock);
-}
-
-void web_state_clear_channels(void) {
-    pthread_mutex_lock(&g_gateway.lock);
-    g_gateway.num_channels = 0;
-    memset(g_gateway.channels, 0, sizeof(g_gateway.channels));
-    pthread_mutex_unlock(&g_gateway.lock);
-}
-
-void web_state_add_channel(const channel_info_t *ch) {
-    if (!ch || ch->service_id == 0) return;
+bool web_state_add_or_update_adapter(const web_adapter_t *ad) {
+    if (!ad || !ad->id[0]) return false;
+    web_adapter_t copy = *ad;
     pthread_mutex_lock(&g_gateway.lock);
 
-    channel_info_t *existing = NULL;
-    for (int i = 0; i < g_gateway.num_channels; i++) {
-        if (g_gateway.channels[i].service_id == ch->service_id) {
-            existing = &g_gateway.channels[i];
+    web_adapter_t *target = NULL;
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        if (strcmp(g_gateway.adapters[i].id, copy.id) == 0) {
+            target = &g_gateway.adapters[i];
             break;
         }
     }
 
-    if (!existing) {
-        if (g_gateway.num_channels < MAX_DISCOVERED_CHANNELS) {
-            existing = &g_gateway.channels[g_gateway.num_channels++];
-        } else {
+    if (!target) {
+        if (g_gateway.num_adapters >= MAX_WEB_ADAPTERS) {
+            pthread_mutex_unlock(&g_gateway.lock);
+            return false;
+        }
+        target = &g_gateway.adapters[g_gateway.num_adapters++];
+        memset(target, 0, sizeof(*target));
+    }
+
+    snprintf(target->id, sizeof(target->id), "%s", copy.id);
+    snprintf(target->name, sizeof(target->name), "%s", copy.name[0] ? copy.name : copy.id);
+    target->enabled = copy.enabled;
+    target->adapter_idx = copy.adapter_idx;
+    target->frontend_idx = copy.frontend_idx;
+    snprintf(target->delsys, sizeof(target->delsys), "%s", copy.delsys[0] ? copy.delsys : "DVBT2");
+    target->frequency = copy.frequency;
+    target->symbol_rate = copy.symbol_rate;
+    target->bandwidth = (copy.bandwidth > 0) ? copy.bandwidth : 8;
+    snprintf(target->polarization, sizeof(target->polarization), "%s", copy.polarization[0] ? copy.polarization : "H");
+    target->voltage = copy.voltage;
+    target->tone = copy.tone;
+    target->diseqc = copy.diseqc;
+    snprintf(target->lnb_type, sizeof(target->lnb_type), "%s", copy.lnb_type);
+    snprintf(target->modulation, sizeof(target->modulation), "%s", copy.modulation);
+    target->multistream_id = copy.multistream_id;
+
+    pthread_mutex_unlock(&g_gateway.lock);
+    web_state_log("INFO", "Adapter %s (%s, Dev: /dev/dvb/adapter%d, Freq: %llu Hz) configured",
+                  target->id, target->name, target->adapter_idx, (unsigned long long)target->frequency);
+    return true;
+}
+
+bool web_state_delete_adapter(const char *id) {
+    if (!id || !*id) return false;
+    pthread_mutex_lock(&g_gateway.lock);
+
+    int idx = -1;
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        if (strcmp(g_gateway.adapters[i].id, id) == 0) {
+            idx = i;
+            break;
+        }
+    }
+
+    if (idx >= 0) {
+        char name[128];
+        snprintf(name, sizeof(name), "%s", g_gateway.adapters[idx].name);
+        for (int i = idx; i < g_gateway.num_adapters - 1; i++) {
+            g_gateway.adapters[i] = g_gateway.adapters[i + 1];
+        }
+        g_gateway.num_adapters--;
+        memset(&g_gateway.adapters[g_gateway.num_adapters], 0, sizeof(web_adapter_t));
+        pthread_mutex_unlock(&g_gateway.lock);
+        web_state_log("INFO", "Adapter %s (%s) deleted", id, name);
+        return true;
+    }
+
+    pthread_mutex_unlock(&g_gateway.lock);
+    return false;
+}
+
+web_adapter_t *web_state_find_adapter(const char *id) {
+    if (!id) return NULL;
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        if (strcmp(g_gateway.adapters[i].id, id) == 0) return &g_gateway.adapters[i];
+    }
+    return NULL;
+}
+
+web_adapter_t *web_state_find_adapter_by_idx(int adapter_idx) {
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        if (g_gateway.adapters[i].adapter_idx == adapter_idx) return &g_gateway.adapters[i];
+    }
+    return NULL;
+}
+
+void web_state_update_adapter_signal(int adapter_idx, bool locked, uint16_t strength, uint16_t snr, uint32_t ber, uint32_t ucb) {
+    pthread_mutex_lock(&g_gateway.lock);
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        if (g_gateway.adapters[i].adapter_idx == adapter_idx) {
+            g_gateway.adapters[i].locked = locked;
+            g_gateway.adapters[i].signal_percent = strength;
+            g_gateway.adapters[i].snr_raw = snr;
+            g_gateway.adapters[i].snr_db = (float)snr / 655.35f;
+            g_gateway.adapters[i].ber = ber;
+            g_gateway.adapters[i].ucb = ucb;
+            g_gateway.adapters[i].last_status_time = time(NULL);
+            break;
+        }
+    }
+    pthread_mutex_unlock(&g_gateway.lock);
+}
+
+void web_state_clear_adapter_channels(int adapter_idx) {
+    pthread_mutex_lock(&g_gateway.lock);
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        if (g_gateway.adapters[i].adapter_idx == adapter_idx) {
+            g_gateway.adapters[i].num_channels = 0;
+            memset(g_gateway.adapters[i].channels, 0, sizeof(g_gateway.adapters[i].channels));
+            break;
+        }
+    }
+    pthread_mutex_unlock(&g_gateway.lock);
+}
+
+void web_state_add_adapter_channel(int adapter_idx, const channel_info_t *ch) {
+    if (!ch || ch->service_id == 0) return;
+    pthread_mutex_lock(&g_gateway.lock);
+
+    web_adapter_t *ad = NULL;
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        if (g_gateway.adapters[i].adapter_idx == adapter_idx) {
+            ad = &g_gateway.adapters[i];
+            break;
+        }
+    }
+
+    if (!ad) {
+        if (g_gateway.num_adapters > 0) ad = &g_gateway.adapters[0];
+        else {
             pthread_mutex_unlock(&g_gateway.lock);
             return;
         }
     }
 
-    existing->service_id = ch->service_id;
-    if (ch->name[0]) snprintf(existing->name, sizeof(existing->name), "%s", ch->name);
-    else if (!existing->name[0]) snprintf(existing->name, sizeof(existing->name), "Service %u", ch->service_id);
-
-    if (ch->provider[0]) snprintf(existing->provider, sizeof(existing->provider), "%s", ch->provider);
-    if (ch->pmt_pid > 0) existing->pmt_pid = ch->pmt_pid;
-    if (ch->video_pid > 0) existing->video_pid = ch->video_pid;
-    if (ch->video_type > 0) existing->video_type = ch->video_type;
-    if (ch->num_audio_pids > 0) {
-        existing->num_audio_pids = ch->num_audio_pids;
-        memcpy(existing->audio_pids, ch->audio_pids, sizeof(existing->audio_pids));
-        memcpy(existing->audio_types, ch->audio_types, sizeof(existing->audio_types));
+    channel_info_t *target = NULL;
+    for (int c = 0; c < ad->num_channels; c++) {
+        if (ad->channels[c].service_id == ch->service_id) {
+            target = &ad->channels[c];
+            break;
+        }
     }
-    existing->scrambled = ch->scrambled;
-    existing->last_seen = time(NULL);
+
+    if (!target) {
+        if (ad->num_channels >= MAX_DISCOVERED_CHANNELS) {
+            pthread_mutex_unlock(&g_gateway.lock);
+            return;
+        }
+        target = &ad->channels[ad->num_channels++];
+    }
+
+    target->service_id = ch->service_id;
+    if (ch->name[0]) snprintf(target->name, sizeof(target->name), "%s", ch->name);
+    else if (!target->name[0]) snprintf(target->name, sizeof(target->name), "Program %u", ch->service_id);
+    if (ch->provider[0]) snprintf(target->provider, sizeof(target->provider), "%s", ch->provider);
+    if (ch->pmt_pid > 0) target->pmt_pid = ch->pmt_pid;
+    if (ch->video_pid > 0) target->video_pid = ch->video_pid;
+    if (ch->video_type > 0) target->video_type = ch->video_type;
+    if (ch->num_audio_pids > 0) {
+        target->num_audio_pids = ch->num_audio_pids;
+        memcpy(target->audio_pids, ch->audio_pids, sizeof(target->audio_pids));
+        memcpy(target->audio_types, ch->audio_types, sizeof(target->audio_types));
+    }
+    target->scrambled = ch->scrambled;
+    target->last_seen = time(NULL);
 
     pthread_mutex_unlock(&g_gateway.lock);
 }
 
-channel_info_t *web_state_find_channel(uint16_t sid) {
-    for (int i = 0; i < g_gateway.num_channels; i++) {
-        if (g_gateway.channels[i].service_id == sid) return &g_gateway.channels[i];
-    }
-    return NULL;
+void web_state_add_channel(const channel_info_t *ch) {
+    extern int i_adapter;
+    web_state_add_adapter_channel(i_adapter, ch);
 }
+
+/* ========================================================================= */
+/*  STREAMS MANAGEMENT                                                       */
+/* ========================================================================= */
 
 bool web_state_add_or_update_stream(const web_stream_config_t *stream) {
     if (!stream || !stream->id[0] || !stream->ip[0] || stream->port <= 0) return false;
+    web_stream_config_t copy = *stream;
     pthread_mutex_lock(&g_gateway.lock);
 
     web_stream_config_t *target = NULL;
     for (int i = 0; i < g_gateway.num_streams; i++) {
-        if (strcmp(g_gateway.streams[i].id, stream->id) == 0) {
+        if (strcmp(g_gateway.streams[i].id, copy.id) == 0) {
             target = &g_gateway.streams[i];
             break;
         }
@@ -182,28 +317,34 @@ bool web_state_add_or_update_stream(const web_stream_config_t *stream) {
             return false;
         }
         target = &g_gateway.streams[g_gateway.num_streams++];
+        memset(target, 0, sizeof(*target));
         target->created_at = time(NULL);
     }
 
-    snprintf(target->id, sizeof(target->id), "%s", stream->id);
-    snprintf(target->name, sizeof(target->name), "%s", stream->name[0] ? stream->name : stream->id);
-    target->enabled = stream->enabled;
-    target->service_id = stream->service_id;
-    snprintf(target->ip, sizeof(target->ip), "%s", stream->ip);
-    target->port = stream->port;
-    snprintf(target->iface, sizeof(target->iface), "%s", stream->iface);
-    target->ttl = (stream->ttl > 0) ? stream->ttl : 16;
-    target->is_rtp = stream->is_rtp;
-    target->pacing = stream->pacing;
-    target->bitrate_bps = stream->bitrate_bps;
+    snprintf(target->id, sizeof(target->id), "%s", copy.id);
+    snprintf(target->name, sizeof(target->name), "%s", copy.name[0] ? copy.name : copy.id);
+    target->enabled = copy.enabled;
+    snprintf(target->type, sizeof(target->type), "%s", copy.type[0] ? copy.type : (copy.service_id == 0 ? "mpts" : "spts"));
+    snprintf(target->input_url, sizeof(target->input_url), "%s", copy.input_url);
+    snprintf(target->output_url, sizeof(target->output_url), "%s", copy.output_url);
+    target->adapter_idx = copy.adapter_idx;
+    target->service_id = copy.service_id;
+    snprintf(target->ip, sizeof(target->ip), "%s", copy.ip);
+    target->port = copy.port;
+    target->ttl = (copy.ttl > 0) ? copy.ttl : 16;
+    target->is_rtp = copy.is_rtp;
+    target->pacing = copy.pacing;
+    target->bitrate_bps = copy.bitrate_bps;
+    if (copy.biss_key[0]) snprintf(target->biss_key, sizeof(target->biss_key), "%s", copy.biss_key);
 
     pthread_mutex_unlock(&g_gateway.lock);
-    web_state_log("INFO", "Stream %s (%s:%d, SID: %u) saved", target->id, target->ip, target->port, target->service_id);
+    web_state_log("INFO", "Stream %s (%s, Dest: %s:%d, SID: %u) saved",
+                  target->id, target->name, target->ip, target->port, target->service_id);
     return true;
 }
 
 bool web_state_delete_stream(const char *id) {
-    if (!id) return false;
+    if (!id || !*id) return false;
     pthread_mutex_lock(&g_gateway.lock);
 
     int idx = -1;
@@ -215,13 +356,15 @@ bool web_state_delete_stream(const char *id) {
     }
 
     if (idx >= 0) {
+        char name[128];
+        snprintf(name, sizeof(name), "%s", g_gateway.streams[idx].name);
         for (int i = idx; i < g_gateway.num_streams - 1; i++) {
             g_gateway.streams[i] = g_gateway.streams[i + 1];
         }
         g_gateway.num_streams--;
         memset(&g_gateway.streams[g_gateway.num_streams], 0, sizeof(web_stream_config_t));
         pthread_mutex_unlock(&g_gateway.lock);
-        web_state_log("INFO", "Stream %s deleted", id);
+        web_state_log("INFO", "Stream %s (%s) deleted", id, name);
         return true;
     }
 
@@ -237,34 +380,106 @@ web_stream_config_t *web_state_find_stream(const char *id) {
     return NULL;
 }
 
+web_stream_config_t *web_state_find_stream_by_dest(const char *ip, int port) {
+    if (!ip || port <= 0) return NULL;
+    for (int i = 0; i < g_gateway.num_streams; i++) {
+        if (g_gateway.streams[i].port == port && strcmp(g_gateway.streams[i].ip, ip) == 0) {
+            return &g_gateway.streams[i];
+        }
+    }
+    return NULL;
+}
+
+/* ========================================================================= */
+/*  STATS & TELEMETRY                                                        */
+/* ========================================================================= */
+
+void web_state_update_input_stats(int adapter_idx, uint64_t bytes, uint64_t packets) {
+    pthread_mutex_lock(&g_gateway.lock);
+    g_gateway.total_input_bytes += bytes;
+    g_gateway.total_input_packets += packets;
+
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        if (g_gateway.adapters[i].adapter_idx == adapter_idx) {
+            g_gateway.adapters[i].total_bytes += bytes;
+            g_gateway.adapters[i].total_packets += packets;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&g_gateway.lock);
+}
+
+void web_state_update_output_stats(uint64_t bytes, uint64_t packets) {
+    pthread_mutex_lock(&g_gateway.lock);
+    g_gateway.total_output_bytes += bytes;
+    g_gateway.total_output_packets += packets;
+    pthread_mutex_unlock(&g_gateway.lock);
+}
+
+void web_state_calc_bitrates(void) {
+    read_system_cpu();
+
+    pthread_mutex_lock(&g_gateway.lock);
+    time_t now = time(NULL);
+    double elapsed = difftime(now, g_gateway.last_bitrate_calc);
+    if (elapsed >= 1.0) {
+        uint64_t delta_in = g_gateway.total_input_bytes - g_gateway.last_calc_in_bytes;
+        g_gateway.total_input_bitrate_bps = (uint32_t)((delta_in * 8) / elapsed);
+        g_gateway.last_calc_in_bytes = g_gateway.total_input_bytes;
+
+        uint64_t delta_out = g_gateway.total_output_bytes - g_gateway.last_calc_out_bytes;
+        g_gateway.total_output_bitrate_bps = (uint32_t)((delta_out * 8) / elapsed);
+        g_gateway.last_calc_out_bytes = g_gateway.total_output_bytes;
+
+        for (int i = 0; i < g_gateway.num_adapters; i++) {
+            g_gateway.adapters[i].bitrate_bps = g_gateway.total_input_bitrate_bps;
+        }
+
+        g_gateway.last_bitrate_calc = now;
+    }
+    pthread_mutex_unlock(&g_gateway.lock);
+}
+
+/* ========================================================================= */
+/*  PERSISTENCE (JSON)                                                       */
+/* ========================================================================= */
+
 bool web_state_save_json(const char *path) {
     pthread_mutex_lock(&g_gateway.lock);
     const char *save_file = (path && *path) ? path : g_gateway.config_file;
 
     json_t *root = json_object();
-    json_object_set_new(root, "version", json_string("DVBlast-Web-1.0"));
+    json_object_set_new(root, "version", json_string("DVBlast-Web-2.0"));
     json_object_set_new(root, "server_name", json_string(g_gateway.server_name));
     json_object_set_new(root, "http_port", json_integer(g_gateway.http_port));
     json_object_set_new(root, "http_host", json_string(g_gateway.http_host));
 
-    /* Tuner section */
-    json_t *tuner_obj = json_object();
-    json_object_set_new(tuner_obj, "adapter", json_integer(g_gateway.tuner.adapter));
-    json_object_set_new(tuner_obj, "frontend", json_integer(g_gateway.tuner.frontend));
-    json_object_set_new(tuner_obj, "delsys", json_string(g_gateway.tuner.delsys));
-    json_object_set_new(tuner_obj, "frequency", json_integer((json_int_t)g_gateway.tuner.frequency));
-    json_object_set_new(tuner_obj, "symbol_rate", json_integer(g_gateway.tuner.symbol_rate));
-    json_object_set_new(tuner_obj, "bandwidth", json_integer(g_gateway.tuner.bandwidth));
-    json_object_set_new(tuner_obj, "polarization", json_string(g_gateway.tuner.polarization));
-    json_object_set_new(tuner_obj, "voltage", json_integer(g_gateway.tuner.voltage));
-    json_object_set_new(tuner_obj, "tone", json_integer(g_gateway.tuner.tone));
-    json_object_set_new(tuner_obj, "diseqc", json_integer(g_gateway.tuner.diseqc));
-    json_object_set_new(tuner_obj, "lnb_type", json_string(g_gateway.tuner.lnb_type));
-    json_object_set_new(tuner_obj, "modulation", json_string(g_gateway.tuner.modulation));
-    json_object_set_new(tuner_obj, "multistream_id", json_integer(g_gateway.tuner.multistream_id));
-    json_object_set_new(root, "tuner", tuner_obj);
+    /* Adapters array */
+    json_t *adapters_arr = json_array();
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        web_adapter_t *ad = &g_gateway.adapters[i];
+        json_t *a_obj = json_object();
+        json_object_set_new(a_obj, "id", json_string(ad->id));
+        json_object_set_new(a_obj, "name", json_string(ad->name));
+        json_object_set_new(a_obj, "enabled", json_boolean(ad->enabled));
+        json_object_set_new(a_obj, "adapter_idx", json_integer(ad->adapter_idx));
+        json_object_set_new(a_obj, "frontend_idx", json_integer(ad->frontend_idx));
+        json_object_set_new(a_obj, "delsys", json_string(ad->delsys));
+        json_object_set_new(a_obj, "frequency", json_integer((json_int_t)ad->frequency));
+        json_object_set_new(a_obj, "symbol_rate", json_integer(ad->symbol_rate));
+        json_object_set_new(a_obj, "bandwidth", json_integer(ad->bandwidth));
+        json_object_set_new(a_obj, "polarization", json_string(ad->polarization));
+        json_object_set_new(a_obj, "voltage", json_integer(ad->voltage));
+        json_object_set_new(a_obj, "tone", json_integer(ad->tone));
+        json_object_set_new(a_obj, "diseqc", json_integer(ad->diseqc));
+        json_object_set_new(a_obj, "lnb_type", json_string(ad->lnb_type));
+        json_object_set_new(a_obj, "modulation", json_string(ad->modulation));
+        json_object_set_new(a_obj, "multistream_id", json_integer(ad->multistream_id));
+        json_array_append_new(adapters_arr, a_obj);
+    }
+    json_object_set_new(root, "adapters", adapters_arr);
 
-    /* Streams section */
+    /* Streams array */
     json_t *streams_arr = json_array();
     for (int i = 0; i < g_gateway.num_streams; i++) {
         web_stream_config_t *s = &g_gateway.streams[i];
@@ -272,14 +487,17 @@ bool web_state_save_json(const char *path) {
         json_object_set_new(s_obj, "id", json_string(s->id));
         json_object_set_new(s_obj, "name", json_string(s->name));
         json_object_set_new(s_obj, "enabled", json_boolean(s->enabled));
+        json_object_set_new(s_obj, "type", json_string(s->type));
+        json_object_set_new(s_obj, "input_url", json_string(s->input_url));
+        json_object_set_new(s_obj, "output_url", json_string(s->output_url));
+        json_object_set_new(s_obj, "adapter_idx", json_integer(s->adapter_idx));
         json_object_set_new(s_obj, "service_id", json_integer(s->service_id));
         json_object_set_new(s_obj, "ip", json_string(s->ip));
         json_object_set_new(s_obj, "port", json_integer(s->port));
-        json_object_set_new(s_obj, "iface", json_string(s->iface));
         json_object_set_new(s_obj, "ttl", json_integer(s->ttl));
         json_object_set_new(s_obj, "is_rtp", json_boolean(s->is_rtp));
         json_object_set_new(s_obj, "pacing", json_boolean(s->pacing));
-        json_object_set_new(s_obj, "bitrate_bps", json_integer(s->bitrate_bps));
+        json_object_set_new(s_obj, "biss_key", json_string(s->biss_key));
         json_array_append_new(streams_arr, s_obj);
     }
     json_object_set_new(root, "streams", streams_arr);
@@ -296,7 +514,7 @@ bool web_state_save_json(const char *path) {
     if (res == 0) {
         rename(tmp_path, save_file);
         pthread_mutex_unlock(&g_gateway.lock);
-        web_state_log("INFO", "Configuration saved to %s", save_file);
+        web_state_log("INFO", "Configuration successfully saved to %s", save_file);
         return true;
     }
 
@@ -310,7 +528,7 @@ bool web_state_load_json(const char *path) {
     json_error_t err;
     json_t *root = json_load_file(load_file, 0, &err);
     if (!root) {
-        web_state_log("WARN", "Config file %s not loaded (%s)", load_file, err.text);
+        web_state_log("WARN", "Config file %s not loaded (%s), keeping clean state", load_file, err.text);
         return false;
     }
 
@@ -319,27 +537,45 @@ bool web_state_load_json(const char *path) {
     const char *s_name = json_string_value(json_object_get(root, "server_name"));
     if (s_name) snprintf(g_gateway.server_name, sizeof(g_gateway.server_name), "%s", s_name);
 
-    json_t *t_obj = json_object_get(root, "tuner");
-    if (json_is_object(t_obj)) {
-        g_gateway.tuner.adapter = (int)json_integer_value(json_object_get(t_obj, "adapter"));
-        g_gateway.tuner.frontend = (int)json_integer_value(json_object_get(t_obj, "frontend"));
-        const char *del = json_string_value(json_object_get(t_obj, "delsys"));
-        if (del) snprintf(g_gateway.tuner.delsys, sizeof(g_gateway.tuner.delsys), "%s", del);
-        g_gateway.tuner.frequency = (uint64_t)json_integer_value(json_object_get(t_obj, "frequency"));
-        g_gateway.tuner.symbol_rate = (uint32_t)json_integer_value(json_object_get(t_obj, "symbol_rate"));
-        g_gateway.tuner.bandwidth = (int)json_integer_value(json_object_get(t_obj, "bandwidth"));
-        const char *pol = json_string_value(json_object_get(t_obj, "polarization"));
-        if (pol) snprintf(g_gateway.tuner.polarization, sizeof(g_gateway.tuner.polarization), "%s", pol);
-        g_gateway.tuner.voltage = (int)json_integer_value(json_object_get(t_obj, "voltage"));
-        g_gateway.tuner.tone = (int)json_integer_value(json_object_get(t_obj, "tone"));
-        g_gateway.tuner.diseqc = (int)json_integer_value(json_object_get(t_obj, "diseqc"));
-        const char *lnb = json_string_value(json_object_get(t_obj, "lnb_type"));
-        if (lnb) snprintf(g_gateway.tuner.lnb_type, sizeof(g_gateway.tuner.lnb_type), "%s", lnb);
-        const char *mod = json_string_value(json_object_get(t_obj, "modulation"));
-        if (mod) snprintf(g_gateway.tuner.modulation, sizeof(g_gateway.tuner.modulation), "%s", mod);
-        g_gateway.tuner.multistream_id = (int)json_integer_value(json_object_get(t_obj, "multistream_id"));
+    /* Adapters list */
+    json_t *a_arr = json_object_get(root, "adapters");
+    if (json_is_array(a_arr)) {
+        g_gateway.num_adapters = 0;
+        size_t idx;
+        json_t *val;
+        json_array_foreach(a_arr, idx, val) {
+            if (g_gateway.num_adapters >= MAX_WEB_ADAPTERS) break;
+            web_adapter_t *ad = &g_gateway.adapters[g_gateway.num_adapters++];
+            memset(ad, 0, sizeof(*ad));
+
+            const char *id = json_string_value(json_object_get(val, "id"));
+            const char *nm = json_string_value(json_object_get(val, "name"));
+            const char *del = json_string_value(json_object_get(val, "delsys"));
+            const char *pol = json_string_value(json_object_get(val, "polarization"));
+            const char *lnb = json_string_value(json_object_get(val, "lnb_type"));
+            const char *mod = json_string_value(json_object_get(val, "modulation"));
+
+            if (id) snprintf(ad->id, sizeof(ad->id), "%s", id);
+            if (nm) snprintf(ad->name, sizeof(ad->name), "%s", nm);
+            if (del) snprintf(ad->delsys, sizeof(ad->delsys), "%s", del);
+            if (pol) snprintf(ad->polarization, sizeof(ad->polarization), "%s", pol);
+            if (lnb) snprintf(ad->lnb_type, sizeof(ad->lnb_type), "%s", lnb);
+            if (mod) snprintf(ad->modulation, sizeof(ad->modulation), "%s", mod);
+
+            ad->enabled = !json_is_false(json_object_get(val, "enabled"));
+            ad->adapter_idx = (int)json_integer_value(json_object_get(val, "adapter_idx"));
+            ad->frontend_idx = (int)json_integer_value(json_object_get(val, "frontend_idx"));
+            ad->frequency = (uint64_t)json_integer_value(json_object_get(val, "frequency"));
+            ad->symbol_rate = (uint32_t)json_integer_value(json_object_get(val, "symbol_rate"));
+            ad->bandwidth = (int)json_integer_value(json_object_get(val, "bandwidth"));
+            ad->voltage = (int)json_integer_value(json_object_get(val, "voltage"));
+            ad->tone = (int)json_integer_value(json_object_get(val, "tone"));
+            ad->diseqc = (int)json_integer_value(json_object_get(val, "diseqc"));
+            ad->multistream_id = (int)json_integer_value(json_object_get(val, "multistream_id"));
+        }
     }
 
+    /* Streams list */
     json_t *s_arr = json_object_get(root, "streams");
     if (json_is_array(s_arr)) {
         g_gateway.num_streams = 0;
@@ -349,28 +585,36 @@ bool web_state_load_json(const char *path) {
             if (g_gateway.num_streams >= MAX_WEB_STREAMS) break;
             web_stream_config_t *s = &g_gateway.streams[g_gateway.num_streams++];
             memset(s, 0, sizeof(*s));
+
             const char *id = json_string_value(json_object_get(val, "id"));
             const char *nm = json_string_value(json_object_get(val, "name"));
+            const char *tp = json_string_value(json_object_get(val, "type"));
+            const char *in = json_string_value(json_object_get(val, "input_url"));
+            const char *out = json_string_value(json_object_get(val, "output_url"));
             const char *ip = json_string_value(json_object_get(val, "ip"));
-            const char *ifc = json_string_value(json_object_get(val, "iface"));
+            const char *bk = json_string_value(json_object_get(val, "biss_key"));
 
             if (id) snprintf(s->id, sizeof(s->id), "%s", id);
             if (nm) snprintf(s->name, sizeof(s->name), "%s", nm);
+            if (tp) snprintf(s->type, sizeof(s->type), "%s", tp);
+            if (in) snprintf(s->input_url, sizeof(s->input_url), "%s", in);
+            if (out) snprintf(s->output_url, sizeof(s->output_url), "%s", out);
             if (ip) snprintf(s->ip, sizeof(s->ip), "%s", ip);
-            if (ifc) snprintf(s->iface, sizeof(s->iface), "%s", ifc);
+            if (bk) snprintf(s->biss_key, sizeof(s->biss_key), "%s", bk);
 
             s->enabled = !json_is_false(json_object_get(val, "enabled"));
+            s->adapter_idx = (int)json_integer_value(json_object_get(val, "adapter_idx"));
             s->service_id = (uint16_t)json_integer_value(json_object_get(val, "service_id"));
             s->port = (int)json_integer_value(json_object_get(val, "port"));
             s->ttl = (int)json_integer_value(json_object_get(val, "ttl"));
             if (s->ttl <= 0) s->ttl = 16;
             s->is_rtp = json_is_true(json_object_get(val, "is_rtp"));
             s->pacing = !json_is_false(json_object_get(val, "pacing"));
-            s->bitrate_bps = (uint32_t)json_integer_value(json_object_get(val, "bitrate_bps"));
             s->created_at = time(NULL);
         }
     }
 
+    /* SoftCAM Keys */
     json_t *desc = json_object_get(root, "descramble");
     if (json_is_array(desc)) {
         softcam_csa_from_json(desc);
@@ -378,137 +622,247 @@ bool web_state_load_json(const char *path) {
 
     pthread_mutex_unlock(&g_gateway.lock);
     json_decref(root);
-    web_state_log("INFO", "Configuration successfully loaded from %s", load_file);
+    web_state_log("INFO", "Configuration loaded from %s (Adapters: %d, Streams: %d)",
+                  load_file, g_gateway.num_adapters, g_gateway.num_streams);
     return true;
 }
 
+/* ========================================================================= */
+/*  JSON SERIALIZERS                                                         */
+/* ========================================================================= */
+
 json_t *web_state_telemetry_to_json(void) {
     web_state_calc_bitrates();
+
+    uint64_t ram_total_kb = 0, ram_avail_kb = 0;
+    read_system_ram(&ram_total_kb, &ram_avail_kb);
+    uint64_t ram_used_kb = (ram_total_kb > ram_avail_kb) ? (ram_total_kb - ram_avail_kb) : 0;
+    float ram_percent = (ram_total_kb > 0) ? (((float)ram_used_kb / (float)ram_total_kb) * 100.0f) : 0.0f;
+
     pthread_mutex_lock(&g_gateway.lock);
 
     json_t *root = json_object();
     json_object_set_new(root, "server_name", json_string(g_gateway.server_name));
     json_object_set_new(root, "uptime_seconds", json_integer((json_int_t)(time(NULL) - g_gateway.start_time)));
+    json_object_set_new(root, "cpu_usage_percent", json_real(roundf(g_cpu_usage * 10.0f) / 10.0f));
+    json_object_set_new(root, "ram_used_mb", json_integer((json_int_t)(ram_used_kb / 1024)));
+    json_object_set_new(root, "ram_total_mb", json_integer((json_int_t)(ram_total_kb / 1024)));
+    json_object_set_new(root, "ram_percent", json_real(roundf(ram_percent * 10.0f) / 10.0f));
+
     json_object_set_new(root, "total_input_bytes", json_integer((json_int_t)g_gateway.total_input_bytes));
     json_object_set_new(root, "total_input_packets", json_integer((json_int_t)g_gateway.total_input_packets));
-    json_object_set_new(root, "input_bitrate_bps", json_integer(g_gateway.input_bitrate_bps));
-    json_object_set_new(root, "input_bitrate_mbps", json_real((double)g_gateway.input_bitrate_bps / 1000000.0));
-    json_object_set_new(root, "active_streams_count", json_integer(g_gateway.num_streams));
-    json_object_set_new(root, "discovered_channels_count", json_integer(g_gateway.num_channels));
+    json_object_set_new(root, "input_bitrate_bps", json_integer(g_gateway.total_input_bitrate_bps));
+    json_object_set_new(root, "input_bitrate_mbps", json_real((double)g_gateway.total_input_bitrate_bps / 1000000.0));
 
-    /* Tuner signal telemetry */
-    json_t *t = json_object();
-    json_object_set_new(t, "adapter", json_integer(g_gateway.tuner.adapter));
-    json_object_set_new(t, "frontend", json_integer(g_gateway.tuner.frontend));
-    json_object_set_new(t, "delsys", json_string(g_gateway.tuner.delsys));
-    json_object_set_new(t, "frequency_hz", json_integer((json_int_t)g_gateway.tuner.frequency));
-    json_object_set_new(t, "frequency_mhz", json_real((double)g_gateway.tuner.frequency / 1000000.0));
-    json_object_set_new(t, "symbol_rate", json_integer(g_gateway.tuner.symbol_rate));
-    json_object_set_new(t, "bandwidth_mhz", json_integer(g_gateway.tuner.bandwidth));
-    json_object_set_new(t, "polarization", json_string(g_gateway.tuner.polarization));
-    json_object_set_new(t, "locked", json_boolean(g_gateway.tuner.locked));
-    json_object_set_new(t, "snr_raw", json_integer(g_gateway.tuner.snr_raw));
-    json_object_set_new(t, "snr_db", json_real((double)g_gateway.tuner.snr_db));
-    json_object_set_new(t, "signal_percent", json_integer(g_gateway.tuner.signal_percent));
-    json_object_set_new(t, "ber", json_integer(g_gateway.tuner.ber));
-    json_object_set_new(t, "ucb", json_integer(g_gateway.tuner.ucb));
-    json_object_set_new(root, "tuner", t);
+    json_object_set_new(root, "total_output_bytes", json_integer((json_int_t)g_gateway.total_output_bytes));
+    json_object_set_new(root, "total_output_packets", json_integer((json_int_t)g_gateway.total_output_packets));
+    json_object_set_new(root, "output_bitrate_bps", json_integer(g_gateway.total_output_bitrate_bps));
+    json_object_set_new(root, "output_bitrate_mbps", json_real((double)g_gateway.total_output_bitrate_bps / 1000000.0));
+
+    json_object_set_new(root, "adapters_count", json_integer(g_gateway.num_adapters));
+    json_object_set_new(root, "active_streams_count", json_integer(g_gateway.num_streams));
+
+    int total_ch = 0;
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        total_ch += g_gateway.adapters[i].num_channels;
+    }
+    json_object_set_new(root, "discovered_channels_count", json_integer(total_ch));
 
     pthread_mutex_unlock(&g_gateway.lock);
     return root;
 }
 
-json_t *web_state_tuners_to_json(void) {
+json_t *web_state_adapters_to_json(void) {
+    pthread_mutex_lock(&g_gateway.lock);
     json_t *arr = json_array();
-    /* Detect /dev/dvb/adapter* */
+
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        web_adapter_t *ad = &g_gateway.adapters[i];
+        json_t *obj = json_object();
+        json_object_set_new(obj, "id", json_string(ad->id));
+        json_object_set_new(obj, "name", json_string(ad->name));
+        json_object_set_new(obj, "enabled", json_boolean(ad->enabled));
+        json_object_set_new(obj, "adapter_idx", json_integer(ad->adapter_idx));
+        json_object_set_new(obj, "frontend_idx", json_integer(ad->frontend_idx));
+        json_object_set_new(obj, "delsys", json_string(ad->delsys));
+        json_object_set_new(obj, "frequency_hz", json_integer((json_int_t)ad->frequency));
+        json_object_set_new(obj, "frequency_mhz", json_real((double)ad->frequency / 1000000.0));
+        json_object_set_new(obj, "symbol_rate", json_integer(ad->symbol_rate));
+        json_object_set_new(obj, "bandwidth_mhz", json_integer(ad->bandwidth));
+        json_object_set_new(obj, "polarization", json_string(ad->polarization));
+        json_object_set_new(obj, "voltage", json_integer(ad->voltage));
+        json_object_set_new(obj, "tone", json_integer(ad->tone));
+        json_object_set_new(obj, "diseqc", json_integer(ad->diseqc));
+        json_object_set_new(obj, "lnb_type", json_string(ad->lnb_type));
+        json_object_set_new(obj, "modulation", json_string(ad->modulation));
+        json_object_set_new(obj, "multistream_id", json_integer(ad->multistream_id));
+
+        /* Telemetry */
+        json_object_set_new(obj, "locked", json_boolean(ad->locked));
+        json_object_set_new(obj, "snr_raw", json_integer(ad->snr_raw));
+        json_object_set_new(obj, "snr_db", json_real((double)ad->snr_db));
+        json_object_set_new(obj, "signal_percent", json_integer(ad->signal_percent));
+        json_object_set_new(obj, "ber", json_integer(ad->ber));
+        json_object_set_new(obj, "ucb", json_integer(ad->ucb));
+        json_object_set_new(obj, "bitrate_bps", json_integer(ad->bitrate_bps));
+        json_object_set_new(obj, "bitrate_mbps", json_real((double)ad->bitrate_bps / 1000000.0));
+        json_object_set_new(obj, "total_packets", json_integer((json_int_t)ad->total_packets));
+        json_object_set_new(obj, "total_bytes", json_integer((json_int_t)ad->total_bytes));
+
+        /* Channels list on this adapter */
+        json_t *ch_arr = json_array();
+        for (int c = 0; c < ad->num_channels; c++) {
+            channel_info_t *ch = &ad->channels[c];
+            json_t *co = json_object();
+            json_object_set_new(co, "service_id", json_integer(ch->service_id));
+            json_object_set_new(co, "name", json_string(ch->name));
+            json_object_set_new(co, "provider", json_string(ch->provider));
+            json_object_set_new(co, "pmt_pid", json_integer(ch->pmt_pid));
+            json_object_set_new(co, "video_pid", json_integer(ch->video_pid));
+            json_object_set_new(co, "video_type", json_integer(ch->video_type));
+            json_object_set_new(co, "scrambled", json_boolean(ch->scrambled));
+
+            json_t *audio_arr = json_array();
+            for (int a = 0; a < ch->num_audio_pids; a++) {
+                json_t *ao = json_object();
+                json_object_set_new(ao, "pid", json_integer(ch->audio_pids[a]));
+                json_object_set_new(ao, "type", json_integer(ch->audio_types[a]));
+                json_array_append_new(audio_arr, ao);
+            }
+            json_object_set_new(co, "audio_pids", audio_arr);
+
+            const softcam_entry_t *k = softcam_csa_find(ch->service_id);
+            json_object_set_new(co, "has_softcam_key", json_boolean(k != NULL));
+
+            json_array_append_new(ch_arr, co);
+        }
+        json_object_set_new(obj, "channels", ch_arr);
+        json_object_set_new(obj, "channels_count", json_integer(ad->num_channels));
+
+        json_array_append_new(arr, obj);
+    }
+
+    pthread_mutex_unlock(&g_gateway.lock);
+    return arr;
+}
+
+typedef struct {
+    int adapter_idx;
+    char device_path[256];
+    char frontend_path[512];
+    bool has_frontend;
+    bool has_dvr;
+    bool configured;
+} hw_adapter_info_t;
+
+static int hw_adapter_cmp(const void *a, const void *b) {
+    const hw_adapter_info_t *ha = (const hw_adapter_info_t *)a;
+    const hw_adapter_info_t *hb = (const hw_adapter_info_t *)b;
+    return ha->adapter_idx - hb->adapter_idx;
+}
+
+json_t *web_state_hardware_to_json(void) {
+    json_t *arr = json_array();
+    hw_adapter_info_t items[32];
+    int count = 0;
+
     DIR *d = opendir("/dev/dvb");
     if (d) {
         struct dirent *de;
         while ((de = readdir(d)) != NULL) {
-            if (strncmp(de->d_name, "adapter", 7) == 0) {
+            if (strncmp(de->d_name, "adapter", 7) == 0 && count < 32) {
                 int adapter_num = atoi(de->d_name + 7);
-                char fe_path[512];
-                snprintf(fe_path, sizeof(fe_path), "/dev/dvb/%s/frontend0", de->d_name);
-                bool fe_exists = (access(fe_path, F_OK) == 0);
+                hw_adapter_info_t *item = &items[count++];
+                item->adapter_idx = adapter_num;
+                snprintf(item->device_path, sizeof(item->device_path), "%s", de->d_name);
+                snprintf(item->frontend_path, sizeof(item->frontend_path), "/dev/dvb/%s/frontend0", de->d_name);
+                char dvr_path[512];
+                snprintf(dvr_path, sizeof(dvr_path), "/dev/dvb/%s/dvr0", de->d_name);
 
-                json_t *item = json_object();
-                json_object_set_new(item, "adapter", json_integer(adapter_num));
-                json_object_set_new(item, "path", json_string(de->d_name));
-                json_object_set_new(item, "frontend_path", json_string(fe_path));
-                json_object_set_new(item, "available", json_boolean(fe_exists));
-                json_object_set_new(item, "active", json_boolean(adapter_num == g_gateway.tuner.adapter));
-                json_array_append_new(arr, item);
+                item->has_frontend = (access(item->frontend_path, F_OK) == 0);
+                item->has_dvr = (access(dvr_path, F_OK) == 0);
+
+                /* Check if already configured */
+                item->configured = false;
+                pthread_mutex_lock(&g_gateway.lock);
+                for (int i = 0; i < g_gateway.num_adapters; i++) {
+                    if (g_gateway.adapters[i].adapter_idx == adapter_num) {
+                        item->configured = true;
+                        break;
+                    }
+                }
+                pthread_mutex_unlock(&g_gateway.lock);
             }
         }
         closedir(d);
     }
-    return arr;
-}
 
-json_t *web_state_channels_to_json(void) {
-    pthread_mutex_lock(&g_gateway.lock);
-    json_t *arr = json_array();
-    for (int i = 0; i < g_gateway.num_channels; i++) {
-        channel_info_t *c = &g_gateway.channels[i];
+    if (count > 1) {
+        qsort(items, count, sizeof(hw_adapter_info_t), hw_adapter_cmp);
+    }
+
+    for (int i = 0; i < count; i++) {
         json_t *obj = json_object();
-        json_object_set_new(obj, "service_id", json_integer(c->service_id));
-        json_object_set_new(obj, "name", json_string(c->name));
-        json_object_set_new(obj, "provider", json_string(c->provider));
-        json_object_set_new(obj, "pmt_pid", json_integer(c->pmt_pid));
-        json_object_set_new(obj, "video_pid", json_integer(c->video_pid));
-        json_object_set_new(obj, "video_type", json_integer(c->video_type));
-        json_object_set_new(obj, "scrambled", json_boolean(c->scrambled));
-
-        json_t *audio_arr = json_array();
-        for (int a = 0; a < c->num_audio_pids; a++) {
-            json_t *a_obj = json_object();
-            json_object_set_new(a_obj, "pid", json_integer(c->audio_pids[a]));
-            json_object_set_new(a_obj, "type", json_integer(c->audio_types[a]));
-            json_array_append_new(audio_arr, a_obj);
-        }
-        json_object_set_new(obj, "audio_pids", audio_arr);
-
-        /* Check if softcam key exists for this channel */
-        const softcam_entry_t *k = softcam_csa_find(c->service_id);
-        json_object_set_new(obj, "has_softcam_key", json_boolean(k != NULL));
-
+        json_object_set_new(obj, "adapter_idx", json_integer(items[i].adapter_idx));
+        json_object_set_new(obj, "device_path", json_string(items[i].device_path));
+        json_object_set_new(obj, "frontend_path", json_string(items[i].frontend_path));
+        json_object_set_new(obj, "has_frontend", json_boolean(items[i].has_frontend));
+        json_object_set_new(obj, "has_dvr", json_boolean(items[i].has_dvr));
+        json_object_set_new(obj, "configured", json_boolean(items[i].configured));
         json_array_append_new(arr, obj);
     }
-    pthread_mutex_unlock(&g_gateway.lock);
+
     return arr;
 }
 
 json_t *web_state_streams_to_json(void) {
     pthread_mutex_lock(&g_gateway.lock);
     json_t *arr = json_array();
+
     for (int i = 0; i < g_gateway.num_streams; i++) {
         web_stream_config_t *s = &g_gateway.streams[i];
         json_t *obj = json_object();
         json_object_set_new(obj, "id", json_string(s->id));
         json_object_set_new(obj, "name", json_string(s->name));
         json_object_set_new(obj, "enabled", json_boolean(s->enabled));
+        json_object_set_new(obj, "type", json_string(s->type));
+        json_object_set_new(obj, "input_url", json_string(s->input_url));
+        json_object_set_new(obj, "output_url", json_string(s->output_url));
+        json_object_set_new(obj, "adapter_idx", json_integer(s->adapter_idx));
         json_object_set_new(obj, "service_id", json_integer(s->service_id));
         json_object_set_new(obj, "ip", json_string(s->ip));
         json_object_set_new(obj, "port", json_integer(s->port));
-        json_object_set_new(obj, "iface", json_string(s->iface));
         json_object_set_new(obj, "ttl", json_integer(s->ttl));
         json_object_set_new(obj, "is_rtp", json_boolean(s->is_rtp));
         json_object_set_new(obj, "pacing", json_boolean(s->pacing));
         json_object_set_new(obj, "bitrate_bps", json_integer(s->bitrate_bps));
+        json_object_set_new(obj, "bitrate_mbps", json_real((double)s->bitrate_bps / 1000000.0));
         json_object_set_new(obj, "packets_sent", json_integer((json_int_t)s->packets_sent));
         json_object_set_new(obj, "bytes_sent", json_integer((json_int_t)s->bytes_sent));
+        json_object_set_new(obj, "cc_errors", json_integer(s->cc_errors));
+        json_object_set_new(obj, "biss_key", json_string(s->biss_key));
 
         /* Channel name lookup */
-        channel_info_t *ch = web_state_find_channel(s->service_id);
-        if (ch) {
-            json_object_set_new(obj, "channel_name", json_string(ch->name));
-            json_object_set_new(obj, "channel_provider", json_string(ch->provider));
+        char channel_name[128] = "";
+        for (int a = 0; a < g_gateway.num_adapters; a++) {
+            for (int c = 0; c < g_gateway.adapters[a].num_channels; c++) {
+                if (g_gateway.adapters[a].channels[c].service_id == s->service_id) {
+                    snprintf(channel_name, sizeof(channel_name), "%s", g_gateway.adapters[a].channels[c].name);
+                    break;
+                }
+            }
+            if (channel_name[0]) break;
+        }
+
+        if (channel_name[0]) {
+            json_object_set_new(obj, "channel_name", json_string(channel_name));
         } else {
             json_object_set_new(obj, "channel_name", json_string(s->service_id == 0 ? "Full Transponder (MPTS)" : ""));
         }
 
         json_array_append_new(arr, obj);
     }
+
     pthread_mutex_unlock(&g_gateway.lock);
     return arr;
 }
@@ -516,27 +870,38 @@ json_t *web_state_streams_to_json(void) {
 json_t *web_state_config_to_json(void) {
     pthread_mutex_lock(&g_gateway.lock);
     json_t *root = json_object();
+    json_object_set_new(root, "version", json_string("DVBlast-Web-2.0"));
     json_object_set_new(root, "server_name", json_string(g_gateway.server_name));
     json_object_set_new(root, "http_port", json_integer(g_gateway.http_port));
     json_object_set_new(root, "http_host", json_string(g_gateway.http_host));
     json_object_set_new(root, "config_file", json_string(g_gateway.config_file));
 
-    json_t *t = json_object();
-    json_object_set_new(t, "adapter", json_integer(g_gateway.tuner.adapter));
-    json_object_set_new(t, "frontend", json_integer(g_gateway.tuner.frontend));
-    json_object_set_new(t, "delsys", json_string(g_gateway.tuner.delsys));
-    json_object_set_new(t, "frequency", json_integer((json_int_t)g_gateway.tuner.frequency));
-    json_object_set_new(t, "symbol_rate", json_integer(g_gateway.tuner.symbol_rate));
-    json_object_set_new(t, "bandwidth", json_integer(g_gateway.tuner.bandwidth));
-    json_object_set_new(t, "polarization", json_string(g_gateway.tuner.polarization));
-    json_object_set_new(t, "voltage", json_integer(g_gateway.tuner.voltage));
-    json_object_set_new(t, "tone", json_integer(g_gateway.tuner.tone));
-    json_object_set_new(t, "diseqc", json_integer(g_gateway.tuner.diseqc));
-    json_object_set_new(t, "lnb_type", json_string(g_gateway.tuner.lnb_type));
-    json_object_set_new(t, "modulation", json_string(g_gateway.tuner.modulation));
-    json_object_set_new(t, "multistream_id", json_integer(g_gateway.tuner.multistream_id));
-    json_object_set_new(root, "tuner", t);
+    /* Adapters */
+    json_t *a_arr = json_array();
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        web_adapter_t *ad = &g_gateway.adapters[i];
+        json_t *ao = json_object();
+        json_object_set_new(ao, "id", json_string(ad->id));
+        json_object_set_new(ao, "name", json_string(ad->name));
+        json_object_set_new(ao, "enabled", json_boolean(ad->enabled));
+        json_object_set_new(ao, "adapter_idx", json_integer(ad->adapter_idx));
+        json_object_set_new(ao, "frontend_idx", json_integer(ad->frontend_idx));
+        json_object_set_new(ao, "delsys", json_string(ad->delsys));
+        json_object_set_new(ao, "frequency", json_integer((json_int_t)ad->frequency));
+        json_object_set_new(ao, "symbol_rate", json_integer(ad->symbol_rate));
+        json_object_set_new(ao, "bandwidth", json_integer(ad->bandwidth));
+        json_object_set_new(ao, "polarization", json_string(ad->polarization));
+        json_object_set_new(ao, "voltage", json_integer(ad->voltage));
+        json_object_set_new(ao, "tone", json_integer(ad->tone));
+        json_object_set_new(ao, "diseqc", json_integer(ad->diseqc));
+        json_object_set_new(ao, "lnb_type", json_string(ad->lnb_type));
+        json_object_set_new(ao, "modulation", json_string(ad->modulation));
+        json_object_set_new(ao, "multistream_id", json_integer(ad->multistream_id));
+        json_array_append_new(a_arr, ao);
+    }
+    json_object_set_new(root, "adapters", a_arr);
 
+    /* Streams */
     json_t *s_arr = json_array();
     for (int i = 0; i < g_gateway.num_streams; i++) {
         web_stream_config_t *s = &g_gateway.streams[i];
@@ -544,14 +909,17 @@ json_t *web_state_config_to_json(void) {
         json_object_set_new(so, "id", json_string(s->id));
         json_object_set_new(so, "name", json_string(s->name));
         json_object_set_new(so, "enabled", json_boolean(s->enabled));
+        json_object_set_new(so, "type", json_string(s->type));
+        json_object_set_new(so, "input_url", json_string(s->input_url));
+        json_object_set_new(so, "output_url", json_string(s->output_url));
+        json_object_set_new(so, "adapter_idx", json_integer(s->adapter_idx));
         json_object_set_new(so, "service_id", json_integer(s->service_id));
         json_object_set_new(so, "ip", json_string(s->ip));
         json_object_set_new(so, "port", json_integer(s->port));
-        json_object_set_new(so, "iface", json_string(s->iface));
         json_object_set_new(so, "ttl", json_integer(s->ttl));
         json_object_set_new(so, "is_rtp", json_boolean(s->is_rtp));
         json_object_set_new(so, "pacing", json_boolean(s->pacing));
-        json_object_set_new(so, "bitrate_bps", json_integer(s->bitrate_bps));
+        json_object_set_new(so, "biss_key", json_string(s->biss_key));
         json_array_append_new(s_arr, so);
     }
     json_object_set_new(root, "streams", s_arr);

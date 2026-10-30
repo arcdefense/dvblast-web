@@ -329,6 +329,7 @@ void dvb_OpenDvr( void );
 void dvb_OpenSec( void );
 void dvb_WriteSec( block_t *p_ts );
 uint8_t dvb_FrontendStatus( uint8_t *p_answer, ssize_t *pi_size );
+extern int i_frontend;
 
 void udp_Open( void );
 void udp_Reset( void );

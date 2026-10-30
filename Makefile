@@ -29,7 +29,7 @@ CFLAGS += -DHAVE_ASI_DELTACAST_SUPPORT
 LDLIBS += -lstreammaster
 endif
 
-LDLIBS_DVBLAST += -lpthread -lev $(shell pkg-config --libs libmicrohttpd jansson 2>/dev/null)
+LDLIBS_DVBLAST += -lpthread -lev -lm $(shell pkg-config --libs libmicrohttpd jansson 2>/dev/null)
 
 OBJ_DVBCSA = dvbcsa/dvbcsa_algo.o dvbcsa/dvbcsa_block.o dvbcsa/dvbcsa_key.o dvbcsa/dvbcsa_stream.o
 OBJ_WEB = softcam_csa.o web_state.o web_manager.o web_server.o web_ui_embed.o

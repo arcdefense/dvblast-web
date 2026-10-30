@@ -1,0 +1,9 @@
+{
+  "version": "DVBlast-Web-2.0",
+  "server_name": "DVBlast Web Gateway",
+  "http_port": 8088,
+  "http_host": "0.0.0.0",
+  "adapters": [],
+  "streams": [],
+  "descramble": []
+}
