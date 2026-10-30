@@ -205,8 +205,8 @@ int http_auth_send_challenge(struct MHD_Connection *conn) {
     const char *body = "{\"error\": \"Unauthorized\", \"ok\": false}\n";
     struct MHD_Response *resp = MHD_create_response_from_buffer(strlen(body), (void *)body, MHD_RESPMEM_PERSISTENT);
     MHD_add_response_header(resp, "Content-Type", "application/json");
-    MHD_add_response_header(resp, "WWW-Authenticate", "Basic realm=\"DVBlast Web Gateway\"");
     MHD_add_response_header(resp, "Access-Control-Allow-Origin", "*");
+    MHD_add_response_header(resp, "Access-Control-Allow-Headers", "Content-Type, Authorization");
     int ret = MHD_queue_response(conn, 401, resp);
     MHD_destroy_response(resp);
     return ret;
