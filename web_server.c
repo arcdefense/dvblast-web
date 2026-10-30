@@ -10,7 +10,6 @@
 #include "modules/hls/hls.h"
 #include "modules/epg/epg.h"
 #include "modules/general/general.h"
-#include "modules/license/license.h"
 #include "modules/groups/groups.h"
 
 #include <microhttpd.h>
@@ -126,9 +125,6 @@ static int handle_get_request(struct MHD_Connection *conn, const char *url) {
     }
     if (strcmp(url, "/api/v1/modules/groups") == 0 || strcmp(url, "/api/v1/categories") == 0) {
         return send_json(conn, 200, groups_to_json());
-    }
-    if (strcmp(url, "/api/v1/license") == 0 || strcmp(url, "/api/v1/system/license") == 0) {
-        return send_json(conn, 200, license_to_json());
     }
 
     /* Full System Configuration */
@@ -655,7 +651,6 @@ bool web_server_start(int port, const char *host) {
     hls_init();
     epg_init();
     general_init();
-    license_init();
     groups_init();
 
     (void)host;

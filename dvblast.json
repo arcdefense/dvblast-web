@@ -284,18 +284,6 @@
     "udp_threads": true,
     "dvb_bind_by_mac": false
   },
-  "license": {
-    "customer": "AiaStudio dev",
-    "package": "Server License",
-    "key": "AIA-B0DD-51BC-3862-6EC7",
-    "machine_id": "AIA-MID-2B65-9E53-2950-EC04",
-    "valid_until": 0,
-    "created_at": 1788989598,
-    "status": "active",
-    "message": "License signature verified and valid",
-    "is_valid": true,
-    "license_file": "/etc/aiastudio-multicast/license.txt"
-  },
   "categories": [
     {
       "name": "Entertainment",

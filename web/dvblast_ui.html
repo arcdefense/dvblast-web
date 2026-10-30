@@ -1220,9 +1220,6 @@
                     <button type="button" class="settings-nav-btn active" data-subtab="general" onclick="switchSettingSubmenu('general')">
                         General
                     </button>
-                    <button type="button" class="settings-nav-btn" data-subtab="license" onclick="switchSettingSubmenu('license')">
-                        License
-                    </button>
                     <button type="button" class="settings-nav-btn" data-subtab="users" onclick="switchSettingSubmenu('users')">
                         Users
                     </button>
@@ -1491,62 +1488,7 @@
                         </div>
                     </div>
 
-                    <!-- 2. LICENSE MODULE -->
-                    <div id="subtab-license" class="settings-pane">
-                        <div class="settings-section-header">
-                            <div>
-                                <div class="settings-section-title">License Status</div>
-                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Hardware binding, tier entitlement, and digital authorization certificate.</div>
-                            </div>
-                            <span class="badge badge-success">MODULE: LICENSE</span>
-                        </div>
-
-                        <div class="settings-card" style="margin-bottom: 20px;">
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                                <span id="lic-status-badge" style="background: #22c55e; color: #fff; padding: 4px 14px; border-radius: 9999px; font-weight: bold; font-size: 0.85rem; letter-spacing: 0.05em;">
-                                    ACTIVE
-                                </span>
-                                <span id="lic-message" style="color: var(--text-muted); font-size: 0.9rem;">
-                                    Official AiaStudio License Verified
-                                </span>
-                            </div>
-
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <tbody>
-                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                        <td style="padding: 10px 12px 10px 0; color: var(--text-muted); width: 240px; font-weight: 500;">License Key / ID:</td>
-                                        <td style="padding: 10px 0; font-weight: 600; font-family: monospace;" id="lic-val-key">AIA-B0DD-51BC-3862-6EC7</td>
-                                    </tr>
-                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                        <td style="padding: 10px 12px 10px 0; color: var(--text-muted); font-weight: 500;">Hardware ID (Machine ID):</td>
-                                        <td style="padding: 10px 0; font-weight: 600; font-family: monospace;" id="lic-val-mid">AIA-MID-2B65-9E53-2950-EC04</td>
-                                    </tr>
-                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                        <td style="padding: 10px 12px 10px 0; color: var(--text-muted); font-weight: 500;">Registered Customer:</td>
-                                        <td style="padding: 10px 0; font-weight: 600;" id="lic-val-customer">AiaStudio dev</td>
-                                    </tr>
-                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                        <td style="padding: 10px 12px 10px 0; color: var(--text-muted); font-weight: 500;">Package / Tier:</td>
-                                        <td style="padding: 10px 0; font-weight: 600;" id="lic-val-package">Server License</td>
-                                    </tr>
-                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                        <td style="padding: 10px 12px 10px 0; color: var(--text-muted); font-weight: 500;">Expiry Date:</td>
-                                        <td style="padding: 10px 0; font-weight: 600;" id="lic-val-expiry">Lifetime / Permanent</td>
-                                    </tr>
-                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                        <td style="padding: 10px 12px 10px 0; color: var(--text-muted); font-weight: 500;">Capacity:</td>
-                                        <td style="padding: 10px 0; font-weight: 600;" id="lic-val-capacity">Unlimited Streams &amp; Adapters</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 10px 12px 10px 0; color: var(--text-muted); font-weight: 500;">License File:</td>
-                                        <td style="padding: 10px 0; font-weight: 500; font-family: monospace; font-size: 12px;" id="lic-val-file">/etc/aiastudio-multicast/license.txt</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- 3. USERS MODULE -->
+                    <!-- 2. USERS MODULE -->
                     <div id="subtab-users" class="settings-pane">
                         <div class="settings-section-header">
                             <div>
@@ -2771,28 +2713,6 @@
 
                         // Adapter
                         if (d.dvb_bind_by_mac !== undefined) document.getElementById('gen-bind-mac').checked = !!d.dvb_bind_by_mac;
-                    }
-                } else if (subTabId === 'license') {
-                    const res = await fetch('/api/v1/license');
-                    if (res.ok) {
-                        const d = await res.json();
-                        const badge = document.getElementById('lic-status-badge');
-                        const msg = document.getElementById('lic-message');
-                        if (badge) {
-                            badge.textContent = (d.status || 'ACTIVE').toUpperCase().replace('_', ' ');
-                            badge.style.background = (d.is_valid || d.status === 'active') ? '#22c55e' : '#ef4444';
-                        }
-                        if (msg) msg.textContent = d.message || 'Official AiaStudio License Verified';
-                        if (d.key) document.getElementById('lic-val-key').textContent = d.key;
-                        if (d.machine_id) document.getElementById('lic-val-mid').textContent = d.machine_id;
-                        if (d.customer) document.getElementById('lic-val-customer').textContent = d.customer;
-                        if (d.package) document.getElementById('lic-val-package').textContent = d.package;
-                        if (d.license_file) document.getElementById('lic-val-file').textContent = d.license_file;
-                        if (d.valid_until && d.valid_until > 0) {
-                            document.getElementById('lic-val-expiry').textContent = new Date(d.valid_until * 1000).toLocaleString();
-                        } else {
-                            document.getElementById('lic-val-expiry').textContent = 'Lifetime / Permanent';
-                        }
                     }
                 } else if (subTabId === 'hls') {
                     const res = await fetch('/api/v1/modules/hls');
