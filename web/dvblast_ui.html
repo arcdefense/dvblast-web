@@ -1122,9 +1122,198 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+        /* Authentication Overlay (AIA.HTML Architecture) */
+        .auth-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-base);
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-overlay.hidden {
+            display: none !important;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+            padding: 36px 30px;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .auth-brand-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            background: rgba(237, 28, 36, 0.12);
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .auth-title {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .auth-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .auth-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .auth-field label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .auth-field input[type="text"],
+        .auth-field input[type="password"] {
+            width: 100%;
+            height: 42px;
+            padding: 0 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .auth-field input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(237, 28, 36, 0.18);
+        }
+
+        .auth-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: -2px;
+        }
+
+        .auth-remember {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .auth-remember input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .auth-error-box {
+            background: rgba(237, 28, 36, 0.12);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 12.5px;
+            font-weight: 600;
+            display: none;
+            line-height: 1.4;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .auth-btn-submit {
+            width: 100%;
+            height: 42px;
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            margin-top: 6px;
+        }
+
+        .auth-btn-submit:hover {
+            background: var(--primary-hover);
+        }
+
+        .auth-btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Authentication Overlay (Modeled after aia.html) -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-brand-badge">DVB / IPTV PRO GATEWAY</div>
+                <div class="auth-title">DVBLAST GATEWAY</div>
+                <div class="auth-subtitle">Sign in to access management console</div>
+            </div>
+
+            <div id="auth-error" class="auth-error-box"></div>
+
+            <form class="auth-form" id="form-login" onsubmit="handleLoginSubmit(event)">
+                <div class="auth-field">
+                    <label for="auth-username">Login</label>
+                    <input type="text" id="auth-username" name="username" placeholder="Username" required autocomplete="username">
+                </div>
+                <div class="auth-field">
+                    <label for="auth-password">Password</label>
+                    <input type="password" id="auth-password" name="password" placeholder="Password" required autocomplete="current-password">
+                </div>
+                <div class="auth-options">
+                    <label class="auth-remember">
+                        <input type="checkbox" id="auth-remember" checked>
+                        <span>Remember me</span>
+                    </label>
+                </div>
+                <button type="submit" class="auth-btn-submit" id="auth-submit-btn">Sign In</button>
+            </form>
+        </div>
+    </div>
 
     <!-- Header Navigation (VideoLAN Style) -->
     <header>
@@ -1146,15 +1335,19 @@
             </nav>
 
             <div class="header-actions">
-                <button class="theme-toggle-btn" onclick="toggleTheme()" id="btn-theme" title="Toggle Light/Dark Theme">
-                    <span id="theme-icon">🌙</span>
+                <button class="theme-toggle-btn" onclick="toggleTheme()" id="btn-theme" title="Toggle Theme">
+                    <span id="theme-icon" style="font-size: 11px; font-weight: 700;">DARK</span>
                 </button>
                 <div class="status-pill">
                     <div class="pulse-dot"></div>
                     <span id="txt-uptime">Uptime: 0s</span>
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="openAdapterModal()">+ New Adapter</button>
-                <button class="btn btn-primary btn-sm" onclick="openStreamModal()">+ New Stream</button>
+                <div class="status-pill" id="user-pill" style="display: none;">
+                    <span id="txt-user-display" style="font-weight: 600; text-transform: uppercase;">ADMIN</span>
+                </div>
+                <button class="btn btn-primary btn-sm btn-role-admin" onclick="openAdapterModal()">+ New Adapter</button>
+                <button class="btn btn-primary btn-sm btn-role-admin" onclick="openStreamModal()">+ New Stream</button>
+                <button class="btn btn-secondary btn-sm" id="btn-header-logout" onclick="handleLogout()" style="display: none;">Sign Out</button>
             </div>
         </div>
     </header>
@@ -1250,9 +1443,12 @@
                     <button type="button" class="settings-nav-btn" data-subtab="raw_config" onclick="switchSettingSubmenu('raw_config')">
                         Raw Config
                     </button>
-                    <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 8px;">
+                    <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 8px; display: flex; flex-direction: column; gap: 4px;">
                         <button type="button" class="settings-nav-btn text-danger" onclick="openRestartModal()">
                             Restart
+                        </button>
+                        <button type="button" class="settings-nav-btn" onclick="handleLogout()">
+                            Sign Out
                         </button>
                     </div>
                 </div>
@@ -2568,22 +2764,208 @@
         let g_hardware = [];
         let g_logs = [];
 
-        // Theme Toggle (Light / Dark)
+        // Authentication & Session Management (Matching aia.html)
+        let g_authToken = localStorage.getItem('dvblast_token') || sessionStorage.getItem('dvblast_token') || '';
+        let g_currentUser = null;
+        let g_currentRole = 'admin';
+        let g_pollTimer = null;
+        let g_logsTimer = null;
+        let g_authUsers = [];
+
+        function showLoginOverlay(errMsg = '') {
+            const overlay = document.getElementById('auth-overlay');
+            const errBox = document.getElementById('auth-error');
+            if (errBox) {
+                if (errMsg) {
+                    errBox.textContent = errMsg;
+                    errBox.style.display = 'block';
+                } else {
+                    errBox.style.display = 'none';
+                    errBox.textContent = '';
+                }
+            }
+            if (overlay) overlay.classList.remove('hidden');
+            const p = document.getElementById('auth-password');
+            if (p) p.value = '';
+            setTimeout(() => {
+                const u = document.getElementById('auth-username');
+                if (u && !u.value) u.focus();
+                else if (p) p.focus();
+            }, 60);
+
+            // Hide session UI
+            const pill = document.getElementById('user-pill');
+            const btnLogout = document.getElementById('btn-header-logout');
+            if (pill) pill.style.display = 'none';
+            if (btnLogout) btnLogout.style.display = 'none';
+
+            // Stop background polling when logged out
+            if (g_pollTimer) { clearInterval(g_pollTimer); g_pollTimer = null; }
+            if (g_logsTimer) { clearInterval(g_logsTimer); g_logsTimer = null; }
+        }
+
+        function hideLoginOverlay() {
+            const overlay = document.getElementById('auth-overlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
+        function applyRolePermissions(role, username) {
+            g_currentRole = role || 'admin';
+            g_currentUser = username || 'admin';
+
+            // Update Header User Pill
+            const userPill = document.getElementById('user-pill');
+            const txtUser = document.getElementById('txt-user-display');
+            const btnLogout = document.getElementById('btn-header-logout');
+            if (userPill && txtUser) {
+                txtUser.textContent = `${g_currentUser} (${g_currentRole})`;
+                userPill.style.display = 'inline-flex';
+            }
+            if (btnLogout) btnLogout.style.display = 'inline-flex';
+
+            // Role-based restrictions (matching aia.html observer behavior)
+            const isObserver = (g_currentRole === 'viewer');
+            const settingsNavTab = document.querySelector('.nav-tab[data-tab="tab-settings"]');
+            if (settingsNavTab) {
+                settingsNavTab.style.display = isObserver ? 'none' : '';
+            }
+
+            // Hide modify buttons for observer
+            document.querySelectorAll('.btn-role-admin').forEach(el => {
+                el.style.display = isObserver ? 'none' : '';
+            });
+
+            // If observer happens to be on settings tab, redirect to dashboard
+            if (isObserver) {
+                const activeTab = document.querySelector('.nav-tab.active');
+                if (activeTab && activeTab.dataset.tab === 'tab-settings') {
+                    const dashTab = document.querySelector('.nav-tab[data-tab="tab-dashboard"]');
+                    if (dashTab) dashTab.click();
+                }
+            }
+        }
+
+        async function authFetch(url, options = {}) {
+            options.headers = options.headers || {};
+            if (g_authToken) {
+                options.headers['Authorization'] = 'Bearer ' + g_authToken;
+            }
+            const res = await fetch(url, options);
+            if (res.status === 401 && !url.includes('/auth/login')) {
+                g_authToken = '';
+                localStorage.removeItem('dvblast_token');
+                sessionStorage.removeItem('dvblast_token');
+                showLoginOverlay('Session expired. Please sign in again.');
+            }
+            return res;
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('auth-submit-btn');
+            const errBox = document.getElementById('auth-error');
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const remember = document.getElementById('auth-remember').checked;
+
+            btn.disabled = true;
+            btn.textContent = 'Signing In...';
+            errBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: username, password: password })
+                });
+                const data = await res.json();
+                if (res.ok && data.ok) {
+                    g_authToken = data.token;
+                    if (remember) {
+                        localStorage.setItem('dvblast_token', data.token);
+                        sessionStorage.removeItem('dvblast_token');
+                    } else {
+                        sessionStorage.setItem('dvblast_token', data.token);
+                        localStorage.removeItem('dvblast_token');
+                    }
+                    hideLoginOverlay();
+                    applyRolePermissions(data.role, data.user || username);
+                    startApplication();
+                } else {
+                    errBox.textContent = (data && data.error) ? data.error : 'Invalid username or password';
+                    errBox.style.display = 'block';
+                    document.getElementById('auth-password').value = '';
+                    document.getElementById('auth-password').focus();
+                }
+            } catch (err) {
+                errBox.textContent = 'Failed to connect to authentication server';
+                errBox.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                if (g_authToken) {
+                    await authFetch('/api/v1/auth/logout', { method: 'POST' });
+                }
+            } catch (_) {}
+            g_authToken = '';
+            localStorage.removeItem('dvblast_token');
+            sessionStorage.removeItem('dvblast_token');
+            showLoginOverlay('You have been signed out.');
+        }
+
+        async function checkAuthSession() {
+            try {
+                const res = await authFetch('/api/v1/auth/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.ok && data.authenticated) {
+                        hideLoginOverlay();
+                        applyRolePermissions(data.role, data.user);
+                        startApplication();
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn('Auth check error:', e);
+            }
+            showLoginOverlay();
+            return false;
+        }
+
+        function startApplication() {
+            pollState();
+            if (!g_pollTimer) g_pollTimer = setInterval(pollState, 1500);
+            if (!g_logsTimer) {
+                g_logsTimer = setInterval(() => {
+                    const activeTab = document.querySelector('.nav-tab.active');
+                    if (activeTab && activeTab.dataset.tab === 'tab-logs') loadLogs();
+                }, 2000);
+            }
+        }
+
+        // Theme Toggle (Strict Typography - No Icons)
         function initTheme() {
             const saved = localStorage.getItem('dvblast_theme');
+            const icon = document.getElementById('theme-icon');
             if (saved === 'dark') {
                 document.documentElement.classList.add('dark');
-                document.getElementById('theme-icon').textContent = '☀️';
+                if (icon) icon.textContent = 'LIGHT';
             } else {
                 document.documentElement.classList.remove('dark');
-                document.getElementById('theme-icon').textContent = '🌙';
+                if (icon) icon.textContent = 'DARK';
             }
         }
 
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('dvblast_theme', isDark ? 'dark' : 'light');
-            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.textContent = isDark ? 'LIGHT' : 'DARK';
         }
         initTheme();
 
@@ -2674,7 +3056,7 @@
         async function loadModuleSettings(subTabId) {
             try {
                 if (subTabId === 'general') {
-                    const res = await fetch('/api/v1/modules/general');
+                    const res = await authFetch('/api/v1/modules/general');
                     if (res.ok) {
                         const d = await res.json();
                         // Monitoring
@@ -2715,7 +3097,7 @@
                         if (d.dvb_bind_by_mac !== undefined) document.getElementById('gen-bind-mac').checked = !!d.dvb_bind_by_mac;
                     }
                 } else if (subTabId === 'hls') {
-                    const res = await fetch('/api/v1/modules/hls');
+                    const res = await authFetch('/api/v1/modules/hls');
                     if (res.ok) {
                         const d = await res.json();
                         if (d.segment_sec) document.getElementById('cfg-hls-duration').value = d.segment_sec;
@@ -2723,13 +3105,13 @@
                     }
                 } else if (subTabId === 'http_play') {
                     updateHttpPlayLinks();
-                    const res = await fetch('/api/v1/modules/http_play');
+                    const res = await authFetch('/api/v1/modules/http_play');
                     if (res.ok) {
                         const d = await res.json();
                         if (d.buffer_kb) document.getElementById('cfg-http-play-buffer').value = d.buffer_kb;
                     }
                 } else if (subTabId === 'http_auth') {
-                    const res = await fetch('/api/v1/modules/http_auth');
+                    const res = await authFetch('/api/v1/modules/http_auth');
                     if (res.ok) {
                         const d = await res.json();
                         const chk = document.getElementById('cfg-auth-enable');
@@ -2738,8 +3120,10 @@
                     }
                 } else if (subTabId === 'softcam') {
                     loadSoftcamKeys();
+                } else if (subTabId === 'users') {
+                    loadUsers();
                 } else if (subTabId === 'cas') {
-                    const res = await fetch('/api/v1/modules/cas');
+                    const res = await authFetch('/api/v1/modules/cas');
                     if (res.ok) {
                         const d = await res.json();
                         if (d.host) document.getElementById('cas-ecmg-host').value = d.host;
@@ -2790,7 +3174,7 @@
                 dvb_bind_by_mac: !!document.getElementById('gen-bind-mac')?.checked
             };
 
-            const res = await fetch('/api/v1/modules/general', {
+            const res = await authFetch('/api/v1/modules/general', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -2803,7 +3187,7 @@
         let g_categories = [];
         async function loadCategories() {
             try {
-                const res = await fetch('/api/v1/modules/groups');
+                const res = await authFetch('/api/v1/modules/groups');
                 if (res.ok) {
                     g_categories = await res.json();
                     const sel = document.getElementById('group-cat-select');
@@ -2885,7 +3269,7 @@
                 }
             }
 
-            const res = await fetch('/api/v1/modules/groups', {
+            const res = await authFetch('/api/v1/modules/groups', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(g_categories)
@@ -2911,16 +3295,60 @@
             closeRestartModal();
             showToast("Restarting DVBlast daemon...");
             try {
-                await fetch('/api/v1/system/restart', { method: 'POST' });
+                await authFetch('/api/v1/system/restart', { method: 'POST' });
                 setTimeout(() => window.location.reload(), 2500);
             } catch (e) {
                 setTimeout(() => window.location.reload(), 2500);
             }
         }
 
-        // User Account Modal
+        // User Account Management
+        async function loadUsers() {
+            try {
+                const res = await apiGet('/api/v1/modules/http_auth');
+                if (res && res.users) {
+                    g_authUsers = res.users;
+                } else {
+                    g_authUsers = [
+                        { username: 'admin', role: 'admin', enabled: true },
+                        { username: 'viewer', role: 'viewer', enabled: true }
+                    ];
+                }
+                renderUsersTable();
+            } catch (e) {
+                console.error("loadUsers error", e);
+            }
+        }
+
+        function renderUsersTable() {
+            const tbody = document.getElementById('tbody-users');
+            if (!tbody) return;
+            if (!g_authUsers.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:20px;">No users configured</td></tr>';
+                return;
+            }
+            tbody.innerHTML = g_authUsers.map((u) => {
+                const isBuiltin = (u.username === 'admin' || u.username === 'arc');
+                const roleLabel = (u.role === 'admin') ? 'Administrator' : 'Observer';
+                const statusBadge = u.enabled ? '<span class="badge badge-success">ACTIVE</span>' : '<span class="badge badge-danger">DISABLED</span>';
+                const comment = isBuiltin ? 'Built-in System Account' : (u.comment || 'Custom Account');
+                return `<tr>
+                    <td style="font-weight: 600;">${escapeHtml(u.username)}</td>
+                    <td>${escapeHtml(comment)}</td>
+                    <td>${roleLabel}</td>
+                    <td>Permanent</td>
+                    <td>${statusBadge}</td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-sm" onclick="editUser('${escapeHtml(u.username)}', '${escapeHtml(comment)}', '${u.role === 'admin' ? '1' : '2'}', ${u.enabled})">Edit</button>
+                        ${!isBuiltin ? `<button class="btn btn-sm text-danger" style="margin-left: 4px;" onclick="deleteUser('${escapeHtml(u.username)}')">Delete</button>` : ''}
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
         function openUserModal(login = '', comment = '', type = '1', enable = true) {
             document.getElementById('user-login').value = login;
+            document.getElementById('user-pass').value = '';
             document.getElementById('user-comment').value = comment;
             document.getElementById('user-type').value = type;
             document.getElementById('user-enable').checked = enable;
@@ -2933,10 +3361,64 @@
         function editUser(login, comment, type, enable) {
             openUserModal(login, comment, type, enable);
         }
-        function handleUserSubmit(e) {
+
+        async function handleUserSubmit(e) {
             e.preventDefault();
+            const login = document.getElementById('user-login').value.trim();
+            const pass = document.getElementById('user-pass').value;
+            const type = document.getElementById('user-type').value;
+            const enable = document.getElementById('user-enable').checked;
+            const comment = document.getElementById('user-comment').value.trim();
+
+            if (!login) { showToast("Login name is required", true); return; }
+
+            const role = (type === '1') ? 'admin' : 'viewer';
+            const existingIdx = g_authUsers.findIndex(u => u.username === login);
+            const userObj = {
+                username: login,
+                role: role,
+                enabled: enable,
+                comment: comment
+            };
+            if (pass) userObj.password = pass;
+
+            if (existingIdx >= 0) {
+                g_authUsers[existingIdx] = Object.assign({}, g_authUsers[existingIdx], userObj);
+            } else {
+                g_authUsers.push(userObj);
+            }
+
+            const payload = {
+                enabled: true,
+                expiry_hours: 24,
+                users: g_authUsers
+            };
+
+            const res = await apiPost('/api/v1/modules/http_auth', payload);
             closeUserModal();
-            showToast("User account updated");
+            if (res && res.ok) {
+                showToast("User account saved successfully");
+                loadUsers();
+            } else {
+                showToast("Failed to save user account", true);
+            }
+        }
+
+        async function deleteUser(username) {
+            if (!confirm(`Are you sure you want to delete user '${username}'?`)) return;
+            g_authUsers = g_authUsers.filter(u => u.username !== username);
+            const payload = {
+                enabled: true,
+                expiry_hours: 24,
+                users: g_authUsers
+            };
+            const res = await apiPost('/api/v1/modules/http_auth', payload);
+            if (res && res.ok) {
+                showToast(`User '${username}' deleted`);
+                loadUsers();
+            } else {
+                showToast("Failed to delete user", true);
+            }
         }
 
         // Softcam & CAS Profiles
@@ -2993,7 +3475,7 @@
 
         async function triggerEpgScan() {
             try {
-                const res = await fetch('/api/v1/epg');
+                const res = await authFetch('/api/v1/epg');
                 if (res.ok) {
                     showToast("EPG cycle synchronized with live DVB-SI stream");
                 } else {
@@ -3022,7 +3504,11 @@
         // API Helpers
         async function apiGet(url) {
             try {
-                const res = await fetch(url);
+                const res = await authFetch(url);
+                if (!res.ok) {
+                    console.error("GET Error:", url, res.status);
+                    return null;
+                }
                 return await res.json();
             } catch (e) {
                 console.error("GET Error:", url, e);
@@ -3032,11 +3518,15 @@
 
         async function apiPost(url, data) {
             try {
-                const res = await fetch(url, {
+                const res = await authFetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
+                if (!res.ok) {
+                    console.error("POST Error:", url, res.status);
+                    try { return await res.json(); } catch (_) { return null; }
+                }
                 return await res.json();
             } catch (e) {
                 console.error("POST Error:", url, e);
@@ -4031,13 +4521,8 @@
             renderLogs();
         }
 
-        // Initialize application and interval poll
-        pollState();
-        setInterval(pollState, 1500);
-        setInterval(() => {
-            const activeTab = document.querySelector('.nav-tab.active');
-            if (activeTab && activeTab.dataset.tab === 'tab-logs') loadLogs();
-        }, 2000);
+        // Initialize authentication session check and launch
+        checkAuthSession();
     </script>
 </body>
 </html>
