@@ -192,7 +192,11 @@ void web_manager_sync_worker(int adapter_idx) {
         fprintf(fp, "# idle\n");
     } else {
         for (int i = 0; i < active_streams; i++) {
-            fprintf(fp, "%s:%d 1 %d\n", streams_for_ad[i].ip, streams_for_ad[i].port, streams_for_ad[i].service_id);
+            if (streams_for_ad[i].service_id > 0) {
+                fprintf(fp, "%s:%d 1 %d/dvb/epg\n", streams_for_ad[i].ip, streams_for_ad[i].port, streams_for_ad[i].service_id);
+            } else {
+                fprintf(fp, "%s:%d 1 0\n", streams_for_ad[i].ip, streams_for_ad[i].port);
+            }
         }
     }
     fclose(fp);
@@ -240,6 +244,8 @@ void web_manager_sync_worker(int adapter_idx) {
             "-f", sz_freq,
             "-b", sz_bw,
             "-5", (char *)target_delsys,
+            "-C",
+            "-e",
             "-u",
             "-U",
             "-c", conf_path,
@@ -724,6 +730,8 @@ bool web_manager_add_stream(const web_stream_config_t *stream) {
         config.i_sid = stream->service_id;
         if (stream->service_id == 0) {
             config.b_passthrough = true;
+        } else {
+            config.i_config |= OUTPUT_DVB | OUTPUT_EPG;
         }
         if (stream->ttl > 0) {
             config.i_ttl = stream->ttl;
