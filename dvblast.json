@@ -291,27 +291,430 @@
     "retention_hours": 24,
     "preferred_lang": "all",
     "total_events_cached": 220,
-    "last_parse_time": 1793385364,
+    "last_parse_time": 1793385722,
     "services": [
       {
-        "service_id": 30267,
-        "channel_name": "INDOSIAR HD",
-        "last_updated": 1793385364,
+        "service_id": 30266,
+        "channel_name": "SCTV HD",
+        "last_updated": 1793385722,
         "events": [
           {
-            "event_id": 33093,
-            "start_time": 1793529000,
-            "duration_sec": 3600,
-            "title": "Event #33093",
+            "event_id": 53643,
+            "start_time": 1793491800,
+            "duration_sec": 3840,
+            "title": "Event #53643",
             "description": "",
             "lang": "eng",
             "scrambled": false
           },
           {
-            "event_id": 33094,
-            "start_time": 1793532600,
+            "event_id": 53668,
+            "start_time": 1793495640,
+            "duration_sec": 6360,
+            "title": "Event #53668",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53649,
+            "start_time": 1793387100,
+            "duration_sec": 4020,
+            "title": "Event #53649",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53637,
+            "start_time": 1793502000,
+            "duration_sec": 5400,
+            "title": "Event #53637",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53644,
+            "start_time": 1793507400,
+            "duration_sec": 1860,
+            "title": "Event #53644",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53645,
+            "start_time": 1793509260,
+            "duration_sec": 2640,
+            "title": "Event #53645",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53646,
+            "start_time": 1793511900,
             "duration_sec": 9000,
-            "title": "Event #33094",
+            "title": "Event #53646",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53647,
+            "start_time": 1793520900,
+            "duration_sec": 6300,
+            "title": "Event #53647",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53608,
+            "start_time": 1793527200,
+            "duration_sec": 4500,
+            "title": "Event #53608",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53567,
+            "start_time": 1793531700,
+            "duration_sec": 6300,
+            "title": "Event #53567",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53633,
+            "start_time": 1793383140,
+            "duration_sec": 3960,
+            "title": "Event #53633",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53568,
+            "start_time": 1793538000,
+            "duration_sec": 5400,
+            "title": "Event #53568",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53583,
+            "start_time": 1793543400,
+            "duration_sec": 7200,
+            "title": "Event #53583",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53570,
+            "start_time": 1793550600,
+            "duration_sec": 7200,
+            "title": "Event #53570",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53652,
+            "start_time": 1793557800,
+            "duration_sec": 5400,
+            "title": "Event #53652",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53653,
+            "start_time": 1793563200,
+            "duration_sec": 3599,
+            "title": "Event #53653",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53629,
+            "start_time": 1793354100,
+            "duration_sec": 5280,
+            "title": "Event #53629",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53630,
+            "start_time": 1793359380,
+            "duration_sec": 5220,
+            "title": "Event #53630",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53631,
+            "start_time": 1793364600,
+            "duration_sec": 6000,
+            "title": "Event #53631",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53579,
+            "start_time": 1793370600,
+            "duration_sec": 6120,
+            "title": "Event #53579",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53632,
+            "start_time": 1793376720,
+            "duration_sec": 6420,
+            "title": "Event #53632",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53635,
+            "start_time": 1793391120,
+            "duration_sec": 2880,
+            "title": "Event #53635",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53541,
+            "start_time": 1793394000,
+            "duration_sec": 1620,
+            "title": "Event #53541",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53654,
+            "start_time": 1793395620,
+            "duration_sec": 1620,
+            "title": "Event #53654",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53655,
+            "start_time": 1793397240,
+            "duration_sec": 3960,
+            "title": "Event #53655",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53544,
+            "start_time": 1793401200,
+            "duration_sec": 4200,
+            "title": "Event #53544",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53639,
+            "start_time": 1793405400,
+            "duration_sec": 3780,
+            "title": "Event #53639",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53667,
+            "start_time": 1793409180,
+            "duration_sec": 5700,
+            "title": "Event #53667",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53657,
+            "start_time": 1793414880,
+            "duration_sec": 7140,
+            "title": "Event #53657",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53658,
+            "start_time": 1793422020,
+            "duration_sec": 2340,
+            "title": "Event #53658",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53659,
+            "start_time": 1793424360,
+            "duration_sec": 7740,
+            "title": "Event #53659",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53660,
+            "start_time": 1793432100,
+            "duration_sec": 8700,
+            "title": "Event #53660",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53605,
+            "start_time": 1793440800,
+            "duration_sec": 5280,
+            "title": "Event #53605",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53661,
+            "start_time": 1793446080,
+            "duration_sec": 4980,
+            "title": "Event #53661",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53662,
+            "start_time": 1793451060,
+            "duration_sec": 5880,
+            "title": "Event #53662",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53663,
+            "start_time": 1793456940,
+            "duration_sec": 6180,
+            "title": "Event #53663",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53664,
+            "start_time": 1793463120,
+            "duration_sec": 3180,
+            "title": "Event #53664",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53665,
+            "start_time": 1793466300,
+            "duration_sec": 8580,
+            "title": "Event #53665",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53666,
+            "start_time": 1793474880,
+            "duration_sec": 2820,
+            "title": "Event #53666",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53607,
+            "start_time": 1793477700,
+            "duration_sec": 2700,
+            "title": "Event #53607",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53556,
+            "start_time": 1793480400,
+            "duration_sec": 1800,
+            "title": "Event #53556",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53557,
+            "start_time": 1793482200,
+            "duration_sec": 1800,
+            "title": "Event #53557",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53558,
+            "start_time": 1793484000,
+            "duration_sec": 3600,
+            "title": "Event #53558",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53559,
+            "start_time": 1793487600,
+            "duration_sec": 1800,
+            "title": "Event #53559",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 53560,
+            "start_time": 1793489400,
+            "duration_sec": 2400,
+            "title": "Event #53560",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          }
+        ]
+      },
+      {
+        "service_id": 30267,
+        "channel_name": "INDOSIAR HD",
+        "last_updated": 1793385722,
+        "events": [
+          {
+            "event_id": 33064,
+            "start_time": 1793368800,
+            "duration_sec": 14400,
+            "title": "Event #33064",
             "description": "",
             "lang": "eng",
             "scrambled": false
@@ -326,136 +729,10 @@
             "scrambled": false
           },
           {
-            "event_id": 33095,
-            "start_time": 1793541600,
-            "duration_sec": 7200,
-            "title": "Event #33095",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33096,
-            "start_time": 1793548800,
-            "duration_sec": 7200,
-            "title": "Event #33096",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33097,
-            "start_time": 1793556000,
-            "duration_sec": 7200,
-            "title": "Event #33097",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33098,
-            "start_time": 1793563200,
-            "duration_sec": 5400,
-            "title": "Event #33098",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
             "event_id": 33127,
             "start_time": 1793383200,
             "duration_sec": 7200,
             "title": "Event #33127",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33055,
-            "start_time": 1793322000,
-            "duration_sec": 5400,
-            "title": "Event #33055",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33117,
-            "start_time": 1793327400,
-            "duration_sec": 3600,
-            "title": "Event #33117",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33118,
-            "start_time": 1793331000,
-            "duration_sec": 1800,
-            "title": "Event #33118",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33119,
-            "start_time": 1793332800,
-            "duration_sec": 1800,
-            "title": "Event #33119",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33128,
-            "start_time": 1793334600,
-            "duration_sec": 5400,
-            "title": "Event #33128",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33129,
-            "start_time": 1793340000,
-            "duration_sec": 7200,
-            "title": "Event #33129",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33061,
-            "start_time": 1793347200,
-            "duration_sec": 9000,
-            "title": "Event #33061",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33062,
-            "start_time": 1793356200,
-            "duration_sec": 3600,
-            "title": "Event #33062",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33063,
-            "start_time": 1793359800,
-            "duration_sec": 9000,
-            "title": "Event #33063",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 33064,
-            "start_time": 1793368800,
-            "duration_sec": 14400,
-            "title": "Event #33064",
             "description": "",
             "lang": "eng",
             "scrambled": false
@@ -693,19 +970,190 @@
             "description": "",
             "lang": "eng",
             "scrambled": false
+          },
+          {
+            "event_id": 33093,
+            "start_time": 1793529000,
+            "duration_sec": 3600,
+            "title": "Event #33093",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33094,
+            "start_time": 1793532600,
+            "duration_sec": 9000,
+            "title": "Event #33094",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33095,
+            "start_time": 1793541600,
+            "duration_sec": 7200,
+            "title": "Event #33095",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33096,
+            "start_time": 1793548800,
+            "duration_sec": 7200,
+            "title": "Event #33096",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33097,
+            "start_time": 1793556000,
+            "duration_sec": 7200,
+            "title": "Event #33097",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33098,
+            "start_time": 1793563200,
+            "duration_sec": 5400,
+            "title": "Event #33098",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33055,
+            "start_time": 1793322000,
+            "duration_sec": 5400,
+            "title": "Event #33055",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33117,
+            "start_time": 1793327400,
+            "duration_sec": 3600,
+            "title": "Event #33117",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33118,
+            "start_time": 1793331000,
+            "duration_sec": 1800,
+            "title": "Event #33118",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33119,
+            "start_time": 1793332800,
+            "duration_sec": 1800,
+            "title": "Event #33119",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33128,
+            "start_time": 1793334600,
+            "duration_sec": 5400,
+            "title": "Event #33128",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33129,
+            "start_time": 1793340000,
+            "duration_sec": 7200,
+            "title": "Event #33129",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33061,
+            "start_time": 1793347200,
+            "duration_sec": 9000,
+            "title": "Event #33061",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33062,
+            "start_time": 1793356200,
+            "duration_sec": 3600,
+            "title": "Event #33062",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 33063,
+            "start_time": 1793359800,
+            "duration_sec": 9000,
+            "title": "Event #33063",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
           }
         ]
       },
       {
         "service_id": 30268,
         "channel_name": "MOJI HD",
-        "last_updated": 1793385364,
+        "last_updated": 1793385722,
         "events": [
           {
-            "event_id": 24603,
-            "start_time": 1793640952,
-            "duration_sec": 7625,
-            "title": "Event #24603",
+            "event_id": 24692,
+            "start_time": 1793470990,
+            "duration_sec": 7445,
+            "title": "Event #24692",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24693,
+            "start_time": 1793478435,
+            "duration_sec": 5564,
+            "title": "Event #24693",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24578,
+            "start_time": 1793483999,
+            "duration_sec": 1,
+            "title": "Event #24578",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24579,
+            "start_time": 1793484000,
+            "duration_sec": 4541,
+            "title": "Event #24579",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24580,
+            "start_time": 1793488541,
+            "duration_sec": 2700,
+            "title": "Event #24580",
             "description": "",
             "lang": "eng",
             "scrambled": false
@@ -715,6 +1163,222 @@
             "start_time": 1793377980,
             "duration_sec": 8225,
             "title": "Event #24684",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24581,
+            "start_time": 1793491241,
+            "duration_sec": 1805,
+            "title": "Event #24581",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24582,
+            "start_time": 1793493046,
+            "duration_sec": 1800,
+            "title": "Event #24582",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24583,
+            "start_time": 1793494846,
+            "duration_sec": 3600,
+            "title": "Event #24583",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24584,
+            "start_time": 1793498446,
+            "duration_sec": 6420,
+            "title": "Event #24584",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24585,
+            "start_time": 1793504866,
+            "duration_sec": 7860,
+            "title": "Event #24585",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24586,
+            "start_time": 1793512726,
+            "duration_sec": 12120,
+            "title": "Event #24586",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24685,
+            "start_time": 1793386205,
+            "duration_sec": 6245,
+            "title": "Event #24685",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24587,
+            "start_time": 1793524846,
+            "duration_sec": 8951,
+            "title": "Event #24587",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24588,
+            "start_time": 1793533797,
+            "duration_sec": 8700,
+            "title": "Event #24588",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24589,
+            "start_time": 1793542497,
+            "duration_sec": 8820,
+            "title": "Event #24589",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24590,
+            "start_time": 1793551317,
+            "duration_sec": 5885,
+            "title": "Event #24590",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24591,
+            "start_time": 1793557202,
+            "duration_sec": 7865,
+            "title": "Event #24591",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24592,
+            "start_time": 1793565067,
+            "duration_sec": 5333,
+            "title": "Event #24592",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24593,
+            "start_time": 1793570400,
+            "duration_sec": 4541,
+            "title": "Event #24593",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24594,
+            "start_time": 1793574941,
+            "duration_sec": 2700,
+            "title": "Event #24594",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24595,
+            "start_time": 1793577641,
+            "duration_sec": 3600,
+            "title": "Event #24595",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24596,
+            "start_time": 1793581241,
+            "duration_sec": 3480,
+            "title": "Event #24596",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24597,
+            "start_time": 1793584721,
+            "duration_sec": 6420,
+            "title": "Event #24597",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24598,
+            "start_time": 1793591141,
+            "duration_sec": 7740,
+            "title": "Event #24598",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24599,
+            "start_time": 1793598881,
+            "duration_sec": 12960,
+            "title": "Event #24599",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24600,
+            "start_time": 1793611841,
+            "duration_sec": 9431,
+            "title": "Event #24600",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24601,
+            "start_time": 1793621272,
+            "duration_sec": 9120,
+            "title": "Event #24601",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24602,
+            "start_time": 1793630392,
+            "duration_sec": 10560,
+            "title": "Event #24602",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 24603,
+            "start_time": 1793640952,
+            "duration_sec": 7625,
+            "title": "Event #24603",
             "description": "",
             "lang": "eng",
             "scrambled": false
@@ -742,15 +1406,6 @@
             "start_time": 1793661341,
             "duration_sec": 2700,
             "title": "Event #24606",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24685,
-            "start_time": 1793386205,
-            "duration_sec": 6245,
-            "title": "Event #24685",
             "description": "",
             "lang": "eng",
             "scrambled": false
@@ -916,262 +1571,343 @@
             "description": "",
             "lang": "eng",
             "scrambled": false
-          },
-          {
-            "event_id": 24692,
-            "start_time": 1793470990,
-            "duration_sec": 7445,
-            "title": "Event #24692",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24693,
-            "start_time": 1793478435,
-            "duration_sec": 5564,
-            "title": "Event #24693",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24578,
-            "start_time": 1793483999,
-            "duration_sec": 1,
-            "title": "Event #24578",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24579,
-            "start_time": 1793484000,
-            "duration_sec": 4541,
-            "title": "Event #24579",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24580,
-            "start_time": 1793488541,
-            "duration_sec": 2700,
-            "title": "Event #24580",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24581,
-            "start_time": 1793491241,
-            "duration_sec": 1805,
-            "title": "Event #24581",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24582,
-            "start_time": 1793493046,
-            "duration_sec": 1800,
-            "title": "Event #24582",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24583,
-            "start_time": 1793494846,
-            "duration_sec": 3600,
-            "title": "Event #24583",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24584,
-            "start_time": 1793498446,
-            "duration_sec": 6420,
-            "title": "Event #24584",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24585,
-            "start_time": 1793504866,
-            "duration_sec": 7860,
-            "title": "Event #24585",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24586,
-            "start_time": 1793512726,
-            "duration_sec": 12120,
-            "title": "Event #24586",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24587,
-            "start_time": 1793524846,
-            "duration_sec": 8951,
-            "title": "Event #24587",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24588,
-            "start_time": 1793533797,
-            "duration_sec": 8700,
-            "title": "Event #24588",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24589,
-            "start_time": 1793542497,
-            "duration_sec": 8820,
-            "title": "Event #24589",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24590,
-            "start_time": 1793551317,
-            "duration_sec": 5885,
-            "title": "Event #24590",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24591,
-            "start_time": 1793557202,
-            "duration_sec": 7865,
-            "title": "Event #24591",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24592,
-            "start_time": 1793565067,
-            "duration_sec": 5333,
-            "title": "Event #24592",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24593,
-            "start_time": 1793570400,
-            "duration_sec": 4541,
-            "title": "Event #24593",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24594,
-            "start_time": 1793574941,
-            "duration_sec": 2700,
-            "title": "Event #24594",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24595,
-            "start_time": 1793577641,
-            "duration_sec": 3600,
-            "title": "Event #24595",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24596,
-            "start_time": 1793581241,
-            "duration_sec": 3480,
-            "title": "Event #24596",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24597,
-            "start_time": 1793584721,
-            "duration_sec": 6420,
-            "title": "Event #24597",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24598,
-            "start_time": 1793591141,
-            "duration_sec": 7740,
-            "title": "Event #24598",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24599,
-            "start_time": 1793598881,
-            "duration_sec": 12960,
-            "title": "Event #24599",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24600,
-            "start_time": 1793611841,
-            "duration_sec": 9431,
-            "title": "Event #24600",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24601,
-            "start_time": 1793621272,
-            "duration_sec": 9120,
-            "title": "Event #24601",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 24602,
-            "start_time": 1793630392,
-            "duration_sec": 10560,
-            "title": "Event #24602",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
           }
         ]
       },
       {
         "service_id": 30269,
         "channel_name": "MENTARI HD",
-        "last_updated": 1793385364,
+        "last_updated": 1793385722,
         "events": [
+          {
+            "event_id": 51342,
+            "start_time": 1793530800,
+            "duration_sec": 10800,
+            "title": "Event #51342",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51344,
+            "start_time": 1793547000,
+            "duration_sec": 5400,
+            "title": "Event #51344",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51345,
+            "start_time": 1793552400,
+            "duration_sec": 3600,
+            "title": "Event #51345",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51302,
+            "start_time": 1793386800,
+            "duration_sec": 3600,
+            "title": "Event #51302",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51346,
+            "start_time": 1793556000,
+            "duration_sec": 3600,
+            "title": "Event #51346",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51347,
+            "start_time": 1793559600,
+            "duration_sec": 3600,
+            "title": "Event #51347",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51348,
+            "start_time": 1793563200,
+            "duration_sec": 3600,
+            "title": "Event #51348",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51350,
+            "start_time": 1793566800,
+            "duration_sec": 3600,
+            "title": "Event #51350",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51351,
+            "start_time": 1793570400,
+            "duration_sec": 1800,
+            "title": "Event #51351",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51352,
+            "start_time": 1793572200,
+            "duration_sec": 1800,
+            "title": "Event #51352",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51353,
+            "start_time": 1793574000,
+            "duration_sec": 3600,
+            "title": "Event #51353",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51354,
+            "start_time": 1793577600,
+            "duration_sec": 3600,
+            "title": "Event #51354",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51355,
+            "start_time": 1793581200,
+            "duration_sec": 5400,
+            "title": "Event #51355",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51356,
+            "start_time": 1793586600,
+            "duration_sec": 5400,
+            "title": "Event #51356",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51301,
+            "start_time": 1793383200,
+            "duration_sec": 3600,
+            "title": "Event #51301",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51357,
+            "start_time": 1793592000,
+            "duration_sec": 7200,
+            "title": "Event #51357",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51358,
+            "start_time": 1793599200,
+            "duration_sec": 3600,
+            "title": "Event #51358",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51359,
+            "start_time": 1793602800,
+            "duration_sec": 3600,
+            "title": "Event #51359",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51360,
+            "start_time": 1793606400,
+            "duration_sec": 3600,
+            "title": "Event #51360",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51361,
+            "start_time": 1793610000,
+            "duration_sec": 3600,
+            "title": "Event #51361",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51362,
+            "start_time": 1793613600,
+            "duration_sec": 1800,
+            "title": "Event #51362",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51363,
+            "start_time": 1793615400,
+            "duration_sec": 1800,
+            "title": "Event #51363",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51364,
+            "start_time": 1793617200,
+            "duration_sec": 1800,
+            "title": "Event #51364",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51365,
+            "start_time": 1793619000,
+            "duration_sec": 1800,
+            "title": "Event #51365",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51366,
+            "start_time": 1793620800,
+            "duration_sec": 3600,
+            "title": "Event #51366",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51367,
+            "start_time": 1793624400,
+            "duration_sec": 3600,
+            "title": "Event #51367",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51368,
+            "start_time": 1793628000,
+            "duration_sec": 5400,
+            "title": "Event #51368",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51369,
+            "start_time": 1793633400,
+            "duration_sec": 5400,
+            "title": "Event #51369",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51370,
+            "start_time": 1793638800,
+            "duration_sec": 3600,
+            "title": "Event #51370",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51371,
+            "start_time": 1793642400,
+            "duration_sec": 3600,
+            "title": "Event #51371",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51372,
+            "start_time": 1793646000,
+            "duration_sec": 3600,
+            "title": "Event #51372",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51373,
+            "start_time": 1793649600,
+            "duration_sec": 3600,
+            "title": "Event #51373",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51374,
+            "start_time": 1793653200,
+            "duration_sec": 3600,
+            "title": "Event #51374",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51375,
+            "start_time": 1793656800,
+            "duration_sec": 1800,
+            "title": "Event #51375",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51376,
+            "start_time": 1793658600,
+            "duration_sec": 1800,
+            "title": "Event #51376",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
           {
             "event_id": 51377,
             "start_time": 1793660400,
             "duration_sec": 3600,
             "title": "Event #51377",
+            "description": "",
+            "lang": "eng",
+            "scrambled": false
+          },
+          {
+            "event_id": 51292,
+            "start_time": 1793350800,
+            "duration_sec": 3600,
+            "title": "Event #51292",
             "description": "",
             "lang": "eng",
             "scrambled": false
@@ -1231,15 +1967,6 @@
             "scrambled": false
           },
           {
-            "event_id": 51302,
-            "start_time": 1793386800,
-            "duration_sec": 3600,
-            "title": "Event #51302",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
             "event_id": 51299,
             "start_time": 1793374200,
             "duration_sec": 5400,
@@ -1253,15 +1980,6 @@
             "start_time": 1793379600,
             "duration_sec": 3600,
             "title": "Event #51300",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51301,
-            "start_time": 1793383200,
-            "duration_sec": 3600,
-            "title": "Event #51301",
             "description": "",
             "lang": "eng",
             "scrambled": false
@@ -1436,319 +2154,13 @@
             "description": "",
             "lang": "eng",
             "scrambled": false
-          },
-          {
-            "event_id": 51322,
-            "start_time": 1793460600,
-            "duration_sec": 5400,
-            "title": "Event #51322",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51323,
-            "start_time": 1793466000,
-            "duration_sec": 3600,
-            "title": "Event #51323",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51324,
-            "start_time": 1793469600,
-            "duration_sec": 3600,
-            "title": "Event #51324",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51325,
-            "start_time": 1793473200,
-            "duration_sec": 3600,
-            "title": "Event #51325",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51326,
-            "start_time": 1793476800,
-            "duration_sec": 3600,
-            "title": "Event #51326",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51327,
-            "start_time": 1793480400,
-            "duration_sec": 3600,
-            "title": "Event #51327",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51328,
-            "start_time": 1793484000,
-            "duration_sec": 1800,
-            "title": "Event #51328",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51329,
-            "start_time": 1793485800,
-            "duration_sec": 1800,
-            "title": "Event #51329",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51330,
-            "start_time": 1793487600,
-            "duration_sec": 3600,
-            "title": "Event #51330",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51331,
-            "start_time": 1793491200,
-            "duration_sec": 3600,
-            "title": "Event #51331",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51332,
-            "start_time": 1793494800,
-            "duration_sec": 1800,
-            "title": "Event #51332",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51333,
-            "start_time": 1793496600,
-            "duration_sec": 3600,
-            "title": "Event #51333",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51334,
-            "start_time": 1793500200,
-            "duration_sec": 5400,
-            "title": "Event #51334",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51335,
-            "start_time": 1793505600,
-            "duration_sec": 7200,
-            "title": "Event #51335",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51336,
-            "start_time": 1793512800,
-            "duration_sec": 3600,
-            "title": "Event #51336",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51337,
-            "start_time": 1793516400,
-            "duration_sec": 3600,
-            "title": "Event #51337",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51338,
-            "start_time": 1793520000,
-            "duration_sec": 3600,
-            "title": "Event #51338",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51339,
-            "start_time": 1793523600,
-            "duration_sec": 3600,
-            "title": "Event #51339",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51340,
-            "start_time": 1793527200,
-            "duration_sec": 1800,
-            "title": "Event #51340",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51341,
-            "start_time": 1793529000,
-            "duration_sec": 1800,
-            "title": "Event #51341",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51342,
-            "start_time": 1793530800,
-            "duration_sec": 10800,
-            "title": "Event #51342",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51343,
-            "start_time": 1793541600,
-            "duration_sec": 5400,
-            "title": "Event #51343",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51344,
-            "start_time": 1793547000,
-            "duration_sec": 5400,
-            "title": "Event #51344",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51345,
-            "start_time": 1793552400,
-            "duration_sec": 3600,
-            "title": "Event #51345",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51346,
-            "start_time": 1793556000,
-            "duration_sec": 3600,
-            "title": "Event #51346",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51347,
-            "start_time": 1793559600,
-            "duration_sec": 3600,
-            "title": "Event #51347",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51348,
-            "start_time": 1793563200,
-            "duration_sec": 3600,
-            "title": "Event #51348",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51350,
-            "start_time": 1793566800,
-            "duration_sec": 3600,
-            "title": "Event #51350",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51351,
-            "start_time": 1793570400,
-            "duration_sec": 1800,
-            "title": "Event #51351",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51352,
-            "start_time": 1793572200,
-            "duration_sec": 1800,
-            "title": "Event #51352",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51353,
-            "start_time": 1793574000,
-            "duration_sec": 3600,
-            "title": "Event #51353",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51354,
-            "start_time": 1793577600,
-            "duration_sec": 3600,
-            "title": "Event #51354",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51355,
-            "start_time": 1793581200,
-            "duration_sec": 5400,
-            "title": "Event #51355",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 51356,
-            "start_time": 1793586600,
-            "duration_sec": 5400,
-            "title": "Event #51356",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
           }
         ]
       },
       {
         "service_id": 107,
         "channel_name": "KOMPASTV HD",
-        "last_updated": 1793385364,
+        "last_updated": 1793385722,
         "events": [
           {
             "event_id": 36293,
@@ -1890,418 +2302,6 @@
             "start_time": 1793376000,
             "duration_sec": 1800,
             "title": "Event #36292",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          }
-        ]
-      },
-      {
-        "service_id": 30266,
-        "channel_name": "SCTV HD",
-        "last_updated": 1793385364,
-        "events": [
-          {
-            "event_id": 53633,
-            "start_time": 1793383140,
-            "duration_sec": 3960,
-            "title": "Event #53633",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53629,
-            "start_time": 1793354100,
-            "duration_sec": 5280,
-            "title": "Event #53629",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53630,
-            "start_time": 1793359380,
-            "duration_sec": 5220,
-            "title": "Event #53630",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53631,
-            "start_time": 1793364600,
-            "duration_sec": 6000,
-            "title": "Event #53631",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53579,
-            "start_time": 1793370600,
-            "duration_sec": 6120,
-            "title": "Event #53579",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53649,
-            "start_time": 1793387100,
-            "duration_sec": 4020,
-            "title": "Event #53649",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53632,
-            "start_time": 1793376720,
-            "duration_sec": 6420,
-            "title": "Event #53632",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53635,
-            "start_time": 1793391120,
-            "duration_sec": 2880,
-            "title": "Event #53635",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53541,
-            "start_time": 1793394000,
-            "duration_sec": 1620,
-            "title": "Event #53541",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53654,
-            "start_time": 1793395620,
-            "duration_sec": 1620,
-            "title": "Event #53654",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53655,
-            "start_time": 1793397240,
-            "duration_sec": 3960,
-            "title": "Event #53655",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53544,
-            "start_time": 1793401200,
-            "duration_sec": 4200,
-            "title": "Event #53544",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53639,
-            "start_time": 1793405400,
-            "duration_sec": 3780,
-            "title": "Event #53639",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53667,
-            "start_time": 1793409180,
-            "duration_sec": 5700,
-            "title": "Event #53667",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53657,
-            "start_time": 1793414880,
-            "duration_sec": 7140,
-            "title": "Event #53657",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53658,
-            "start_time": 1793422020,
-            "duration_sec": 2340,
-            "title": "Event #53658",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53659,
-            "start_time": 1793424360,
-            "duration_sec": 7740,
-            "title": "Event #53659",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53660,
-            "start_time": 1793432100,
-            "duration_sec": 8700,
-            "title": "Event #53660",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53605,
-            "start_time": 1793440800,
-            "duration_sec": 5280,
-            "title": "Event #53605",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53661,
-            "start_time": 1793446080,
-            "duration_sec": 4980,
-            "title": "Event #53661",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53662,
-            "start_time": 1793451060,
-            "duration_sec": 5880,
-            "title": "Event #53662",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53663,
-            "start_time": 1793456940,
-            "duration_sec": 6180,
-            "title": "Event #53663",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53664,
-            "start_time": 1793463120,
-            "duration_sec": 3180,
-            "title": "Event #53664",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53665,
-            "start_time": 1793466300,
-            "duration_sec": 8580,
-            "title": "Event #53665",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53666,
-            "start_time": 1793474880,
-            "duration_sec": 2820,
-            "title": "Event #53666",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53607,
-            "start_time": 1793477700,
-            "duration_sec": 2700,
-            "title": "Event #53607",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53556,
-            "start_time": 1793480400,
-            "duration_sec": 1800,
-            "title": "Event #53556",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53557,
-            "start_time": 1793482200,
-            "duration_sec": 1800,
-            "title": "Event #53557",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53558,
-            "start_time": 1793484000,
-            "duration_sec": 3600,
-            "title": "Event #53558",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53559,
-            "start_time": 1793487600,
-            "duration_sec": 1800,
-            "title": "Event #53559",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53560,
-            "start_time": 1793489400,
-            "duration_sec": 2400,
-            "title": "Event #53560",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53643,
-            "start_time": 1793491800,
-            "duration_sec": 3840,
-            "title": "Event #53643",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53668,
-            "start_time": 1793495640,
-            "duration_sec": 6360,
-            "title": "Event #53668",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53637,
-            "start_time": 1793502000,
-            "duration_sec": 5400,
-            "title": "Event #53637",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53644,
-            "start_time": 1793507400,
-            "duration_sec": 1860,
-            "title": "Event #53644",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53645,
-            "start_time": 1793509260,
-            "duration_sec": 2640,
-            "title": "Event #53645",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53646,
-            "start_time": 1793511900,
-            "duration_sec": 9000,
-            "title": "Event #53646",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53647,
-            "start_time": 1793520900,
-            "duration_sec": 6300,
-            "title": "Event #53647",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53608,
-            "start_time": 1793527200,
-            "duration_sec": 4500,
-            "title": "Event #53608",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53567,
-            "start_time": 1793531700,
-            "duration_sec": 6300,
-            "title": "Event #53567",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53568,
-            "start_time": 1793538000,
-            "duration_sec": 5400,
-            "title": "Event #53568",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53583,
-            "start_time": 1793543400,
-            "duration_sec": 7200,
-            "title": "Event #53583",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53570,
-            "start_time": 1793550600,
-            "duration_sec": 7200,
-            "title": "Event #53570",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53652,
-            "start_time": 1793557800,
-            "duration_sec": 5400,
-            "title": "Event #53652",
-            "description": "",
-            "lang": "eng",
-            "scrambled": false
-          },
-          {
-            "event_id": 53653,
-            "start_time": 1793563200,
-            "duration_sec": 3599,
-            "title": "Event #53653",
             "description": "",
             "lang": "eng",
             "scrambled": false

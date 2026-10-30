@@ -1161,28 +1161,22 @@
                 <!-- Settings Sidebar Submenu -->
                 <div class="settings-sidebar">
                     <button type="button" class="settings-nav-btn active" data-subtab="http_play" onclick="switchSettingSubmenu('http_play')">
-                        <span>🌐</span>
-                        <span>HTTP Play</span>
+                        HTTP Play
                     </button>
                     <button type="button" class="settings-nav-btn" data-subtab="http_auth" onclick="switchSettingSubmenu('http_auth')">
-                        <span>🔐</span>
-                        <span>HTTP Auth</span>
+                        HTTP Auth
                     </button>
                     <button type="button" class="settings-nav-btn" data-subtab="hls" onclick="switchSettingSubmenu('hls')">
-                        <span>📱</span>
-                        <span>HLS Streaming</span>
+                        HLS Streaming
                     </button>
                     <button type="button" class="settings-nav-btn" data-subtab="epg" onclick="switchSettingSubmenu('epg')">
-                        <span>📺</span>
-                        <span>EPG Schedule</span>
+                        EPG Schedule
                     </button>
                     <button type="button" class="settings-nav-btn" data-subtab="softcam" onclick="switchSettingSubmenu('softcam')">
-                        <span>🔑</span>
-                        <span>SoftCAM & CAS</span>
+                        SoftCAM & CAS
                     </button>
                     <button type="button" class="settings-nav-btn" data-subtab="raw_config" onclick="switchSettingSubmenu('raw_config')">
-                        <span>⚙️</span>
-                        <span>Raw Config</span>
+                        Raw Config
                     </button>
                 </div>
 
@@ -1193,7 +1187,7 @@
                     <div id="subtab-http_play" class="settings-pane active">
                         <div class="settings-section-header">
                             <div>
-                                <div class="settings-section-title">🌐 HTTP Play Streaming (MPEG-TS over HTTP)</div>
+                                <div class="settings-section-title">HTTP Play Streaming (MPEG-TS over HTTP)</div>
                                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Stream live broadcast MPEG-TS directly to VLC, Kodi, OTT boxes, and browsers via persistent HTTP.</div>
                             </div>
                             <span class="badge badge-success">MODULE: HTTP_PLAY</span>
@@ -1247,7 +1241,7 @@
                     <div id="subtab-http_auth" class="settings-pane">
                         <div class="settings-section-header">
                             <div>
-                                <div class="settings-section-title">🔐 HTTP Authentication & Roles</div>
+                                <div class="settings-section-title">HTTP Authentication & Roles</div>
                                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Control administrative dashboard access and streaming client credentials.</div>
                             </div>
                             <span class="badge badge-warning">MODULE: HTTP_AUTH</span>
@@ -1299,7 +1293,7 @@
                     <div id="subtab-hls" class="settings-pane">
                         <div class="settings-section-header">
                             <div>
-                                <div class="settings-section-title">📱 HLS Live Segmenter (HTTP Live Streaming)</div>
+                                <div class="settings-section-title">HLS Live Segmenter (HTTP Live Streaming)</div>
                                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Real-time transport stream slicing into m3u8 playlists for mobile and HTML5 playback.</div>
                             </div>
                             <span class="badge badge-info">MODULE: HLS</span>
@@ -1348,7 +1342,7 @@
                     <div id="subtab-epg" class="settings-pane">
                         <div class="settings-section-header">
                             <div>
-                                <div class="settings-section-title">📺 Electronic Program Guide (DVB EIT Demuxer)</div>
+                                <div class="settings-section-title">Electronic Program Guide (DVB EIT Demuxer)</div>
                                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Demuxes DVB-SI Event Information Tables (EIT p/f and schedule) from active transponders.</div>
                             </div>
                             <span class="badge badge-success">MODULE: EPG</span>
@@ -1400,7 +1394,7 @@
                     <div id="subtab-softcam" class="settings-pane">
                         <div class="settings-section-header">
                             <div>
-                                <div class="settings-section-title">🔑 SoftCAM Keys & CAS Cardsharing</div>
+                                <div class="settings-section-title">SoftCAM Keys & CAS Cardsharing</div>
                                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Hardware and software DVB-CSA descrambling with BISS-1, Constant CW, and Newcamd client.</div>
                             </div>
                             <span class="badge badge-warning">MODULE: SOFTCAM</span>
@@ -1473,7 +1467,7 @@
                     <div id="subtab-raw_config" class="settings-pane">
                         <div class="settings-section-header">
                             <div>
-                                <div class="settings-section-title">⚙️ Raw Configuration File (dvblast.json)</div>
+                                <div class="settings-section-title">Raw Configuration File (dvblast.json)</div>
                                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Inspect and directly edit the active JSON configuration file stored on disk.</div>
                             </div>
                             <div style="display: flex; gap: 8px;">
@@ -2745,10 +2739,10 @@
         }
 
         async function deleteAdapter(id) {
-            if (!confirm(`Are you sure you want to delete adapter "${id}"?`)) return;
+            if (!confirm(`Are you sure you want to delete adapter "${id}" and all of its child streams?`)) return;
             const res = await apiPost('/api/v1/adapters/delete', { id });
             if (res && res.ok) {
-                showToast(`Adapter "${id}" deleted`);
+                showToast(`Adapter "${id}" and all child streams deleted`);
                 pollState();
             } else {
                 showToast(res ? res.error : "Delete failed", true);

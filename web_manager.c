@@ -639,6 +639,7 @@ bool web_manager_delete_adapter(const char *id) {
     }
 
     bool ok = web_state_delete_adapter(id);
+    web_manager_sync_outputs();
     web_state_save_json(NULL);
     return ok;
 }

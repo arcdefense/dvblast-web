@@ -213,13 +213,32 @@ bool web_state_delete_adapter(const char *id) {
     if (idx >= 0) {
         char name[128];
         snprintf(name, sizeof(name), "%s", g_gateway.adapters[idx].name);
+        int ad_idx = g_gateway.adapters[idx].adapter_idx;
+
+        /* Remove adapter from adapters array */
         for (int i = idx; i < g_gateway.num_adapters - 1; i++) {
             g_gateway.adapters[i] = g_gateway.adapters[i + 1];
         }
         g_gateway.num_adapters--;
         memset(&g_gateway.adapters[g_gateway.num_adapters], 0, sizeof(web_adapter_t));
+
+        /* Cascading delete: Remove all child streams linked to this adapter */
+        int deleted_streams = 0;
+        for (int i = 0; i < g_gateway.num_streams; ) {
+            if (g_gateway.streams[i].adapter_idx == ad_idx) {
+                for (int j = i; j < g_gateway.num_streams - 1; j++) {
+                    g_gateway.streams[j] = g_gateway.streams[j + 1];
+                }
+                g_gateway.num_streams--;
+                memset(&g_gateway.streams[g_gateway.num_streams], 0, sizeof(web_stream_config_t));
+                deleted_streams++;
+            } else {
+                i++;
+            }
+        }
+
         pthread_mutex_unlock(&g_gateway.lock);
-        web_state_log("INFO", "Adapter %s (%s) deleted", id, name);
+        web_state_log("INFO", "Adapter %s (%s) and %d child streams deleted", id, name, deleted_streams);
         return true;
     }
 
