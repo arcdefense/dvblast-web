@@ -16,8 +16,16 @@ extern "C" {
 
 typedef struct {
     bool     enabled;
-    int      buffer_kb;
-    int      max_clients;
+    int      port;                    /* Custom HTTP Play port (0 = inherit main port) */
+    char     playlist_name[64];       /* Custom playlist name, default: "playlist" */
+    int      buffer_kb;               /* Ring buffer size in KB, default: 2048 */
+    int      max_clients;             /* Max concurrent clients, default: 64 */
+    char     m3u_header[256];         /* Custom M3U header params */
+    char     xspf_title[128];         /* XSPF playlist title */
+    char     tv_logos_path[256];      /* Path to channel logos */
+    bool     allow_http;              /* Allow HTTP TS streaming */
+    bool     allow_hls;               /* Allow HLS streaming */
+    bool     disable_tls;             /* Disable TLS on playlist links */
     int      active_clients;
     uint64_t total_clients_served;
     uint64_t total_bytes_streamed;

@@ -1898,17 +1898,64 @@
 
                                 <div class="settings-divider"></div>
                                 <div style="font-weight: 700; font-size: 13px; margin-bottom: 8px;">Live Playlist Links</div>
-                                <div id="http-play-links-box" style="display: flex; flex-direction: column; gap: 6px; font-size: 12.5px;">
-                                    <div><a href="#" id="link-m3u-auto" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">m3u8 playlist (auto format)</a></div>
-                                    <div><a href="#" id="link-m3u-ts" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">m3u8 playlist (HTTP MPEG-TS)</a></div>
-                                    <div><a href="#" id="link-m3u-hls" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">m3u8 playlist (HLS)</a></div>
-                                    <div><a href="#" id="link-m3u-udp" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">m3u8 playlist (UDP)</a></div>
-                                    <div><a href="#" id="link-xspf" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">xspf playlist</a></div>
+                                <div id="http-play-links-box" style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                        <a href="#" id="link-m3u-auto" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">playlist.m3u8 (auto format)</a>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copyPlaylistUrl('link-m3u-auto')">COPY</button>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                        <a href="#" id="link-m3u-ts" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">playlist.m3u8?ts (HTTP MPEG-TS)</a>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copyPlaylistUrl('link-m3u-ts')">COPY</button>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                        <a href="#" id="link-m3u-hls" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">playlist.m3u8?hls (HLS)</a>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copyPlaylistUrl('link-m3u-hls')">COPY</button>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                        <a href="#" id="link-m3u-udp" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">playlist.m3u8?udp (UDP)</a>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copyPlaylistUrl('link-m3u-udp')">COPY</button>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                        <a href="#" id="link-xspf" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">playlist.xspf (XSPF)</a>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copyPlaylistUrl('link-xspf')">COPY</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div style="display: flex; justify-content: flex-end;">
+                        <!-- Active HTTP Clients Table -->
+                        <div class="settings-card" style="margin-top: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <div>
+                                    <div style="font-weight: 700; font-size: 13px;">Active Streaming Clients</div>
+                                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">Real-time subscribers connected to HTTP TS streams.</div>
+                                </div>
+                                <div id="http-play-stats-badges" style="display: flex; gap: 8px;">
+                                    <span class="badge badge-info" id="badge-http-active-clients">0 ACTIVE</span>
+                                    <span class="badge badge-secondary" id="badge-http-total-served">0 SERVED</span>
+                                    <span class="badge badge-success" id="badge-http-total-bytes">0 MB</span>
+                                </div>
+                            </div>
+
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 80px;">ID</th>
+                                            <th style="width: 140px;">Remote IP</th>
+                                            <th>Stream Target</th>
+                                            <th style="width: 110px;">Data Sent</th>
+                                            <th style="width: 100px;">Duration</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="http-play-clients-tbody">
+                                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">No active HTTP streaming clients connected</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
                             <button class="btn btn-primary" onclick="saveHttpPlaySettings()">Apply &amp; Restart</button>
                         </div>
                     </div>
@@ -3093,7 +3140,64 @@
             if (lTs) { lTs.href = `${base}.m3u8?ts`; lTs.textContent = `${name}.m3u8?ts (HTTP MPEG-TS)`; }
             if (lHls) { lHls.href = `${base}.m3u8?hls`; lHls.textContent = `${name}.m3u8?hls (HLS)`; }
             if (lUdp) { lUdp.href = `${base}.m3u8?udp`; lUdp.textContent = `${name}.m3u8?udp (UDP)`; }
-            if (lXspf) { lXspf.href = `${base}.xspf`; lXspf.textContent = `${name}.xspf (xspf playlist)`; }
+            if (lXspf) { lXspf.href = `${base}.xspf`; lXspf.textContent = `${name}.xspf (XSPF)`; }
+        }
+
+        function copyPlaylistUrl(elemId) {
+            const el = document.getElementById(elemId);
+            if (!el || !el.href) return;
+            navigator.clipboard.writeText(el.href).then(() => {
+                showToast("Playlist URL copied: " + el.href);
+            }).catch(() => {
+                showToast("Failed to copy URL", true);
+            });
+        }
+
+        function formatBytesHuman(bytes) {
+            if (!bytes || bytes <= 0) return '0 B';
+            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i];
+        }
+
+        function formatDurationHuman(sec) {
+            if (!sec || sec <= 0) return '0s';
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            if (m === 0) return s + 's';
+            const h = Math.floor(m / 60);
+            const rm = m % 60;
+            if (h === 0) return m + 'm ' + s + 's';
+            return h + 'h ' + rm + 'm';
+        }
+
+        function renderHttpPlayClients(d) {
+            if (!d) return;
+            const bAct = document.getElementById('badge-http-active-clients');
+            const bTot = document.getElementById('badge-http-total-served');
+            const bBytes = document.getElementById('badge-http-total-bytes');
+            if (bAct) bAct.textContent = (d.active_clients || 0) + ' ACTIVE';
+            if (bTot) bTot.textContent = (d.total_clients_served || 0) + ' SERVED';
+            if (bBytes) bBytes.textContent = formatBytesHuman(d.total_bytes_streamed || 0);
+
+            const tbody = document.getElementById('http-play-clients-tbody');
+            if (!tbody) return;
+
+            const clients = d.clients || [];
+            if (clients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">No active HTTP streaming clients connected</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = clients.map(c => `
+                <tr>
+                    <td style="font-family: monospace; font-weight: 600;">#${c.id}</td>
+                    <td style="font-family: monospace;">${c.remote_ip || '127.0.0.1'}</td>
+                    <td><span class="badge badge-info">${c.stream_id || ('SID ' + c.service_id)}</span></td>
+                    <td style="font-family: monospace;">${formatBytesHuman(c.bytes_sent || 0)}</td>
+                    <td style="font-family: monospace; color: var(--text-muted);">${formatDurationHuman(c.uptime_sec || 0)}</td>
+                </tr>
+            `).join('');
         }
 
         function toggleAuthFields() {
@@ -3165,11 +3269,39 @@
                         if (d.window_size) document.getElementById('cfg-hls-quantity').value = d.window_size;
                     }
                 } else if (subTabId === 'http_play') {
-                    updateHttpPlayLinks();
                     const res = await authFetch('/api/v1/modules/http_play');
                     if (res.ok) {
                         const d = await res.json();
-                        if (d.buffer_kb) document.getElementById('cfg-http-play-buffer').value = d.buffer_kb;
+                        if (d.port !== undefined && document.getElementById('cfg-http-play-port')) {
+                            document.getElementById('cfg-http-play-port').value = d.port > 0 ? d.port : '';
+                        }
+                        if (d.playlist_name && document.getElementById('cfg-http-play-name')) {
+                            document.getElementById('cfg-http-play-name').value = d.playlist_name;
+                        }
+                        if (d.buffer_kb && document.getElementById('cfg-http-play-buffer')) {
+                            document.getElementById('cfg-http-play-buffer').value = d.buffer_kb;
+                        }
+                        if (d.m3u_header !== undefined && document.getElementById('cfg-http-play-m3u-hdr')) {
+                            document.getElementById('cfg-http-play-m3u-hdr').value = d.m3u_header;
+                        }
+                        if (d.xspf_title !== undefined && document.getElementById('cfg-http-play-xspf-title')) {
+                            document.getElementById('cfg-http-play-xspf-title').value = d.xspf_title;
+                        }
+                        if (d.tv_logos_path !== undefined && document.getElementById('cfg-http-play-logos')) {
+                            document.getElementById('cfg-http-play-logos').value = d.tv_logos_path;
+                        }
+                        if (d.allow_http !== undefined && document.getElementById('cfg-http-play-stream')) {
+                            document.getElementById('cfg-http-play-stream').checked = !!d.allow_http;
+                        }
+                        if (d.allow_hls !== undefined && document.getElementById('cfg-http-play-hls')) {
+                            document.getElementById('cfg-http-play-hls').checked = !!d.allow_hls;
+                        }
+                        if (d.disable_tls !== undefined && document.getElementById('cfg-http-play-disable-tls')) {
+                            document.getElementById('cfg-http-play-disable-tls').checked = !!d.disable_tls;
+                        }
+
+                        updateHttpPlayLinks();
+                        renderHttpPlayClients(d);
                     }
                 } else if (subTabId === 'http_auth') {
                     const res = await authFetch('/api/v1/modules/http_auth');
@@ -3242,6 +3374,64 @@
             });
             if (res.ok) showToast("General settings saved successfully");
             else showToast("Failed to save General settings", true);
+        }
+
+        // Save HTTP Play Settings
+        async function saveHttpPlaySettings() {
+            const body = {
+                enabled: true,
+                allow_http: !!document.getElementById('cfg-http-play-stream')?.checked,
+                allow_hls: !!document.getElementById('cfg-http-play-hls')?.checked,
+                port: parseInt(document.getElementById('cfg-http-play-port')?.value || "0", 10),
+                playlist_name: document.getElementById('cfg-http-play-name')?.value || "playlist",
+                disable_tls: !!document.getElementById('cfg-http-play-disable-tls')?.checked,
+                buffer_kb: parseInt(document.getElementById('cfg-http-play-buffer')?.value || "2048", 10),
+                tv_logos_path: document.getElementById('cfg-http-play-logos')?.value || "",
+                m3u_header: document.getElementById('cfg-http-play-m3u-hdr')?.value || "",
+                xspf_title: document.getElementById('cfg-http-play-xspf-title')?.value || "DVBlast Web Gateway"
+            };
+
+            try {
+                const res = await authFetch('/api/v1/modules/http_play', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    showToast("HTTP Play configuration saved");
+                    updateHttpPlayLinks();
+                } else {
+                    const err = await res.json();
+                    showToast(err.error || "Failed to save HTTP Play settings", true);
+                }
+            } catch (err) {
+                showToast("Connection error saving HTTP Play settings", true);
+            }
+        }
+
+        // Save HLS Settings
+        async function saveHlsSettings() {
+            const body = {
+                enabled: true,
+                segment_sec: parseInt(document.getElementById('cfg-hls-duration')?.value || "4", 10),
+                window_size: parseInt(document.getElementById('cfg-hls-quantity')?.value || "5", 10)
+            };
+
+            try {
+                const res = await authFetch('/api/v1/modules/hls', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    showToast("HLS configuration saved");
+                } else {
+                    const err = await res.json();
+                    showToast(err.error || "Failed to save HLS settings", true);
+                }
+            } catch (err) {
+                showToast("Connection error saving HLS settings", true);
+            }
         }
 
         // Groups / Categories

@@ -592,11 +592,12 @@ static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
         if (ret != MHD_NO) return ret;
     }
 
-    /* HTTP Play TS Streaming & M3U Playlist */
+    /* HTTP Play TS Streaming & M3U/XSPF Playlist */
     if (strncmp(url, "/play/", 6) == 0 ||
         strncmp(url, "/live/", 6) == 0 ||
-        strcmp(url, "/playlist.m3u") == 0 ||
-        strcmp(url, "/api/v1/http_play/playlist.m3u") == 0) {
+        strstr(url, ".m3u8") != NULL ||
+        strstr(url, ".m3u") != NULL ||
+        strstr(url, ".xspf") != NULL) {
         const char *host_hdr = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "Host");
         int ret = http_play_handle_request(conn, url, host_hdr);
         if (ret != MHD_NO) return ret;
@@ -654,7 +655,7 @@ bool web_server_start(int port, const char *host) {
 
     (void)host;
     g_mhd_daemon = MHD_start_daemon(
-        MHD_USE_SELECT_INTERNALLY,
+        MHD_USE_INTERNAL_POLLING_THREAD | MHD_USE_THREAD_PER_CONNECTION,
         port,
         NULL, NULL,
         &http_handler, NULL,

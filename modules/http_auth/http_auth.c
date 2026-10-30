@@ -140,7 +140,7 @@ auth_result_t http_auth_check(struct MHD_Connection *conn, const char *url, cons
         return AUTH_RES_OK;
     }
 
-    /* Public endpoints */
+    /* Public endpoints and media playback */
     if (strcmp(url, "/") == 0 ||
         strcmp(url, "/index.html") == 0 ||
         strcmp(url, "/favicon.ico") == 0 ||
@@ -152,7 +152,13 @@ auth_result_t http_auth_check(struct MHD_Connection *conn, const char *url, cons
         strcmp(url, "/auth/logout") == 0 ||
         strcmp(url, "/api/v1/auth/me") == 0 ||
         strcmp(url, "/auth/me") == 0 ||
-        strcmp(url, "/api/v1/telemetry") == 0) {
+        strcmp(url, "/api/v1/telemetry") == 0 ||
+        strncmp(url, "/play/", 6) == 0 ||
+        strncmp(url, "/live/", 6) == 0 ||
+        strncmp(url, "/hls/", 5) == 0 ||
+        strstr(url, ".m3u8") != NULL ||
+        strstr(url, ".m3u") != NULL ||
+        strstr(url, ".xspf") != NULL) {
         pthread_mutex_unlock(&g_auth_mutex);
         return AUTH_RES_OK;
     }
