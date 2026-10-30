@@ -3,6 +3,12 @@
 #include "web_manager.h"
 #include "web_ui_embed.h"
 #include "softcam_csa.h"
+#include "modules/softcam/softcam.h"
+#include "modules/cas/cas.h"
+#include "modules/http_play/http_play.h"
+#include "modules/http_auth/http_auth.h"
+#include "modules/hls/hls.h"
+#include "modules/epg/epg.h"
 
 #include <microhttpd.h>
 #include <jansson.h>
@@ -91,8 +97,26 @@ static int handle_get_request(struct MHD_Connection *conn, const char *url) {
     }
 
     /* SoftCAM Keys */
-    if (strcmp(url, "/api/v1/softcam") == 0 || strcmp(url, "/api/v1/descramble/keys") == 0) {
+    if (strcmp(url, "/api/v1/softcam") == 0 || strcmp(url, "/api/v1/descramble/keys") == 0 ||
+        strcmp(url, "/api/v1/modules/softcam") == 0) {
         return send_json(conn, 200, softcam_csa_to_json());
+    }
+
+    /* Module Configurations */
+    if (strcmp(url, "/api/v1/modules/http_play") == 0) {
+        return send_json(conn, 200, http_play_to_json());
+    }
+    if (strcmp(url, "/api/v1/modules/http_auth") == 0) {
+        return send_json(conn, 200, http_auth_to_json());
+    }
+    if (strcmp(url, "/api/v1/modules/hls") == 0) {
+        return send_json(conn, 200, hls_to_json());
+    }
+    if (strcmp(url, "/api/v1/modules/epg") == 0) {
+        return send_json(conn, 200, epg_to_json());
+    }
+    if (strcmp(url, "/api/v1/modules/cas") == 0) {
+        return send_json(conn, 200, cas_to_json());
     }
 
     /* Full System Configuration */
@@ -395,6 +419,65 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
     }
 
     /* ===================================================================== */
+    /*  MODULE CONFIGURATION APIS                                            */
+    /* ===================================================================== */
+
+    if (strcmp(url, "/api/v1/modules/http_play") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        http_play_from_json(payload);
+        web_state_save_json(NULL);
+        json_decref(payload);
+        return send_json_ok(conn, "HTTP Play settings saved");
+    }
+
+    if (strcmp(url, "/api/v1/modules/http_auth") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        http_auth_from_json(payload);
+        web_state_save_json(NULL);
+        json_decref(payload);
+        return send_json_ok(conn, "Authentication settings saved");
+    }
+
+    if (strcmp(url, "/api/v1/modules/hls") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        hls_from_json(payload);
+        web_state_save_json(NULL);
+        json_decref(payload);
+        return send_json_ok(conn, "HLS settings saved");
+    }
+
+    if (strcmp(url, "/api/v1/modules/epg") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        epg_from_json(payload);
+        web_state_save_json(NULL);
+        json_decref(payload);
+        return send_json_ok(conn, "EPG settings saved");
+    }
+
+    if (strcmp(url, "/api/v1/modules/cas") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        cas_from_json(payload);
+        web_state_save_json(NULL);
+        json_decref(payload);
+        return send_json_ok(conn, "CAS settings saved");
+    }
+
+    /* ===================================================================== */
     /*  CONFIGURATION API                                                    */
     /* ===================================================================== */
 
@@ -460,6 +543,44 @@ static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
         return ret;
     }
 
+    /* HTTP Authentication Check */
+    auth_result_t ares = http_auth_check(conn, url, method);
+    if (ares == AUTH_RES_UNAUTHORIZED) {
+        return http_auth_send_challenge(conn);
+    } else if (ares == AUTH_RES_FORBIDDEN) {
+        return send_json_error(conn, 403, "Access Forbidden: Administrative privileges required");
+    }
+
+    /* Auth API */
+    if (strncmp(url, "/api/v1/auth/", 13) == 0) {
+        int ret = http_auth_handle_api(conn, url, method, ctx->data);
+        if (ret != MHD_NO) return ret;
+    }
+
+    /* HTTP Play TS Streaming & M3U Playlist */
+    if (strncmp(url, "/play/", 6) == 0 ||
+        strncmp(url, "/live/", 6) == 0 ||
+        strcmp(url, "/playlist.m3u") == 0 ||
+        strcmp(url, "/api/v1/http_play/playlist.m3u") == 0) {
+        const char *host_hdr = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "Host");
+        int ret = http_play_handle_request(conn, url, host_hdr);
+        if (ret != MHD_NO) return ret;
+    }
+
+    /* HLS Segmenter */
+    if (strncmp(url, "/hls/", 5) == 0) {
+        int ret = hls_handle_request(conn, url);
+        if (ret != MHD_NO) return ret;
+    }
+
+    /* EPG Schedule & XMLTV */
+    if (strcmp(url, "/epg.xml") == 0 ||
+        strcmp(url, "/api/v1/epg/xmltv") == 0 ||
+        strcmp(url, "/api/v1/epg") == 0) {
+        int ret = epg_handle_request(conn, url);
+        if (ret != MHD_NO) return ret;
+    }
+
     if (strcasecmp(method, "GET") == 0 || strcasecmp(method, "HEAD") == 0) {
         return handle_get_request(conn, url);
     } else if (strcasecmp(method, "POST") == 0) {
@@ -486,6 +607,14 @@ bool web_server_start(int port, const char *host) {
         return true;
     }
 
+    /* Initialize Submodules */
+    softcam_init();
+    cas_init();
+    http_play_init();
+    http_auth_init();
+    hls_init();
+    epg_init();
+
     (void)host;
     g_mhd_daemon = MHD_start_daemon(
         MHD_USE_SELECT_INTERNALLY,
@@ -510,5 +639,13 @@ void web_server_stop(void) {
         MHD_stop_daemon(g_mhd_daemon);
         g_mhd_daemon = NULL;
         web_state_log("INFO", "HTTP Server stopped");
+
+        /* Cleanup Submodules */
+        cas_cleanup();
+        hls_cleanup();
+        epg_cleanup();
+        http_play_cleanup();
+        http_auth_cleanup();
+        softcam_cleanup();
     }
 }

@@ -1,5 +1,11 @@
 #include "web_state.h"
 #include "softcam_csa.h"
+#include "modules/softcam/softcam.h"
+#include "modules/cas/cas.h"
+#include "modules/http_play/http_play.h"
+#include "modules/http_auth/http_auth.h"
+#include "modules/hls/hls.h"
+#include "modules/epg/epg.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -696,6 +702,13 @@ bool web_state_save_json(const char *path) {
     json_t *softcam_arr = softcam_csa_to_json();
     json_object_set_new(root, "descramble", softcam_arr);
 
+    /* Modules Settings */
+    json_object_set_new(root, "http_play", http_play_to_json());
+    json_object_set_new(root, "http_auth", http_auth_to_json());
+    json_object_set_new(root, "hls", hls_to_json());
+    json_object_set_new(root, "epg", epg_to_json());
+    json_object_set_new(root, "cas", cas_to_json());
+
     char tmp_path[300];
     snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", save_file);
     int res = json_dump_file(root, tmp_path, JSON_INDENT(2) | JSON_PRESERVE_ORDER);
@@ -809,6 +822,22 @@ bool web_state_load_json(const char *path) {
     if (json_is_array(desc)) {
         softcam_csa_from_json(desc);
     }
+
+    /* Modules Settings */
+    json_t *j_http_play = json_object_get(root, "http_play");
+    if (j_http_play) http_play_from_json(j_http_play);
+
+    json_t *j_http_auth = json_object_get(root, "http_auth");
+    if (j_http_auth) http_auth_from_json(j_http_auth);
+
+    json_t *j_hls = json_object_get(root, "hls");
+    if (j_hls) hls_from_json(j_hls);
+
+    json_t *j_epg = json_object_get(root, "epg");
+    if (j_epg) epg_from_json(j_epg);
+
+    json_t *j_cas = json_object_get(root, "cas");
+    if (j_cas) cas_from_json(j_cas);
 
     pthread_mutex_unlock(&g_gateway.lock);
     json_decref(root);
@@ -1117,6 +1146,11 @@ json_t *web_state_config_to_json(void) {
     }
     json_object_set_new(root, "streams", s_arr);
     json_object_set_new(root, "descramble", softcam_csa_to_json());
+    json_object_set_new(root, "http_play", http_play_to_json());
+    json_object_set_new(root, "http_auth", http_auth_to_json());
+    json_object_set_new(root, "hls", hls_to_json());
+    json_object_set_new(root, "epg", epg_to_json());
+    json_object_set_new(root, "cas", cas_to_json());
 
     pthread_mutex_unlock(&g_gateway.lock);
     return root;

@@ -38,6 +38,8 @@
 
 #include "dvblast.h"
 #include "softcam_csa.h"
+#include "modules/http_play/http_play.h"
+#include "modules/hls/hls.h"
 #include "web_state.h"
 
 #include <bitstream/mpeg/ts.h>
@@ -501,9 +503,12 @@ void output_Put( output_t *p_output, block_t *p_block )
     int i_block_cnt = output_BlockCount( p_output );
     packet_t *p_packet;
 
-    /* SoftCAM Descramble hook */
-    if ( p_output->config.i_sid )
+    /* Modular Streaming & Descramble Hooks */
+    if ( p_output->config.i_sid ) {
         softcam_csa_descramble( p_output->config.i_sid, p_block->p_ts );
+        http_play_push_packet( p_output->config.i_sid, p_block->p_ts, 188 );
+        hls_push_packet( p_output->config.i_sid, p_block->p_ts, 188 );
+    }
 
     p_block->i_refcount++;
 

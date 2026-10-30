@@ -40,6 +40,7 @@
 #include "en50221.h"
 #include "mrtg-cnt.h"
 #include "web_state.h"
+#include "modules/epg/epg.h"
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
@@ -3257,6 +3258,9 @@ static void HandleEIT( uint16_t i_pid, uint8_t *p_eit, mtime_t i_dts )
         if ( i_print_type == PRINT_XML )
             fprintf(print_fh, "\n");
     }
+
+    /* Forward EIT section to EPG Demuxer Module */
+    epg_handle_eit_section( p_eit, psi_get_length( p_eit ) + PSI_HEADER_SIZE );
 
 out_eit:
     SendEIT( p_sid, i_dts, p_eit );

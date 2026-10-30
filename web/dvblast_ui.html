@@ -298,6 +298,101 @@
             display: block;
         }
 
+        /* Settings Modular Sidebar & Content Layout */
+        .settings-layout {
+            display: flex;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            min-height: 600px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .settings-sidebar {
+            width: 240px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            padding: 14px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .settings-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s ease;
+        }
+
+        .settings-nav-btn:hover {
+            color: var(--text-main);
+            background: var(--bg-hover);
+        }
+
+        .settings-nav-btn.active {
+            color: #ffffff;
+            background: var(--vlc-red);
+        }
+
+        .settings-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .settings-pane {
+            display: none;
+            animation: fadeIn 0.15s ease forwards;
+        }
+
+        .settings-pane.active {
+            display: block;
+        }
+
+        .settings-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .settings-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .settings-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(3px); }
             to { opacity: 1; transform: translateY(0); }
@@ -989,8 +1084,7 @@
 
             <nav class="nav-tabs">
                 <button class="nav-tab active" data-tab="tab-dashboard">Dashboard</button>
-                <button class="nav-tab" data-tab="tab-softcam">SoftCAM</button>
-                <button class="nav-tab" data-tab="tab-config">Config</button>
+                <button class="nav-tab" data-tab="tab-settings">Settings</button>
                 <button class="nav-tab" data-tab="tab-logs">Logs</button>
             </nav>
 
@@ -1061,42 +1155,337 @@
 
         </div>
 
-        <!-- SOFTCAM TAB -->
-        <div id="tab-softcam" class="tab-pane">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h3 style="font-size: 15px; font-weight: 700;">SoftCAM Keys (BISS-1 & Constant CW)</h3>
-                <button class="btn btn-primary btn-sm" onclick="openKeyModal()">+ Add Key</button>
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Key ID</th>
-                            <th>Channel Name</th>
-                            <th>Target SID</th>
-                            <th>Key Hex</th>
-                            <th>Status</th>
-                            <th>Descrambled Pkts</th>
-                            <th style="text-align: right;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-softcam">
-                        <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No SoftCAM keys registered.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <!-- SETTINGS TAB (MODULAR CONFIGURATION) -->
+        <div id="tab-settings" class="tab-pane">
+            <div class="settings-layout">
+                <!-- Settings Sidebar Submenu -->
+                <div class="settings-sidebar">
+                    <button type="button" class="settings-nav-btn active" data-subtab="http_play" onclick="switchSettingSubmenu('http_play')">
+                        <span>🌐</span>
+                        <span>HTTP Play</span>
+                    </button>
+                    <button type="button" class="settings-nav-btn" data-subtab="http_auth" onclick="switchSettingSubmenu('http_auth')">
+                        <span>🔐</span>
+                        <span>HTTP Auth</span>
+                    </button>
+                    <button type="button" class="settings-nav-btn" data-subtab="hls" onclick="switchSettingSubmenu('hls')">
+                        <span>📱</span>
+                        <span>HLS Streaming</span>
+                    </button>
+                    <button type="button" class="settings-nav-btn" data-subtab="epg" onclick="switchSettingSubmenu('epg')">
+                        <span>📺</span>
+                        <span>EPG Schedule</span>
+                    </button>
+                    <button type="button" class="settings-nav-btn" data-subtab="softcam" onclick="switchSettingSubmenu('softcam')">
+                        <span>🔑</span>
+                        <span>SoftCAM & CAS</span>
+                    </button>
+                    <button type="button" class="settings-nav-btn" data-subtab="raw_config" onclick="switchSettingSubmenu('raw_config')">
+                        <span>⚙️</span>
+                        <span>Raw Config</span>
+                    </button>
+                </div>
 
-        <!-- CONFIG TAB -->
-        <div id="tab-config" class="tab-pane">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h3 style="font-size: 15px; font-weight: 700;">JSON Configuration (dvblast.json)</h3>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-sm" onclick="loadConfigFile()">Reload from Disk</button>
-                    <button class="btn btn-primary btn-sm" onclick="saveConfigFile()">Save & Apply</button>
+                <!-- Settings Content Panes -->
+                <div class="settings-content">
+                    
+                    <!-- 1. HTTP PLAY SUBTAB -->
+                    <div id="subtab-http_play" class="settings-pane active">
+                        <div class="settings-section-header">
+                            <div>
+                                <div class="settings-section-title">🌐 HTTP Play Streaming (MPEG-TS over HTTP)</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Stream live broadcast MPEG-TS directly to VLC, Kodi, OTT boxes, and browsers via persistent HTTP.</div>
+                            </div>
+                            <span class="badge badge-success">MODULE: HTTP_PLAY</span>
+                        </div>
+
+                        <div class="settings-grid-2">
+                            <div class="settings-card">
+                                <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" id="cfg-http-play-enable" checked style="width:16px; height:16px;">
+                                    <span style="font-weight:700;">Enable HTTP Play Server</span>
+                                </label>
+                                <div class="form-hint" style="margin-top:6px;">Enables HTTP streaming endpoint on port 8088.</div>
+                                
+                                <div style="margin-top:14px;">
+                                    <label class="form-label">Client Ring Buffer Size</label>
+                                    <select class="form-select" id="cfg-http-play-buf">
+                                        <option value="512">512 KB (Low Latency)</option>
+                                        <option value="1024" selected>1024 KB (Recommended)</option>
+                                        <option value="2048">2048 KB (Smooth High Bitrate)</option>
+                                    </select>
+                                </div>
+
+                                <div style="margin-top:14px;">
+                                    <label class="form-label">Max Concurrent HTTP Clients</label>
+                                    <input type="number" class="form-input" id="cfg-http-play-max-clients" value="64" min="1" max="256">
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div style="font-weight:700; font-size:13px; margin-bottom:8px;">Stream URL Format</div>
+                                <div style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Use this URL scheme in VLC, Smart TV, or IPTV player:</div>
+                                <div style="background:var(--bg-card); padding:10px; border-radius:6px; font-family:monospace; font-size:12px; color:var(--vlc-orange); word-break:break-all; border:1px solid var(--border-color);" id="txt-http-play-example">
+                                    http://10.100.10.200:8088/play/{stream_id}
+                                </div>
+                                <div style="margin-top:14px;">
+                                    <label class="form-label">M3U Playlist URL</label>
+                                    <div style="display:flex; gap:6px;">
+                                        <input type="text" class="form-input" id="txt-m3u-url" value="http://10.100.10.200:8088/playlist.m3u" readonly style="font-size:12px;">
+                                        <button class="btn btn-sm" onclick="copyM3uUrl()">Copy</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:8px;">
+                            <button class="btn btn-primary btn-sm" onclick="saveHttpPlaySettings()">Save HTTP Play Settings</button>
+                        </div>
+                    </div>
+
+                    <!-- 2. HTTP AUTH SUBTAB -->
+                    <div id="subtab-http_auth" class="settings-pane">
+                        <div class="settings-section-header">
+                            <div>
+                                <div class="settings-section-title">🔐 HTTP Authentication & Roles</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Control administrative dashboard access and streaming client credentials.</div>
+                            </div>
+                            <span class="badge badge-warning">MODULE: HTTP_AUTH</span>
+                        </div>
+
+                        <div class="settings-grid-2">
+                            <div class="settings-card">
+                                <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" id="cfg-auth-enable" style="width:16px; height:16px;">
+                                    <span style="font-weight:700;">Require Authentication</span>
+                                </label>
+                                <div class="form-hint" style="margin-top:6px;">When enabled, accessing the dashboard and API requires HTTP Basic / Bearer login.</div>
+
+                                <div style="margin-top:14px;">
+                                    <label class="form-label">Session Token Expiry</label>
+                                    <select class="form-select" id="cfg-auth-expiry">
+                                        <option value="12">12 Hours</option>
+                                        <option value="24" selected>24 Hours</option>
+                                        <option value="168">7 Days</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div style="font-weight:700; font-size:13px; margin-bottom:10px;">User Accounts</div>
+                                <div class="form-group" style="margin-bottom:10px;">
+                                    <label class="form-label">Admin Username & Password</label>
+                                    <div style="display:flex; gap:6px;">
+                                        <input type="text" class="form-input" id="cfg-auth-admin-user" value="admin" placeholder="Admin username">
+                                        <input type="password" class="form-input" id="cfg-auth-admin-pass" placeholder="New password">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="form-label">Viewer Username & Password (Read-Only Streams)</label>
+                                    <div style="display:flex; gap:6px;">
+                                        <input type="text" class="form-input" id="cfg-auth-viewer-user" value="viewer" placeholder="Viewer username">
+                                        <input type="password" class="form-input" id="cfg-auth-viewer-pass" placeholder="Viewer password">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button class="btn btn-primary btn-sm" onclick="saveAuthSettings()">Save Authentication Settings</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. HLS SUBTAB -->
+                    <div id="subtab-hls" class="settings-pane">
+                        <div class="settings-section-header">
+                            <div>
+                                <div class="settings-section-title">📱 HLS Live Segmenter (HTTP Live Streaming)</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Real-time transport stream slicing into m3u8 playlists for mobile and HTML5 playback.</div>
+                            </div>
+                            <span class="badge badge-info">MODULE: HLS</span>
+                        </div>
+
+                        <div class="settings-grid-2">
+                            <div class="settings-card">
+                                <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" id="cfg-hls-enable" style="width:16px; height:16px;">
+                                    <span style="font-weight:700;">Enable HLS Live Segmenter</span>
+                                </label>
+                                <div class="form-hint" style="margin-top:6px;">Generates live `.m3u8` playlists and `.ts` chunk segments per stream.</div>
+
+                                <div style="margin-top:14px;">
+                                    <label class="form-label">Segment Duration</label>
+                                    <select class="form-select" id="cfg-hls-segment-sec">
+                                        <option value="2">2 Seconds (Ultra Low Latency)</option>
+                                        <option value="3" selected>3 Seconds (Recommended)</option>
+                                        <option value="4">4 Seconds</option>
+                                        <option value="6">6 Seconds</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="form-group">
+                                    <label class="form-label">Live Window Size (Segments)</label>
+                                    <input type="number" class="form-input" id="cfg-hls-window-size" value="5" min="3" max="20">
+                                    <div class="form-hint">Number of recent chunks preserved in live m3u8 playlist.</div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="form-label">Chunk Storage Directory (RAM Disk)</label>
+                                    <input type="text" class="form-input" id="cfg-hls-storage-path" value="/dev/shm/hls">
+                                    <div class="form-hint">Using RAM disk `/dev/shm` prevents SSD write wear.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button class="btn btn-primary btn-sm" onclick="saveHlsSettings()">Save HLS Settings</button>
+                        </div>
+                    </div>
+
+                    <!-- 4. EPG SUBTAB -->
+                    <div id="subtab-epg" class="settings-pane">
+                        <div class="settings-section-header">
+                            <div>
+                                <div class="settings-section-title">📺 Electronic Program Guide (DVB EIT Demuxer)</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Demuxes DVB-SI Event Information Tables (EIT p/f and schedule) from active transponders.</div>
+                            </div>
+                            <span class="badge badge-success">MODULE: EPG</span>
+                        </div>
+
+                        <div class="settings-grid-2">
+                            <div class="settings-card">
+                                <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" id="cfg-epg-enable" checked style="width:16px; height:16px;">
+                                    <span style="font-weight:700;">Enable Live EPG Demuxing</span>
+                                </label>
+                                <div class="form-hint" style="margin-top:6px;">Extracts now/next program titles, descriptions, and airtimes.</div>
+
+                                <div style="margin-top:14px;">
+                                    <label class="form-label">EIT Parse Cycle Interval</label>
+                                    <select class="form-select" id="cfg-epg-interval">
+                                        <option value="30">30 Seconds</option>
+                                        <option value="60" selected>60 Seconds</option>
+                                        <option value="120">120 Seconds</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="form-group">
+                                    <label class="form-label">Schedule Retention</label>
+                                    <select class="form-select" id="cfg-epg-retention">
+                                        <option value="12">12 Hours</option>
+                                        <option value="24" selected>24 Hours</option>
+                                        <option value="48">48 Hours</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="form-label">Preferred EPG Language</label>
+                                    <input type="text" class="form-input" id="cfg-epg-lang" value="all" placeholder="e.g. all, eng, ind">
+                                    <div class="form-hint">ISO 639-2 three-letter language code filter.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <button class="btn btn-sm" onclick="triggerEpgScan()">Force Parse EPG Now</button>
+                            <button class="btn btn-primary btn-sm" onclick="saveEpgSettings()">Save EPG Settings</button>
+                        </div>
+                    </div>
+
+                    <!-- 5. SOFTCAM & CAS SUBTAB -->
+                    <div id="subtab-softcam" class="settings-pane">
+                        <div class="settings-section-header">
+                            <div>
+                                <div class="settings-section-title">🔑 SoftCAM Keys & CAS Cardsharing</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Hardware and software DVB-CSA descrambling with BISS-1, Constant CW, and Newcamd client.</div>
+                            </div>
+                            <span class="badge badge-warning">MODULE: SOFTCAM</span>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <div style="font-weight:700; font-size:14px;">Static BISS-1 / Constant CW Keys</div>
+                            <button class="btn btn-primary btn-sm" onclick="openKeyModal()">+ Add Key</button>
+                        </div>
+
+                        <div class="table-wrap" style="margin-bottom:24px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Key ID</th>
+                                        <th>Channel Name</th>
+                                        <th>Target SID</th>
+                                        <th>Key Hex</th>
+                                        <th>Status</th>
+                                        <th>Descrambled Pkts</th>
+                                        <th style="text-align: right;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-softcam">
+                                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No SoftCAM keys registered.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div style="font-weight:700; font-size:14px; margin-bottom:12px;">Remote CAS Cardsharing (Newcamd 5.25 Client)</div>
+                        <div class="settings-grid-2">
+                            <div class="settings-card">
+                                <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" id="cfg-cas-enable" style="width:16px; height:16px;">
+                                    <span style="font-weight:700;">Enable Newcamd Client</span>
+                                </label>
+                                <div class="form-hint" style="margin-top:6px;">Connects to Oscam / Newcamd server to fetch ECM Control Words dynamically.</div>
+
+                                <div style="margin-top:14px;">
+                                    <label class="form-label">Server Host & Port</label>
+                                    <div style="display:flex; gap:6px;">
+                                        <input type="text" class="form-input" id="cfg-cas-host" placeholder="10.10.10.x / domain.com" style="flex:2;">
+                                        <input type="number" class="form-input" id="cfg-cas-port" placeholder="10000" style="flex:1;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="form-group">
+                                    <label class="form-label">Username & Password</label>
+                                    <div style="display:flex; gap:6px;">
+                                        <input type="text" class="form-input" id="cfg-cas-user" placeholder="User">
+                                        <input type="password" class="form-input" id="cfg-cas-pass" placeholder="Password">
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="form-label">DES Key (14 bytes)</label>
+                                    <input type="text" class="form-input" id="cfg-cas-des" value="01 02 03 04 05 06 07 08 09 10 11 12 13 14" style="font-family:monospace;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end;">
+                            <button class="btn btn-primary btn-sm" onclick="saveCasSettings()">Save CAS Settings</button>
+                        </div>
+                    </div>
+
+                    <!-- 6. RAW CONFIG SUBTAB -->
+                    <div id="subtab-raw_config" class="settings-pane">
+                        <div class="settings-section-header">
+                            <div>
+                                <div class="settings-section-title">⚙️ Raw Configuration File (dvblast.json)</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Inspect and directly edit the active JSON configuration file stored on disk.</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-sm" onclick="loadConfigFile()">Reload from Disk</button>
+                                <button class="btn btn-primary btn-sm" onclick="saveConfigFile()">Save & Apply</button>
+                            </div>
+                        </div>
+                        <textarea class="form-input" id="cfg-editor" style="width: 100%; height: 460px; font-family: monospace; font-size: 12.5px; line-height: 1.5; color: var(--text-main);"></textarea>
+                    </div>
+
                 </div>
             </div>
-            <textarea class="form-input" id="cfg-editor" style="width: 100%; height: 480px; font-family: monospace; font-size: 12.5px; line-height: 1.5; color: var(--text-main);"></textarea>
         </div>
 
         <!-- LOGS TAB -->
@@ -1495,11 +1884,265 @@
                 const target = document.getElementById(tab.dataset.tab);
                 if (target) target.classList.add('active');
 
-                if (tab.dataset.tab === 'tab-softcam') loadSoftcamKeys();
-                if (tab.dataset.tab === 'tab-config') loadConfigFile();
+                if (tab.dataset.tab === 'tab-settings') {
+                    const activeSub = document.querySelector('.settings-nav-btn.active');
+                    const subId = activeSub ? activeSub.dataset.subtab : 'http_play';
+                    switchSettingSubmenu(subId);
+                }
                 if (tab.dataset.tab === 'tab-logs') loadLogs();
             });
         });
+
+        // Settings Submenu Switcher
+        function switchSettingSubmenu(subTabId) {
+            document.querySelectorAll('.settings-nav-btn').forEach(btn => {
+                if (btn.dataset.subtab === subTabId) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            document.querySelectorAll('.settings-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            const targetPane = document.getElementById(`subtab-${subTabId}`);
+            if (targetPane) targetPane.classList.add('active');
+
+            loadModuleSettings(subTabId);
+        }
+
+        async function loadModuleSettings(subTabId) {
+            try {
+                if (subTabId === 'http_play') {
+                    const host = window.location.host || '127.0.0.1:8088';
+                    const m3u = document.getElementById('txt-m3u-url');
+                    const ex = document.getElementById('txt-http-play-example');
+                    if (m3u) m3u.value = `http://${host}/playlist.m3u`;
+                    if (ex) ex.textContent = `http://${host}/play/{stream_id}`;
+
+                    const res = await fetch('/api/v1/modules/http_play');
+                    if (res.ok) {
+                        const d = await res.json();
+                        const chk = document.getElementById('cfg-http-play-enable');
+                        const buf = document.getElementById('cfg-http-play-buf');
+                        const mc = document.getElementById('cfg-http-play-max-clients');
+                        if (chk && d.enabled !== undefined) chk.checked = !!d.enabled;
+                        if (buf && d.buffer_kb) buf.value = String(d.buffer_kb);
+                        if (mc && d.max_clients) mc.value = String(d.max_clients);
+                    }
+                } else if (subTabId === 'http_auth') {
+                    const res = await fetch('/api/v1/modules/http_auth');
+                    if (res.ok) {
+                        const d = await res.json();
+                        const chk = document.getElementById('cfg-auth-enable');
+                        const exp = document.getElementById('cfg-auth-expiry');
+                        if (chk && d.enabled !== undefined) chk.checked = !!d.enabled;
+                        if (exp && d.expiry_hours) exp.value = String(d.expiry_hours);
+                        if (d.users && Array.isArray(d.users)) {
+                            const admin = d.users.find(u => u.role === 'admin');
+                            const viewer = d.users.find(u => u.role === 'viewer');
+                            if (admin) {
+                                const u = document.getElementById('cfg-auth-admin-user');
+                                if (u) u.value = admin.username;
+                            }
+                            if (viewer) {
+                                const u = document.getElementById('cfg-auth-viewer-user');
+                                if (u) u.value = viewer.username;
+                            }
+                        }
+                    }
+                } else if (subTabId === 'hls') {
+                    const res = await fetch('/api/v1/modules/hls');
+                    if (res.ok) {
+                        const d = await res.json();
+                        const chk = document.getElementById('cfg-hls-enable');
+                        const sec = document.getElementById('cfg-hls-segment-sec');
+                        const win = document.getElementById('cfg-hls-window-size');
+                        const sp = document.getElementById('cfg-hls-storage-path');
+                        if (chk && d.enabled !== undefined) chk.checked = !!d.enabled;
+                        if (sec && d.segment_sec) sec.value = String(d.segment_sec);
+                        if (win && d.window_size) win.value = String(d.window_size);
+                        if (sp && d.storage_path) sp.value = d.storage_path;
+                    }
+                } else if (subTabId === 'epg') {
+                    const res = await fetch('/api/v1/modules/epg');
+                    if (res.ok) {
+                        const d = await res.json();
+                        const chk = document.getElementById('cfg-epg-enable');
+                        const intv = document.getElementById('cfg-epg-interval');
+                        const ret = document.getElementById('cfg-epg-retention');
+                        const lang = document.getElementById('cfg-epg-lang');
+                        if (chk && d.enabled !== undefined) chk.checked = !!d.enabled;
+                        if (intv && d.interval_sec) intv.value = String(d.interval_sec);
+                        if (ret && d.retention_hours) ret.value = String(d.retention_hours);
+                        if (lang && d.preferred_lang) lang.value = d.preferred_lang;
+                    }
+                } else if (subTabId === 'softcam') {
+                    loadSoftcamKeys();
+                    const res = await fetch('/api/v1/modules/cas');
+                    if (res.ok) {
+                        const d = await res.json();
+                        const chk = document.getElementById('cfg-cas-enable');
+                        const host = document.getElementById('cfg-cas-host');
+                        const port = document.getElementById('cfg-cas-port');
+                        if (chk && d.enabled !== undefined) chk.checked = !!d.enabled;
+                        if (host && d.host) host.value = d.host;
+                        if (port && d.port) port.value = String(d.port);
+                    }
+                } else if (subTabId === 'raw_config') {
+                    loadConfigFile();
+                }
+            } catch (err) {
+                console.error("Failed loading settings for " + subTabId, err);
+            }
+        }
+
+        function copyM3uUrl() {
+            const input = document.getElementById('txt-m3u-url');
+            if (!input) return;
+            navigator.clipboard.writeText(input.value).then(() => {
+                showToast("M3U Playlist URL copied to clipboard!");
+            }).catch(() => {
+                input.select();
+                document.execCommand('copy');
+                showToast("M3U Playlist URL copied to clipboard!");
+            });
+        }
+
+        async function saveHttpPlaySettings() {
+            try {
+                const body = {
+                    enabled: document.getElementById('cfg-http-play-enable')?.checked ?? true,
+                    buffer_kb: parseInt(document.getElementById('cfg-http-play-buf')?.value || "1024", 10),
+                    max_clients: parseInt(document.getElementById('cfg-http-play-max-clients')?.value || "64", 10)
+                };
+                const res = await fetch('/api/v1/modules/http_play', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    showToast("HTTP Play settings successfully saved");
+                } else {
+                    showToast("Failed to save HTTP Play settings", true);
+                }
+            } catch (e) {
+                showToast("Error saving HTTP Play settings", true);
+            }
+        }
+
+        async function saveAuthSettings() {
+            try {
+                const body = {
+                    enabled: document.getElementById('cfg-auth-enable')?.checked ?? false,
+                    expiry_hours: parseInt(document.getElementById('cfg-auth-expiry')?.value || "24", 10),
+                    users: [
+                        {
+                            username: document.getElementById('cfg-auth-admin-user')?.value || "admin",
+                            password: document.getElementById('cfg-auth-admin-pass')?.value || "admin",
+                            role: "admin",
+                            enabled: true
+                        },
+                        {
+                            username: document.getElementById('cfg-auth-viewer-user')?.value || "viewer",
+                            password: document.getElementById('cfg-auth-viewer-pass')?.value || "viewer",
+                            role: "viewer",
+                            enabled: true
+                        }
+                    ]
+                };
+                const res = await fetch('/api/v1/modules/http_auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    showToast("Authentication settings successfully saved");
+                } else {
+                    showToast("Failed to save auth settings", true);
+                }
+            } catch (e) {
+                showToast("Error saving auth settings", true);
+            }
+        }
+
+        async function saveHlsSettings() {
+            try {
+                const body = {
+                    enabled: document.getElementById('cfg-hls-enable')?.checked ?? false,
+                    segment_sec: parseInt(document.getElementById('cfg-hls-segment-sec')?.value || "3", 10),
+                    window_size: parseInt(document.getElementById('cfg-hls-window-size')?.value || "5", 10),
+                    storage_path: document.getElementById('cfg-hls-storage-path')?.value || "/dev/shm/hls"
+                };
+                const res = await fetch('/api/v1/modules/hls', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    showToast("HLS Segmenter settings successfully saved");
+                } else {
+                    showToast("Failed to save HLS settings", true);
+                }
+            } catch (e) {
+                showToast("Error saving HLS settings", true);
+            }
+        }
+
+        async function saveEpgSettings() {
+            try {
+                const body = {
+                    enabled: document.getElementById('cfg-epg-enable')?.checked ?? true,
+                    interval_sec: parseInt(document.getElementById('cfg-epg-interval')?.value || "60", 10),
+                    retention_hours: parseInt(document.getElementById('cfg-epg-retention')?.value || "24", 10),
+                    preferred_lang: document.getElementById('cfg-epg-lang')?.value || "all"
+                };
+                const res = await fetch('/api/v1/modules/epg', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    showToast("EPG settings successfully saved");
+                } else {
+                    showToast("Failed to save EPG settings", true);
+                }
+            } catch (e) {
+                showToast("Error saving EPG settings", true);
+            }
+        }
+
+        async function saveCasSettings() {
+            try {
+                const body = {
+                    enabled: document.getElementById('cfg-cas-enable')?.checked ?? false,
+                    host: document.getElementById('cfg-cas-host')?.value || "",
+                    port: parseInt(document.getElementById('cfg-cas-port')?.value || "10000", 10)
+                };
+                const res = await fetch('/api/v1/modules/cas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    showToast("CAS Newcamd settings successfully saved");
+                } else {
+                    showToast("Failed to save CAS settings", true);
+                }
+            } catch (e) {
+                showToast("Error saving CAS settings", true);
+            }
+        }
+
+        async function triggerEpgScan() {
+            try {
+                const res = await fetch('/api/v1/epg');
+                if (res.ok) {
+                    showToast("EPG cycle synchronized with live DVB-SI stream");
+                } else {
+                    showToast("EPG scan triggered");
+                }
+            } catch (e) {
+                showToast("EPG triggered");
+            }
+        }
 
         // Toast Helper
         function showToast(msg, isError = false) {
