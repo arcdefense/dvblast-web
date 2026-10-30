@@ -588,7 +588,7 @@ static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
     }
 
     /* Auth API */
-    if (strncmp(url, "/api/v1/auth/", 13) == 0) {
+    if (strncmp(url, "/api/v1/auth/", 13) == 0 || strncmp(url, "/auth/", 6) == 0) {
         int ret = http_auth_handle_api(conn, url, method, ctx->data);
         if (ret != MHD_NO) return ret;
     }
