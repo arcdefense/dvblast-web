@@ -9,6 +9,7 @@
 
 #include <bitstream/dvb/si/eit.h>
 #include <bitstream/dvb/si/desc_4d.h>
+#include <bitstream/dvb/si/desc_4e.h>
 
 static epg_config_t g_epg = {
     .enabled = true,
@@ -152,21 +153,16 @@ void epg_handle_eit_section(const uint8_t *p_eit, size_t length) {
         char lang[4] = {0};
 
         uint8_t *p_descs = eitn_get_descs(p_event);
-        uint16_t descs_len = eitn_get_desclength(p_event);
-        uint8_t *p_desc = p_descs;
-
-        while (p_desc && (p_desc + DESC_HEADER_SIZE - p_descs <= descs_len)) {
+        descs_each_desc(p_descs, p_desc) {
             uint8_t tag = desc_get_tag(p_desc);
-            uint8_t d_len = desc_get_length(p_desc);
-            if (p_desc + DESC_HEADER_SIZE + d_len - p_descs > descs_len) break;
 
             if (tag == 0x4D && desc4d_validate(p_desc)) {
                 const uint8_t *l = desc4d_get_lang(p_desc);
-                if (l) snprintf(lang, sizeof(lang), "%c%c%c", l[0], l[1], l[2]);
+                if (l && !lang[0]) snprintf(lang, sizeof(lang), "%c%c%c", l[0], l[1], l[2]);
 
                 uint8_t name_len = 0;
                 const uint8_t *p_name = desc4d_get_event_name(p_desc, &name_len);
-                if (p_name && name_len > 0) {
+                if (p_name && name_len > 0 && !title[0]) {
                     const uint8_t *s = p_name;
                     size_t slen = name_len;
                     if (slen > 0 && s[0] < 0x20) {
@@ -181,7 +177,7 @@ void epg_handle_eit_section(const uint8_t *p_eit, size_t length) {
 
                 uint8_t text_len = 0;
                 const uint8_t *p_text = desc4d_get_text(p_desc, &text_len);
-                if (p_text && text_len > 0) {
+                if (p_text && text_len > 0 && !desc[0]) {
                     const uint8_t *s = p_text;
                     size_t slen = text_len;
                     if (slen > 0 && s[0] < 0x20) {
@@ -193,9 +189,25 @@ void epg_handle_eit_section(const uint8_t *p_eit, size_t length) {
                     memcpy(desc, s, cpy);
                     desc[cpy] = '\0';
                 }
-                break;
+            } else if (tag == 0x4E && desc4e_validate(p_desc)) {
+                const uint8_t *l = desc4e_get_lang(p_desc);
+                if (l && !lang[0]) snprintf(lang, sizeof(lang), "%c%c%c", l[0], l[1], l[2]);
+
+                uint8_t ext_text_len = 0;
+                uint8_t *p_ext_text = desc4e_get_text(p_desc, &ext_text_len);
+                if (p_ext_text && ext_text_len > 0 && !desc[0]) {
+                    const uint8_t *s = p_ext_text;
+                    size_t slen = ext_text_len;
+                    if (slen > 0 && s[0] < 0x20) {
+                        if (s[0] == 0x1F && slen >= 2) { s += 2; slen -= 2; }
+                        else if (s[0] == 0x10 && slen >= 3) { s += 3; slen -= 3; }
+                        else { s++; slen--; }
+                    }
+                    size_t cpy = slen < sizeof(desc) - 1 ? slen : sizeof(desc) - 1;
+                    memcpy(desc, s, cpy);
+                    desc[cpy] = '\0';
+                }
             }
-            p_desc += DESC_HEADER_SIZE + d_len;
         }
 
         if (!title[0]) {

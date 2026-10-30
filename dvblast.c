@@ -1341,6 +1341,12 @@ int main( int i_argc, char **pp_argv )
         msg_Warn( NULL, "for DVB-IP compliance you should use RTP." );
     }
 
+    if ( b_web_enabled )
+    {
+        b_dvb_global = true;
+        b_epg_global = true;
+    }
+
     if ( b_epg_global && !b_dvb_global )
     {
         msg_Dbg( NULL, "turning on DVB compliance, required by EPG information" );
