@@ -32,7 +32,7 @@ endif
 LDLIBS_DVBLAST += -lpthread -lev -lm $(shell pkg-config --libs libmicrohttpd jansson 2>/dev/null)
 
 OBJ_DVBCSA = dvbcsa/dvbcsa_algo.o dvbcsa/dvbcsa_block.o dvbcsa/dvbcsa_key.o dvbcsa/dvbcsa_stream.o
-OBJ_MODULES = modules/softcam/softcam.o modules/cas/cas.o modules/http_play/http_play.o modules/http_auth/http_auth.o modules/hls/hls.o modules/epg/epg.o
+OBJ_MODULES = modules/softcam/softcam.o modules/cas/cas.o modules/http_play/http_play.o modules/http_auth/http_auth.o modules/hls/hls.o modules/epg/epg.o modules/general/general.o modules/license/license.o modules/groups/groups.o
 OBJ_WEB = softcam_csa.o web_state.o web_manager.o web_server.o web_ui_embed.o $(OBJ_MODULES)
 
 OBJ_DVBLAST = dvblast.o util.o dvb.o udp.o asi.o demux.o output.o en50221.o comm.o mrtg-cnt.o asi-deltacast.o $(OBJ_DVBCSA) $(OBJ_WEB)

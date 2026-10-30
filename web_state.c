@@ -6,6 +6,9 @@
 #include "modules/http_auth/http_auth.h"
 #include "modules/hls/hls.h"
 #include "modules/epg/epg.h"
+#include "modules/general/general.h"
+#include "modules/license/license.h"
+#include "modules/groups/groups.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -722,6 +725,9 @@ bool web_state_save_json(const char *path) {
     json_object_set_new(root, "descramble", softcam_arr);
 
     /* Modules Settings */
+    json_object_set_new(root, "settings", general_to_json());
+    json_object_set_new(root, "license", license_to_json());
+    json_object_set_new(root, "categories", groups_to_json());
     json_object_set_new(root, "http_play", http_play_to_json());
     json_object_set_new(root, "http_auth", http_auth_to_json());
     json_object_set_new(root, "hls", hls_to_json());
@@ -843,6 +849,12 @@ bool web_state_load_json(const char *path) {
     }
 
     /* Modules Settings */
+    json_t *j_general = json_object_get(root, "settings");
+    if (j_general) general_from_json(j_general);
+
+    json_t *j_cats = json_object_get(root, "categories");
+    if (j_cats) groups_from_json(j_cats);
+
     json_t *j_http_play = json_object_get(root, "http_play");
     if (j_http_play) http_play_from_json(j_http_play);
 
@@ -1164,6 +1176,9 @@ json_t *web_state_config_to_json(void) {
         json_array_append_new(s_arr, so);
     }
     json_object_set_new(root, "streams", s_arr);
+    json_object_set_new(root, "settings", general_to_json());
+    json_object_set_new(root, "license", license_to_json());
+    json_object_set_new(root, "categories", groups_to_json());
     json_object_set_new(root, "descramble", softcam_csa_to_json());
     json_object_set_new(root, "http_play", http_play_to_json());
     json_object_set_new(root, "http_auth", http_auth_to_json());
