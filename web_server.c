@@ -140,6 +140,12 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
             return send_json_error(conn, 400, "Missing required field: 'id'");
         }
 
+        if (json_is_true(json_object_get(payload, "remove"))) {
+            bool ok = web_manager_delete_adapter(id);
+            json_decref(payload);
+            return ok ? send_json_ok(conn, "Adapter removed") : send_json_error(conn, 404, "Adapter not found");
+        }
+
         snprintf(ad.id, sizeof(ad.id), "%s", id);
         snprintf(ad.name, sizeof(ad.name), "%s", (nm && *nm) ? nm : id);
         ad.enabled = !json_is_false(json_object_get(payload, "enabled"));
@@ -196,6 +202,37 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         bool ok = web_manager_delete_adapter(id);
         json_decref(payload);
         return ok ? send_json_ok(conn, "Adapter deleted") : send_json_error(conn, 404, "Adapter not found");
+    }
+
+    if (strcmp(url, "/api/v1/adapters/toggle") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        const char *id = json_string_value(json_object_get(payload, "id"));
+        bool enabled = !json_is_false(json_object_get(payload, "enabled"));
+        if (!id || !*id) {
+            json_decref(payload);
+            return send_json_error(conn, 400, "Missing required field: 'id'");
+        }
+        bool ok = web_manager_toggle_adapter(id, enabled);
+        json_decref(payload);
+        return ok ? send_json_ok(conn, "Adapter state toggled") : send_json_error(conn, 404, "Adapter not found");
+    }
+
+    if (strcmp(url, "/api/v1/adapters/restart") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        const char *id = json_string_value(json_object_get(payload, "id"));
+        if (!id || !*id) {
+            json_decref(payload);
+            return send_json_error(conn, 400, "Missing required field: 'id'");
+        }
+        bool ok = web_manager_restart_adapter(id);
+        json_decref(payload);
+        return ok ? send_json_ok(conn, "Adapter restart triggered") : send_json_error(conn, 404, "Adapter not found");
     }
 
     if (strcmp(url, "/api/v1/adapters/scan") == 0 || strcmp(url, "/api/v1/frontend/scan") == 0) {

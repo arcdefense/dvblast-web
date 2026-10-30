@@ -4,35 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DVBlast Professional DVB/IP Gateway</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2306b6d4'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z'/></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ed1c24'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z'/></svg>">
     <style>
         :root {
-            --bg-base: #090d16;
-            --bg-surface: #0f172a;
-            --bg-card: #141e33;
-            --bg-card-hover: #1e2942;
-            --bg-input: #0a0f1d;
-            --border-color: #24324f;
-            --border-focus: #38bdf8;
-            --text-main: #f8fafc;
+            /* VideoLAN Brand Colors */
+            --vlc-red: #ed1c24;
+            --vlc-red-dark: #dd0c14;
+            --vlc-red-hover: #ef383f;
+            --vlc-red-soft: #fcd9da;
+            --vlc-orange: #f48b00;
+            --vlc-orange-hover: #ff9a14;
+            --vlc-orange-soft: #ffe4c1;
+            --vlc-green: #39b549;
+            --vlc-green-bright: #47c558;
+            --vlc-blue: #0070bb;
+            --vlc-blue-hover: #0082da;
+            --vlc-blue-soft: #88cfff;
+
+            /* Light Theme (Default: matches https://www.videolan.org/projects/dvblast.html) */
+            --bg-base: #f7f8fa;
+            --bg-surface: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #ffffff;
+            --border-color: #dcdfe4;
+            --border-card: #dcdfe4;
+            --text-main: #2b303a;
+            --text-muted: #667085;
+            --text-dim: #98a2b3;
+            --primary: #ed1c24;
+            --primary-hover: #ef383f;
+            --header-bg: #ffffff;
+            --header-border: #e4e7ec;
+            --stack-header-bg: #eaedf2;
+            --stack-header-text: #344054;
+            --level-track-bg: #e4e7ec;
+            --card-hover-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --radius-sm: 4px;
+            --radius-md: 6px;
+        }
+
+        .dark {
+            /* VideoLAN Dark Palette */
+            --bg-base: #14171f;
+            --bg-surface: #1b1f29;
+            --bg-card: #202633;
+            --bg-input: #171a22;
+            --border-color: #2c3344;
+            --border-card: #343d52;
+            --text-main: #f1f5f9;
             --text-muted: #94a3b8;
             --text-dim: #64748b;
-            --primary: #06b6d4;
-            --primary-hover: #0891b2;
-            --accent: #8b5cf6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --radius-sm: 6px;
-            --radius-md: 10px;
-            --radius-lg: 14px;
+            --primary: #ed1c24;
+            --primary-hover: #ef383f;
+            --header-bg: #181c25;
+            --header-border: #262c3b;
+            --stack-header-bg: #262e3d;
+            --stack-header-text: #cbd5e1;
+            --level-track-bg: #14171f;
+            --card-hover-shadow: 0 6px 16px rgba(0,0,0,0.4);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
         body {
@@ -42,109 +78,145 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        /* Top Header */
+        /* Top Header (VideoLAN Style) */
         header {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--header-border);
             position: sticky;
             top: 0;
             z-index: 100;
-            padding: 0 24px;
+            padding: 0 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         .header-inner {
             max-width: 1440px;
             margin: 0 auto;
-            height: 64px;
+            height: 58px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 16px;
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 12px;
-            font-size: 1.25rem;
-            font-weight: 800;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-main);
+            user-select: none;
+        }
+
+        .brand-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
             letter-spacing: -0.5px;
-            color: #fff;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
         }
 
         .brand-badge {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: var(--vlc-red);
             color: #fff;
-            font-size: 0.7rem;
+            font-size: 9px;
             font-weight: 800;
-            padding: 3px 8px;
-            border-radius: var(--radius-sm);
-            text-transform: uppercase;
+            padding: 2px 5px;
+            border-radius: 3px;
             letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
-        /* Navigation */
+        .brand-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: normal;
+        }
+
+        /* Navigation (VideoLAN Clean Flat Style) */
         .nav-tabs {
             display: flex;
             gap: 4px;
-            background: var(--bg-input);
-            padding: 4px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
+            height: 100%;
+            align-items: stretch;
         }
 
         .nav-tab {
             background: transparent;
             color: var(--text-muted);
             border: none;
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
+            border-bottom: 3px solid transparent;
+            padding: 0 14px;
+            font-size: 13.5px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            border-radius: 0;
         }
 
         .nav-tab:hover {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.05);
+            color: var(--vlc-red);
+            background: rgba(237, 28, 36, 0.04);
         }
 
         .nav-tab.active {
-            background: var(--primary);
-            color: #0b1120;
+            color: var(--vlc-red);
+            border-bottom: 3px solid var(--vlc-red);
+            background: transparent;
             font-weight: 700;
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
+        }
+
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 5px 9px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            border-color: var(--vlc-red);
+            color: var(--vlc-red);
         }
 
         .status-pill {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: var(--bg-input);
-            padding: 6px 12px;
-            border-radius: 20px;
+            padding: 4px 10px;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
-            font-size: 0.8rem;
+            font-size: 11.5px;
             color: var(--text-muted);
         }
 
         .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
+            width: 7px;
+            height: 7px;
+            background: var(--vlc-green);
             border-radius: 50%;
-            box-shadow: 0 0 8px var(--success);
+            box-shadow: 0 0 6px var(--vlc-green);
             animation: pulse 2s infinite;
         }
 
@@ -154,18 +226,72 @@
             100% { transform: scale(0.95); opacity: 0.8; }
         }
 
+        /* Buttons (VideoLAN Red & Gray) */
+        .btn {
+            background: var(--bg-surface);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            line-height: 1.4;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            border-color: #adb5bd;
+            background: var(--bg-base);
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, var(--vlc-red) 0%, var(--vlc-red-hover) 100%);
+            border: 1px solid var(--vlc-red-dark);
+            color: #ffffff !important;
+            font-weight: 600;
+            text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+        }
+
+        .btn-primary:hover {
+            background: var(--vlc-red);
+            border-color: var(--vlc-red-dark);
+            box-shadow: 0 2px 5px rgba(237, 28, 36, 0.3);
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background: #fff;
+            color: var(--vlc-red);
+            border-color: var(--vlc-red);
+        }
+
+        .btn-danger:hover {
+            background: var(--vlc-red);
+            color: #fff;
+        }
+
         /* Main Container */
         main {
             max-width: 1440px;
             width: 100%;
-            margin: 20px auto;
-            padding: 0 24px;
+            margin: 16px auto;
+            padding: 0 20px;
             flex: 1;
         }
 
         .tab-pane {
             display: none;
-            animation: fadeIn 0.2s ease forwards;
+            animation: fadeIn 0.15s ease forwards;
         }
 
         .tab-pane.active {
@@ -173,529 +299,671 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
+            from { opacity: 0; transform: translateY(3px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Top System Gauges Banner */
+        /* VideoLAN Project Banner / Gauges */
         .system-banner {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .sys-card {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 16px 20px;
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
             position: relative;
-            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            border-left: 4px solid var(--vlc-red);
         }
 
-        .sys-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: var(--primary);
-        }
-
-        .sys-card.accent::before { background: var(--accent); }
-        .sys-card.success::before { background: var(--success); }
-        .sys-card.warning::before { background: var(--warning); }
+        .sys-card.orange { border-left-color: var(--vlc-orange); }
+        .sys-card.green { border-left-color: var(--vlc-green); }
+        .sys-card.blue { border-left-color: var(--vlc-blue); }
 
         .sys-label {
-            font-size: 0.75rem;
+            font-size: 11px;
             color: var(--text-muted);
             text-transform: uppercase;
             font-weight: 700;
             letter-spacing: 0.5px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .sys-value {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
             display: flex;
             align-items: baseline;
-            gap: 6px;
+            gap: 4px;
         }
 
         .sys-unit {
-            font-size: 0.8rem;
+            font-size: 12px;
             color: var(--text-muted);
             font-weight: 500;
         }
 
         .sys-bar-track {
             width: 100%;
-            height: 6px;
-            background: var(--bg-input);
-            border-radius: 3px;
-            margin-top: 10px;
+            height: 5px;
+            background: var(--level-track-bg);
+            border-radius: 2px;
+            margin-top: 8px;
             overflow: hidden;
         }
 
         .sys-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            border-radius: 3px;
-            transition: width 0.4s ease;
-        }
-
-        /* Section Containers */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .section-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-badge {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--primary);
-            font-size: 0.8rem;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-weight: 600;
+            background: var(--vlc-red);
+            border-radius: 2px;
+            transition: width 0.3s ease;
         }
 
         /* Empty State */
         .empty-state {
             background: var(--bg-card);
             border: 1px dashed var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 48px 24px;
+            border-radius: var(--radius-md);
+            padding: 40px 20px;
             text-align: center;
-            margin-bottom: 28px;
+            margin-top: 20px;
         }
 
         .empty-icon {
-            width: 48px;
-            height: 48px;
-            margin: 0 auto 16px;
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 12px;
             color: var(--text-dim);
         }
 
         .empty-title {
-            font-size: 1.1rem;
+            font-size: 16px;
             font-weight: 700;
             color: var(--text-main);
-            margin-bottom: 8px;
-        }
-
-        .empty-desc {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            max-width: 480px;
-            margin: 0 auto 20px;
-            line-height: 1.5;
-        }
-
-        /* Cards Layout */
-        .grid-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-            gap: 20px;
-            margin-bottom: 28px;
-        }
-
-        /* Adapter Card */
-        .adapter-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            transition: border-color 0.2s ease, transform 0.2s ease;
-        }
-
-        .adapter-card:hover {
-            border-color: rgba(6, 182, 212, 0.4);
-        }
-
-        .card-top {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(15, 23, 42, 0.6);
-        }
-
-        .card-id-block {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .card-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .card-subtitle {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .card-body {
-            padding: 20px;
-        }
-
-        .signal-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-            margin-bottom: 16px;
-        }
-
-        .signal-meter {
-            background: var(--bg-input);
-            padding: 12px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-color);
-        }
-
-        .meter-top {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--text-muted);
             margin-bottom: 6px;
         }
 
-        .meter-val {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: #fff;
+        .empty-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            max-width: 440px;
+            margin: 0 auto 16px;
+            line-height: 1.5;
         }
 
-        .card-actions {
-            display: flex;
-            gap: 8px;
-            padding-top: 14px;
-            border-top: 1px solid var(--border-color);
+        /* Unified Transponder Card Stack Grid */
+        #card-stack {
+            display: block;
+            margin-top: 10px;
         }
 
-        /* Channels Expansion on Adapter Card */
-        .scanned-channels-panel {
-            background: var(--bg-input);
-            border-top: 1px solid var(--border-color);
-            max-height: 260px;
-            overflow-y: auto;
+        .card-stack {
+            text-align: center;
+            margin: 8px 0 20px 0;
+            display: grid;
+            grid-column-gap: 4px;
+            grid-row-gap: 4px;
+            justify-content: start;
+            grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+            align-items: stretch;
         }
 
-        .channel-row {
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(36, 50, 79, 0.5);
-            font-size: 0.85rem;
-        }
-
-        .channel-row:hover {
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .ch-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .ch-sid {
-            background: rgba(6, 182, 212, 0.15);
-            color: var(--primary);
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-        }
-
-        .ch-name {
-            font-weight: 600;
-            color: #fff;
-        }
-
-        /* Buttons */
-        .btn {
-            background: var(--bg-surface);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--text-muted);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: #0b1120;
-            border-color: var(--primary);
-            font-weight: 700;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-hover);
-            border-color: var(--primary-hover);
-        }
-
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--danger);
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-danger:hover {
-            background: rgba(239, 68, 68, 0.25);
-            border-color: var(--danger);
-        }
-
-        .btn-sm {
-            padding: 5px 10px;
-            font-size: 0.75rem;
-        }
-
-        /* Badges */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 700;
+        .card-stack[data-header]:before {
+            content: attr(data-header);
+            color: var(--stack-header-text);
+            background: var(--stack-header-bg);
+            border-left: 4px solid var(--vlc-red);
+            border-bottom: 1px solid var(--border-color);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-align: left;
+            grid-column-start: 1;
+            grid-column-end: -1;
+            padding: 7px 12px;
+            margin: 10px 0 4px 0;
+            border-radius: var(--radius-sm);
+            display: block;
         }
 
-        .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
-        .badge-danger  { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
-        .badge-accent  { background: rgba(139, 92, 246, 0.15); color: var(--accent); border: 1px solid rgba(139, 92, 246, 0.3); }
+        .card {
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-sm);
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            color: inherit;
+            background: var(--bg-card);
+            padding: 7px 9px;
+            min-height: 92px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            user-select: none;
+        }
+
+        .card:hover {
+            box-shadow: var(--card-hover-shadow);
+            border-color: #adb5bd;
+        }
+
+        /* Status Border Classes */
+        .card.card-true-2 {
+            border-color: var(--vlc-green);
+        }
+
+        .card.card-true-0,
+        .card.card-true-1 {
+            border-color: var(--vlc-red);
+        }
+
+        .card.card-false-0 {
+            border-style: dotted;
+            border-color: #adb5bd;
+            opacity: 0.65;
+        }
+
+        .card-name {
+            line-height: 20px;
+            font-size: 13.5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 22px;
+            color: var(--text-main);
+        }
+
+        .card-title-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .dot-locked {
+            background: var(--vlc-green);
+            box-shadow: 0 0 5px var(--vlc-green);
+        }
+
+        .dot-unlocked {
+            background: var(--vlc-red);
+            box-shadow: 0 0 5px var(--vlc-red);
+        }
+
+        .dot-disabled {
+            background: var(--text-dim);
+        }
+
+        .card-status {
+            line-height: 16px;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-status .text {
+            display: block;
+        }
+
+        .card-status .text.onair {
+            color: var(--vlc-green);
+            font-weight: 700;
+        }
+
+        .card-status .text.error {
+            color: var(--vlc-red);
+        }
+
+        .card-status.footer-line {
+            padding-top: 3px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 3px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .text-dest {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .text-dim {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        /* Native HTML5 Dropdown in Top-Right */
+        details.dropdown {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            z-index: 20;
+        }
+
+        details.dropdown > summary {
+            list-style: none;
+            cursor: pointer;
+            outline: none;
+            padding: 1px 4px;
+            border-radius: 3px;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        details.dropdown > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details.dropdown > summary:hover {
+            background: rgba(0,0,0,0.06);
+            color: var(--text-main);
+        }
+
+        details.dropdown[open] > summary::before {
+            position: fixed;
+            content: " ";
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: 50;
+            display: block;
+            cursor: default;
+            background: transparent;
+        }
+
+        details.dropdown > .menu {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            top: 100%;
+            right: 0;
+            z-index: 100;
+            width: 170px;
+            padding: 4px 0;
+            margin-top: 3px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        }
+
+        details.dropdown > .menu > a {
+            padding: 7px 12px;
+            font-size: 12px;
+            color: var(--text-main);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.12s;
+        }
+
+        details.dropdown > .menu > a:hover {
+            background: var(--vlc-red-soft);
+            color: var(--vlc-red);
+        }
+
+        details.dropdown > .menu > a.text-danger {
+            color: var(--vlc-red);
+        }
+
+        details.dropdown > .menu > a.text-danger:hover {
+            background: var(--vlc-red-soft);
+        }
+
+        details.dropdown > .menu > hr {
+            margin: 4px 0;
+            border: none;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* DVB Status Signal Bars (S & Q) */
+        .dvb-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: monospace;
+            font-size: 11px;
+            margin: 2px 0;
+        }
+
+        .dvb-status > :nth-child(1) {
+            width: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .dvb-status > :nth-child(2) {
+            flex: 1;
+        }
+
+        .dvb-status > :nth-child(3) {
+            width: 32px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .progress {
+            display: flex;
+            width: 100%;
+            height: 11px;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+            background: var(--level-track-bg);
+        }
+
+        .signal-level {
+            background: url('data:image/svg+xml;utf8,<svg width="100%" height="16" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g1"><stop stop-color="%23ed1c24" offset="0%"/><stop stop-color="%23f48b00" offset="25%"/><stop stop-color="%23ffeb3b" offset="50%"/><stop stop-color="%2339b549" offset="75%"/><stop stop-color="%2300e676" offset="100%"/></linearGradient></defs><rect fill="url(%23g1)" x="0" y="0" width="100%" height="100%"/></svg>');
+            background-size: 100% 100%;
+        }
+
+        .progress > .progress-level {
+            flex: 0 0 auto;
+            background-color: transparent;
+            transition: width 0.3s ease;
+        }
+
+        .progress > .progress-overlay {
+            flex: 1 0 auto;
+            background-color: var(--level-track-bg);
+        }
+
+        /* Add Card Placeholder */
+        .card-add {
+            border: 1px dashed var(--border-card);
+            background: rgba(0,0,0,0.015);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            color: var(--text-muted);
+            min-height: 92px;
+            cursor: pointer;
+        }
+
+        .card-add:hover {
+            border-color: var(--vlc-red);
+            color: var(--vlc-red);
+            background: rgba(237, 28, 36, 0.04);
+        }
+
+        .card-add .add-icon {
+            font-size: 20px;
+            font-weight: 300;
+            line-height: 1;
+        }
+
+        .card-add .add-text {
+            font-size: 11px;
+            font-weight: 600;
+        }
 
         /* Tables */
         .table-wrap {
-            background: var(--bg-card);
+            background: var(--bg-surface);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
+            border-radius: var(--radius-sm);
             overflow: hidden;
-            margin-bottom: 28px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            text-align: left;
-            font-size: 0.9rem;
+            font-size: 13px;
         }
 
         th {
-            background: rgba(15, 23, 42, 0.8);
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 12px 18px;
+            background: var(--stack-header-bg);
+            color: var(--text-main);
+            font-weight: 600;
+            padding: 9px 12px;
+            text-align: left;
             border-bottom: 1px solid var(--border-color);
         }
 
         td {
-            padding: 14px 18px;
-            border-bottom: 1px solid rgba(36, 50, 79, 0.5);
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border-color);
             color: var(--text-main);
-            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
         }
 
         tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(0,0,0,0.015);
         }
 
-        /* Toggle Switch */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 38px;
-            height: 22px;
+        /* Form Components */
+        .form-group {
+            margin-bottom: 14px;
         }
 
-        .switch input { opacity: 0; width: 0; height: 0; }
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-main);
+        }
 
-        .slider {
-            position: absolute;
+        .form-input, .form-select {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 7px 10px;
+            color: var(--text-main);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--vlc-red);
+            box-shadow: 0 0 0 2px rgba(237, 28, 36, 0.15);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-section-header {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--vlc-red);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+            margin: 14px 0 10px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: var(--border-color);
-            transition: .3s;
-            border-radius: 22px;
         }
 
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider { background-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(16px); }
-
-        /* Modal Dialogs */
+        /* Modals */
         .modal-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(9, 13, 22, 0.85);
-            backdrop-filter: blur(8px);
-            display: none;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(2px);
         }
 
-        .modal-overlay.open { display: flex; }
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
 
         .modal-box {
-            background: var(--bg-card);
+            background: var(--bg-surface);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            width: 90%;
-            max-width: 580px;
-            padding: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            border-radius: var(--radius-md);
+            width: 100%;
+            max-width: 540px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 20px;
         }
 
         .modal-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
+            justify-content: space-between;
+            margin-bottom: 16px;
             border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
         }
 
-        .modal-title { font-size: 1.15rem; font-weight: 700; color: #fff; }
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
 
         .modal-close {
             background: transparent;
             border: none;
             color: var(--text-muted);
-            font-size: 1.5rem;
+            font-size: 22px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--vlc-red);
+        }
+
+        .modal-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            gap: 8px;
+        }
+
+        .modal-tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
             cursor: pointer;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-            margin-bottom: 14px;
+        .modal-tab-btn.active {
+            color: var(--vlc-red);
+            border-bottom-color: var(--vlc-red);
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 14px;
-        }
-
-        .form-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 600;
+        /* Badges */
+        .badge {
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 3px;
             text-transform: uppercase;
         }
 
-        .form-input, .form-select {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: #fff;
-            padding: 10px 12px;
-            font-size: 0.9rem;
-            outline: none;
-            transition: border-color 0.2s ease;
+        .badge-success {
+            background: rgba(57, 181, 73, 0.15);
+            color: var(--vlc-green);
         }
 
-        .form-input:focus, .form-select:focus {
-            border-color: var(--border-focus);
+        .badge-warning {
+            background: rgba(244, 139, 0, 0.15);
+            color: var(--vlc-orange);
         }
 
-        /* Log Terminal */
+        /* Logs Console */
         .terminal {
-            background: #050811;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
-            font-size: 0.85rem;
-            height: 520px;
+            background: #11141a;
+            color: #d1d5db;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            height: 440px;
             overflow-y: auto;
-            color: #cbd5e1;
             line-height: 1.6;
+            border: 1px solid #232730;
         }
 
-        .log-row { display: flex; gap: 12px; margin-bottom: 4px; }
-        .log-ts { color: #64748b; }
-        .log-INFO  { color: #38bdf8; font-weight: bold; }
-        .log-WARN  { color: #fbbf24; font-weight: bold; }
-        .log-ERROR { color: #f87171; font-weight: bold; }
+        .log-row { display: flex; gap: 8px; }
+        .log-ts { color: #6b7280; }
+        .log-INFO { color: #10b981; }
+        .log-WARN { color: #f59e0b; }
+        .log-ERROR { color: #ef4444; }
 
         /* Toast Notifications */
         .toast-container {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            bottom: 20px;
+            right: 20px;
             z-index: 2000;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .toast {
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
-            border-left: 4px solid var(--primary);
-            color: #fff;
-            padding: 12px 20px;
+            border-left: 4px solid var(--vlc-red);
+            color: var(--text-main);
+            padding: 10px 16px;
             border-radius: var(--radius-sm);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+            font-size: 13px;
+            font-weight: 500;
+            animation: slideIn 0.25s ease;
         }
 
         @keyframes slideIn {
@@ -706,26 +974,30 @@
 </head>
 <body>
 
-    <!-- Header Navigation -->
+    <!-- Header Navigation (VideoLAN Style) -->
     <header>
         <div class="header-inner">
             <div class="brand">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="var(--primary)">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
                 </svg>
-                <span>DVBLAST</span>
-                <span class="brand-badge">PRO GATEWAY</span>
+                <div class="brand-title">
+                    <span>DVBLAST</span>
+                    <span class="brand-badge">PRO GATEWAY</span>
+                </div>
             </div>
 
             <nav class="nav-tabs">
                 <button class="nav-tab active" data-tab="tab-dashboard">Dashboard</button>
-                <button class="nav-tab" data-tab="tab-channels">Channels</button>
                 <button class="nav-tab" data-tab="tab-softcam">SoftCAM</button>
                 <button class="nav-tab" data-tab="tab-config">Config</button>
                 <button class="nav-tab" data-tab="tab-logs">Logs</button>
             </nav>
 
             <div class="header-actions">
+                <button class="theme-toggle-btn" onclick="toggleTheme()" id="btn-theme" title="Toggle Light/Dark Theme">
+                    <span id="theme-icon">🌙</span>
+                </button>
                 <div class="status-pill">
                     <div class="pulse-dot"></div>
                     <span id="txt-uptime">Uptime: 0s</span>
@@ -742,7 +1014,7 @@
         <!-- DASHBOARD TAB -->
         <div id="tab-dashboard" class="tab-pane active">
 
-            <!-- System Telemetry Gauges -->
+            <!-- VideoLAN System Gauges Banner -->
             <div class="system-banner">
                 <div class="sys-card">
                     <div class="sys-label">CPU Utilization</div>
@@ -750,123 +1022,49 @@
                     <div class="sys-bar-track"><div class="sys-bar-fill" id="bar-cpu" style="width: 0%;"></div></div>
                 </div>
 
-                <div class="sys-card accent">
+                <div class="sys-card orange">
                     <div class="sys-label">System Memory</div>
                     <div class="sys-value"><span id="val-ram-used">0</span><span class="sys-unit">/ <span id="val-ram-total">0</span> MB</span></div>
-                    <div class="sys-bar-track"><div class="sys-bar-fill" id="bar-ram" style="width: 0%; background: linear-gradient(90deg, var(--accent), var(--primary));"></div></div>
+                    <div class="sys-bar-track"><div class="sys-bar-fill" id="bar-ram" style="width: 0%; background: var(--vlc-orange);"></div></div>
                 </div>
 
-                <div class="sys-card success">
+                <div class="sys-card green">
                     <div class="sys-label">Total Ingest Bitrate</div>
                     <div class="sys-value"><span id="val-in-br">0.00</span><span class="sys-unit">Mbps</span></div>
-                    <div class="sys-bar-track"><div class="sys-bar-fill" id="bar-in-br" style="width: 0%; background: var(--success);"></div></div>
+                    <div class="sys-bar-track"><div class="sys-bar-fill" id="bar-in-br" style="width: 0%; background: var(--vlc-green);"></div></div>
                 </div>
 
-                <div class="sys-card warning">
+                <div class="sys-card blue">
                     <div class="sys-label">Total Egress Bitrate</div>
                     <div class="sys-value"><span id="val-out-br">0.00</span><span class="sys-unit">Mbps</span></div>
-                    <div class="sys-bar-track"><div class="sys-bar-fill" id="bar-out-br" style="width: 0%; background: var(--warning);"></div></div>
+                    <div class="sys-bar-track"><div class="sys-bar-fill" id="bar-out-br" style="width: 0%; background: var(--vlc-blue);"></div></div>
                 </div>
             </div>
 
-            <!-- SECTION: DVB ADAPTERS -->
-            <div class="section-header">
-                <div class="section-title">
-                    <span>DVB Tuner Adapters</span>
-                    <span class="section-badge" id="badge-adapter-count">0</span>
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="openAdapterModal()">+ New Adapter</button>
-            </div>
-
-            <!-- Empty State for Adapters -->
-            <div id="empty-adapters" class="empty-state">
+            <!-- Unified Empty State -->
+            <div id="empty-dashboard" class="empty-state" style="display: none;">
                 <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <rect x="2" y="6" width="20" height="12" rx="2"></rect>
                     <path d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"></path>
                     <path d="M7 6V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2"></path>
                 </svg>
-                <div class="empty-title">No DVB Adapters Configured</div>
-                <div class="empty-desc">Connect and tune a physical DVB tuner (DVB-T2/S2/C) to receive broadcast frequencies and scan transponder channels.</div>
-                <button class="btn btn-primary" onclick="openAdapterModal()">+ Add First Adapter</button>
-            </div>
-
-            <!-- Dynamic Adapters Grid -->
-            <div id="grid-adapters" class="grid-cards" style="display: none;"></div>
-
-            <!-- SECTION: MULTICAST STREAMS -->
-            <div class="section-header" style="margin-top: 10px;">
-                <div class="section-title">
-                    <span>Multicast Streams</span>
-                    <span class="section-badge" id="badge-stream-count">0</span>
+                <div class="empty-title">No Tuners or Streams Active</div>
+                <div class="empty-desc">DVBlast has not configured any DVB-T/T2/S/S2/C tuners or IP outputs yet. Click "+ New Adapter" to tune a transponder.</div>
+                <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+                    <button class="btn btn-primary" onclick="openAdapterModal()">+ New Adapter</button>
+                    <button class="btn" onclick="openStreamModal()">+ New Stream</button>
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="openStreamModal()">+ New Stream</button>
             </div>
 
-            <!-- Empty State for Streams -->
-            <div id="empty-streams" class="empty-state">
-                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"></polygon>
-                </svg>
-                <div class="empty-title">No Multicast Streams Active</div>
-                <div class="empty-desc">Create UDP or RTP multicast routes to multiplex scanned transponder channels or passthrough transport streams across your network.</div>
-                <button class="btn btn-primary" onclick="openStreamModal()">+ Add First Stream</button>
-            </div>
+            <!-- Single Unified Card Stack Grid Container -->
+            <div id="card-stack"></div>
 
-            <!-- Dynamic Streams Table -->
-            <div id="wrap-streams-table" class="table-wrap" style="display: none;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;">Power</th>
-                            <th>Stream ID & Name</th>
-                            <th>Source Input</th>
-                            <th>Multicast Destination</th>
-                            <th>Pacing</th>
-                            <th>Bitrate</th>
-                            <th>Sent Packets</th>
-                            <th>SoftCAM</th>
-                            <th style="text-align: right;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-streams"></tbody>
-                </table>
-            </div>
-
-        </div>
-
-        <!-- CHANNELS TAB -->
-        <div id="tab-channels" class="tab-pane">
-            <div class="section-header">
-                <div class="section-title">Discovered Broadcast Services</div>
-                <input type="text" class="form-input" id="filter-channels" placeholder="Search service name or SID..." style="width: 280px; padding: 6px 12px; font-size: 0.85rem;" oninput="renderAllChannelsTable()">
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>SID (PNR)</th>
-                            <th>Service Name</th>
-                            <th>Provider</th>
-                            <th>Adapter</th>
-                            <th>PMT PID</th>
-                            <th>Video PID</th>
-                            <th>Audio PIDs</th>
-                            <th>CAS Encryption</th>
-                            <th style="text-align: right;">Quick Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-all-channels">
-                        <tr><td colspan="9" style="text-align: center; color: var(--text-muted);">No transponders scanned yet. Go to Dashboard and click "Scan Channels" on an adapter.</td></tr>
-                    </tbody>
-                </table>
-            </div>
         </div>
 
         <!-- SOFTCAM TAB -->
         <div id="tab-softcam" class="tab-pane">
-            <div class="section-header">
-                <div class="section-title">SoftCAM Keys (BISS-1 & Constant CW)</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 15px; font-weight: 700;">SoftCAM Keys (BISS-1 & Constant CW)</h3>
                 <button class="btn btn-primary btn-sm" onclick="openKeyModal()">+ Add Key</button>
             </div>
             <div class="table-wrap">
@@ -891,22 +1089,22 @@
 
         <!-- CONFIG TAB -->
         <div id="tab-config" class="tab-pane">
-            <div class="section-header">
-                <div class="section-title">JSON Configuration (dvblast.json)</div>
-                <div style="display: flex; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 15px; font-weight: 700;">JSON Configuration (dvblast.json)</h3>
+                <div style="display: flex; gap: 8px;">
                     <button class="btn btn-sm" onclick="loadConfigFile()">Reload from Disk</button>
                     <button class="btn btn-primary btn-sm" onclick="saveConfigFile()">Save & Apply</button>
                 </div>
             </div>
-            <textarea class="form-input" id="cfg-editor" style="width: 100%; height: 480px; font-family: monospace; font-size: 0.9rem; line-height: 1.5; color: #38bdf8;"></textarea>
+            <textarea class="form-input" id="cfg-editor" style="width: 100%; height: 480px; font-family: monospace; font-size: 12.5px; line-height: 1.5; color: var(--text-main);"></textarea>
         </div>
 
         <!-- LOGS TAB -->
         <div id="tab-logs" class="tab-pane">
-            <div class="section-header">
-                <div class="section-title">System Console Logs</div>
-                <div style="display: flex; gap: 10px;">
-                    <select class="form-select" id="log-filter-level" style="padding: 6px 12px; font-size: 0.85rem;" onchange="renderLogs()">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 15px; font-weight: 700;">System Console Logs</h3>
+                <div style="display: flex; gap: 8px;">
+                    <select class="form-select" id="log-filter-level" style="padding: 4px 10px; font-size: 12px; width: auto;" onchange="renderLogs()">
                         <option value="ALL">All Levels</option>
                         <option value="INFO">INFO Only</option>
                         <option value="WARN">WARN Only</option>
@@ -922,206 +1120,232 @@
 
     <!-- MODAL: ADD / EDIT ADAPTER -->
     <div class="modal-overlay" id="modal-adapter">
-        <div class="modal-box" style="max-width: 680px;">
+        <div class="modal-box" style="max-width: 580px;">
             <div class="modal-header">
-                <h3 class="modal-title" id="modal-adapter-title">Configure DVB Adapter</h3>
+                <h3 class="modal-title" id="modal-adapter-title">Adapter</h3>
                 <button class="modal-close" onclick="closeAdapterModal()">&times;</button>
             </div>
+
+            <div class="modal-tabs">
+                <button type="button" class="modal-tab-btn active" id="btn-tab-ad-gen" onclick="switchAdModalTab('general')">General</button>
+                <button type="button" class="modal-tab-btn" id="btn-tab-ad-adv" onclick="switchAdModalTab('advanced')">Advanced</button>
+            </div>
+
             <form id="form-adapter" onsubmit="handleAdapterSubmit(event)">
                 <input type="hidden" id="ad-edit-mode" value="false">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Adapter ID</label>
-                        <input type="text" class="form-input" id="ad-id" required placeholder="e.g. adapter_0">
+
+                <!-- GENERAL TAB -->
+                <div id="tab-ad-general">
+                    <div style="margin-bottom: 12px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="ad-enable" checked>
+                            <span>Enable Tuner</span>
+                        </label>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Friendly Name</label>
-                        <input type="text" class="form-input" id="ad-name" required placeholder="e.g. EMTEK, RCTI, MUX-1">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-input" id="ad-name" required placeholder="e.g. EMTEK Jakarta">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ID</label>
+                            <input type="text" class="form-input" id="ad-id" required placeholder="e.g. adapter_0">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Adapter</label>
+                            <select class="form-select" id="ad-device">
+                                <option value="0">0.0 : Loading tuners...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Delivery System</label>
+                            <select class="form-select" id="ad-delsys" onchange="onDelsysChange()">
+                                <optgroup label="Terrestrial">
+                                    <option value="DVBT2" selected>DVB-T2</option>
+                                    <option value="DVBT">DVB-T</option>
+                                </optgroup>
+                                <optgroup label="Satellite">
+                                    <option value="DVBS2">DVB-S2</option>
+                                    <option value="DVBS">DVB-S</option>
+                                </optgroup>
+                                <optgroup label="Cable">
+                                    <option value="DVBC">DVB-C</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section-header">Transponder Tuning</div>
+
+                    <div class="form-grid">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label class="form-label" id="lbl-ad-freq">Frequency (MHz)</label>
+                            <input type="number" step="any" class="form-input" id="ad-freq" required placeholder="e.g. 498">
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display: block;" id="hint-ad-freq">Frequency in MHz (e.g. 498 for 498 MHz)</span>
+                        </div>
+                    </div>
+
+                    <div class="form-grid" id="group-sat-opts" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Polarization</label>
+                            <select class="form-select" id="ad-pol">
+                                <option value="H">Horizontal (18V)</option>
+                                <option value="V">Vertical (13V)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Symbolrate (Kbaud)</label>
+                            <input type="number" class="form-input" id="ad-srate" value="27500" placeholder="1000..50000 Kbaud">
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Physical Hardware Device</label>
-                        <select class="form-select" id="ad-device">
-                            <option value="0">Adapter 0 (/dev/dvb/adapter0)</option>
-                            <option value="1">Adapter 1 (/dev/dvb/adapter1)</option>
-                            <option value="2">Adapter 2 (/dev/dvb/adapter2)</option>
-                        </select>
+                <!-- ADVANCED TAB -->
+                <div id="tab-ad-advanced" style="display: none;">
+                    <div class="form-grid" id="group-terr-opts">
+                        <div class="form-group">
+                            <label class="form-label">PLP / Multistream ID</label>
+                            <input type="number" class="form-input" id="ad-plp" placeholder="Multistream filtering (Auto: -1)" value="">
+                        </div>
+                        <div class="form-group" id="group-bandwidth">
+                            <label class="form-label">Bandwidth</label>
+                            <select class="form-select" id="ad-bandwidth">
+                                <option value="8">8 MHz (Default)</option>
+                                <option value="7">7 MHz</option>
+                                <option value="6">6 MHz</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Delivery System</label>
-                        <select class="form-select" id="ad-delsys" onchange="onDelsysChange()">
-                            <option value="DVBT2">DVB-T2 (Terrestrial Digital TV)</option>
-                            <option value="DVBT">DVB-T (Legacy Terrestrial)</option>
-                            <option value="DVBS2">DVB-S2 (Satellite HD/UHD)</option>
-                            <option value="DVBS">DVB-S (Satellite Standard)</option>
-                            <option value="DVBC">DVB-C (Cable TV)</option>
-                        </select>
-                    </div>
-                </div>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Frequency (MHz or Hz)</label>
-                        <input type="text" class="form-input" id="ad-freq" required placeholder="e.g. 498 MHz or 498000000 Hz">
-                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">Auto-scaled: Entering 498 tunes 498,000,000 Hz.</span>
-                    </div>
-                    <div class="form-group" id="group-bandwidth">
-                        <label class="form-label">Bandwidth</label>
-                        <select class="form-select" id="ad-bandwidth">
-                            <option value="8">8 MHz (Indonesia / Europe)</option>
-                            <option value="7">7 MHz</option>
-                            <option value="6">6 MHz</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="group-srate" style="display: none;">
-                        <label class="form-label">Symbol Rate (kbaud or S/s)</label>
-                        <input type="number" class="form-input" id="ad-srate" value="27500000" placeholder="e.g. 27500000">
-                    </div>
-                </div>
-
-                <div class="form-grid" id="group-terr-opts">
-                    <div class="form-group">
-                        <label class="form-label">PLP / Stream ID</label>
-                        <input type="number" class="form-input" id="ad-plp" placeholder="Auto / All (-1)" value="">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Modulation</label>
-                        <select class="form-select" id="ad-mod">
-                            <option value="">Auto (Default)</option>
-                            <option value="QPSK">QPSK</option>
-                            <option value="16QAM">16-QAM</option>
-                            <option value="64QAM">64-QAM</option>
-                            <option value="256QAM">256-QAM</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-grid" id="group-sat-opts" style="display: none;">
-                    <div class="form-group">
-                        <label class="form-label">Polarization</label>
-                        <select class="form-select" id="ad-pol">
-                            <option value="H">Horizontal (18V)</option>
-                            <option value="V">Vertical (13V)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">DiSEqC Switch</label>
+                    <div class="form-group" id="group-sat-diseqc" style="display: none;">
+                        <label class="form-label">DiSEqC Switch Position</label>
                         <select class="form-select" id="ad-diseqc">
                             <option value="0">None / Direct</option>
-                            <option value="1">DiSEqC 1 (A)</option>
-                            <option value="2">DiSEqC 2 (B)</option>
-                            <option value="3">DiSEqC 3 (C)</option>
-                            <option value="4">DiSEqC 4 (D)</option>
+                            <option value="1">Port 1 (A)</option>
+                            <option value="2">Port 2 (B)</option>
+                            <option value="3">Port 3 (C)</option>
+                            <option value="4">Port 4 (D)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Constellation / Modulation</label>
+                        <select class="form-select" id="ad-mod">
+                            <option value="">Auto Detect (Default)</option>
+                            <option value="QPSK">QPSK</option>
+                            <option value="16QAM">16QAM</option>
+                            <option value="64QAM">64QAM</option>
+                            <option value="256QAM">256QAM</option>
+                            <option value="8PSK">8PSK (DVB-S2)</option>
                         </select>
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                    <button type="button" class="btn" onclick="closeAdapterModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save & Tune Adapter</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                    <div id="ad-remove-wrap" style="display: none;">
+                        <label class="checkbox-label" style="color: var(--vlc-red);">
+                            <input type="checkbox" id="ad-remove" onchange="onAdRemoveToggle(this.checked)">
+                            <span>Delete Adapter</span>
+                        </label>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-left: auto;">
+                        <button type="button" class="btn" onclick="closeAdapterModal()">Cancel</button>
+                        <button type="button" class="btn" onclick="handleAdapterSaveAndScan()">Save & Scan</button>
+                        <button type="submit" class="btn btn-primary" id="btn-ad-apply">Apply</button>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: CHANNEL SCANNER & BATCH STREAM CREATOR -->
+    <!-- MODAL: CHANNEL SCANNER -->
     <div class="modal-overlay" id="modal-scan">
-        <div class="modal-box" style="max-width: 840px;">
+        <div class="modal-box" style="max-width: 680px;">
             <div class="modal-header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
-                    </div>
-                    <div>
-                        <h3 class="modal-title" id="scan-modal-title">Live Transponder Scanner</h3>
-                        <div style="font-size: 0.8rem; color: var(--text-muted);" id="scan-modal-subtitle">Adapter 0 • 498 MHz (DVB-T2)</div>
-                    </div>
+                <div>
+                    <h3 class="modal-title" id="scan-modal-title">Live Channel Scanner</h3>
+                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;" id="scan-modal-subtitle">Demuxing PAT/SDT...</div>
                 </div>
                 <button class="modal-close" onclick="closeScanModal()">&times;</button>
             </div>
-            
-            <div style="padding: 20px;">
-                <!-- Live RF Signal Meters -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px;">
-                    <div class="signal-meter">
-                        <div class="meter-top">
-                            <span>SIGNAL LEVEL (S)</span>
-                            <span id="scan-sig-dbm" style="color: var(--accent-cyan); font-weight: 600;">-- dBm</span>
-                        </div>
-                        <div class="meter-val" id="scan-sig-val">0%</div>
-                        <div class="meter-bar-track" style="margin-top: 8px; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
-                            <div class="meter-bar-fill" id="scan-sig-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #06b6d4, #10b981); transition: width 0.3s;"></div>
-                        </div>
-                    </div>
-                    <div class="signal-meter">
-                        <div class="meter-top">
-                            <span>CARRIER / NOISE (C/N)</span>
-                            <span id="scan-snr-db" style="color: var(--accent-green); font-weight: 600;">-- dB</span>
-                        </div>
-                        <div class="meter-val" id="scan-snr-val">0%</div>
-                        <div class="meter-bar-track" style="margin-top: 8px; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
-                            <div class="meter-bar-fill" id="scan-snr-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #06b6d4); transition: width 0.3s;"></div>
-                        </div>
-                    </div>
-                    <div class="signal-meter" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">TUNER STATUS</div>
-                        <div id="scan-lock-badge" class="badge badge-unlocked" style="font-size: 0.85rem; padding: 6px 14px;">SEARCHING...</div>
-                        <div id="scan-bitrate" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">0.00 Mbps</div>
-                    </div>
-                </div>
 
-                <!-- Channel Table Header -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div style="font-weight: 600; font-size: 0.95rem;">Discovered TV Services (<span id="scan-channel-count">0</span>)</div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-sm" onclick="toggleSelectAllChannels(true)">Select All</button>
-                        <button class="btn btn-sm" onclick="toggleSelectAllChannels(false)">Deselect All</button>
+            <!-- Signal Meter Header -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 14px; background: var(--bg-base); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 14px;">
+                <div>
+                    <div style="margin-bottom: 6px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px;">
+                            <span>Signal Strength (S)</span>
+                            <span id="scan-sig-val">0%</span>
+                        </div>
+                        <div class="progress signal-level"><div class="progress-level" id="scan-sig-bar" style="width: 0%;"></div><div class="progress-overlay"></div></div>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;" id="scan-sig-dbm">-- dBm</div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px;">
+                            <span>Signal Quality (Q / C/N)</span>
+                            <span id="scan-snr-val">0%</span>
+                        </div>
+                        <div class="progress signal-level"><div class="progress-level" id="scan-snr-bar" style="width: 0%;"></div><div class="progress-overlay"></div></div>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;" id="scan-snr-db">0.0 dB</div>
                     </div>
                 </div>
-
-                <!-- Channels Table -->
-                <div style="max-height: 260px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 16px;">
-                    <table class="table" style="margin: 0;">
-                        <thead>
-                            <tr style="position: sticky; top: 0; background: var(--bg-card); z-index: 2;">
-                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="chk-scan-all" onchange="toggleSelectAllChannels(this.checked)"></th>
-                                <th>PNR / SID</th>
-                                <th>Channel Name</th>
-                                <th>Provider</th>
-                                <th>PMT PID</th>
-                                <th>CAS</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-scan-channels">
-                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Demuxing transponder PAT/SDT... please wait for lock.</td></tr>
-                        </tbody>
-                    </table>
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">LOCK STATUS</div>
+                    <div id="scan-lock-badge" class="badge badge-warning">SEARCHING...</div>
+                    <div id="scan-bitrate" style="font-size: 12px; font-weight: 600; margin-top: 6px;">0.00 Mbps</div>
                 </div>
+            </div>
 
-                <!-- Batch Stream Generator Section -->
-                <div style="background: var(--bg-input); padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 16px;">
-                    <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; color: var(--accent-cyan);">Batch Multicast Output Generator</div>
-                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; align-items: center;">
-                        <div>
-                            <label class="form-label" style="font-size: 0.75rem;">Base Multicast IP</label>
-                            <input type="text" class="form-input" id="scan-batch-ip" value="239.1.2.25" placeholder="239.1.2.25">
-                        </div>
-                        <div>
-                            <label class="form-label" style="font-size: 0.75rem;">Destination Port</label>
-                            <input type="number" class="form-input" id="scan-batch-port" value="1234">
-                        </div>
-                        <div style="padding-top: 18px;">
-                            <button type="button" class="btn btn-primary" style="width: 100%;" onclick="batchCreateSelectedStreams()">Create Selected Streams</button>
-                        </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-weight: 600; font-size: 13px;">Discovered TV Services (<span id="scan-channel-count">0</span>)</div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn btn-sm" onclick="toggleSelectAllChannels(true)">Select All</button>
+                    <button class="btn btn-sm" onclick="toggleSelectAllChannels(false)">Deselect All</button>
+                </div>
+            </div>
+
+            <div style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 12px;">
+                <table style="margin: 0;">
+                    <thead>
+                        <tr style="position: sticky; top: 0; background: var(--stack-header-bg); z-index: 2;">
+                            <th style="width: 36px; text-align: center;"><input type="checkbox" id="chk-scan-all" onchange="toggleSelectAllChannels(this.checked)"></th>
+                            <th>SID</th>
+                            <th>Channel Name</th>
+                            <th>Provider</th>
+                            <th>PMT</th>
+                            <th>CAS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-scan-channels">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 18px;">Demuxing transponder PAT/SDT... please wait for lock.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Batch Stream Generator Section -->
+            <div style="background: var(--bg-base); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px;">
+                <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--vlc-red);">Batch Multicast Output Generator</div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1.5fr; gap: 10px; align-items: center;">
+                    <div>
+                        <label class="form-label" style="font-size: 11px;">Base Multicast IP</label>
+                        <input type="text" class="form-input" id="scan-batch-ip" value="239.1.2.25" placeholder="239.1.2.25">
                     </div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">IP last octet automatically increments for each selected TV channel.</div>
+                    <div>
+                        <label class="form-label" style="font-size: 11px;">Destination Port</label>
+                        <input type="number" class="form-input" id="scan-batch-port" value="1234">
+                    </div>
+                    <div style="padding-top: 16px;">
+                        <button type="button" class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="batchCreateSelectedStreams()">Create Selected</button>
+                    </div>
                 </div>
+            </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" class="btn" onclick="closeScanModal()">Close Scanner</button>
-                </div>
+            <div style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn" onclick="closeScanModal()">Close</button>
             </div>
         </div>
     </div>
@@ -1148,7 +1372,7 @@
                         <option value="manual">Custom Source URL (Manual)</option>
                     </select>
                 </div>
-                <div class="form-group" id="group-st-input-url">
+                <div class="form-group" id="group-st-input-url" style="display: none;">
                     <label class="form-label">Input URL</label>
                     <input type="text" class="form-input" id="st-input-url" placeholder="dvb://#adapter=0&pnr=101 or udp://@239.255.0.1:5000">
                 </div>
@@ -1185,14 +1409,14 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Multicast TTL</label>
-                        <input type="number" class="form-input" id="st-ttl" value="16">
+                        <input type="number" class="form-input" id="st-ttl" value="64">
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">SoftCAM BISS Key (Optional)</label>
                     <input type="text" class="form-input" id="st-biss" placeholder="e.g. 11 22 33 44 55 66 77 88 (12, 16, or 32 Hex)">
                 </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 12px;">
                     <button type="button" class="btn" onclick="closeStreamModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Stream</button>
                 </div>
@@ -1224,7 +1448,7 @@
                     <label class="form-label">Key Hex (BISS-1 / Constant CW)</label>
                     <input type="text" class="form-input" id="key-hex" required placeholder="12, 16, or 32 Hex characters">
                 </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 12px;">
                     <button type="button" class="btn" onclick="closeKeyModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Key</button>
                 </div>
@@ -1243,6 +1467,25 @@
         let g_hardware = [];
         let g_logs = [];
 
+        // Theme Toggle (Light / Dark)
+        function initTheme() {
+            const saved = localStorage.getItem('dvblast_theme');
+            if (saved === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').textContent = '☀️';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-icon').textContent = '🌙';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('dvblast_theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+        }
+        initTheme();
+
         // UI Tabs Switcher
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -1252,7 +1495,6 @@
                 const target = document.getElementById(tab.dataset.tab);
                 if (target) target.classList.add('active');
 
-                if (tab.dataset.tab === 'tab-channels') renderAllChannelsTable();
                 if (tab.dataset.tab === 'tab-softcam') loadSoftcamKeys();
                 if (tab.dataset.tab === 'tab-config') loadConfigFile();
                 if (tab.dataset.tab === 'tab-logs') loadLogs();
@@ -1264,13 +1506,13 @@
             const container = document.getElementById('toasts');
             const toast = document.createElement('div');
             toast.className = 'toast';
-            if (isError) toast.style.borderLeftColor = 'var(--danger)';
+            if (isError) toast.style.borderLeftColor = 'var(--vlc-red)';
             toast.textContent = msg;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.4s ease';
-                setTimeout(() => toast.remove(), 400);
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
@@ -1341,230 +1583,248 @@
             const adapters = await apiGet('/api/v1/adapters');
             if (adapters && Array.isArray(adapters)) {
                 g_adapters = adapters;
-                renderAdapters();
             }
 
             // Streams
             const streams = await apiGet('/api/v1/streams');
             if (streams && Array.isArray(streams)) {
                 g_streams = streams;
-                renderStreams();
             }
+
+            renderDashboardCards();
         }
 
-        // Render Adapters
-        function renderAdapters() {
-            const count = g_adapters.length;
-            document.getElementById('badge-adapter-count').textContent = count;
-            const emptyEl = document.getElementById('empty-adapters');
-            const gridEl = document.getElementById('grid-adapters');
+        let g_renderedKeys = '';
 
-            if (count === 0) {
-                emptyEl.style.display = 'block';
-                gridEl.style.display = 'none';
-                gridEl.innerHTML = '';
+        // Render Dashboard Cards (Uniform Card Grid per Transponder)
+        function renderDashboardCards() {
+            const totalCount = g_adapters.length + g_streams.length;
+            const emptyEl = document.getElementById('empty-dashboard');
+            const stackEl = document.getElementById('card-stack');
+
+            if (totalCount === 0) {
+                if (emptyEl) emptyEl.style.display = 'block';
+                if (stackEl) stackEl.innerHTML = '';
+                g_renderedKeys = '';
                 return;
             }
 
-            emptyEl.style.display = 'none';
-            gridEl.style.display = 'grid';
+            if (emptyEl) emptyEl.style.display = 'none';
 
-            gridEl.innerHTML = g_adapters.map(ad => {
-                const isLocked = ad.locked;
-                const snrVal = ad.snr_db !== undefined ? ad.snr_db : (ad.snr_raw ? ad.snr_raw / 10 : 0);
-                const snr = snrVal.toFixed(1);
-                const sig = ad.signal_percent || 0;
-                const sigDbm = ad.signal_dbm !== undefined ? ad.signal_dbm.toFixed(1) + ' dBm' : (sig > 0 ? (-100 + sig).toFixed(1) + ' dBm' : '-- dBm');
-                const br = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
-                const chCount = (ad.channels || []).length;
-                const fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
+            const currentKeys = g_adapters.map(a => `${a.id}:${a.name}:${(a.channels||[]).length}`).join(',') + '|' +
+                                g_streams.map(s => `${s.id}:${s.adapter_idx}:${s.name}`).join(',');
 
-                return `
-                <div class="adapter-card" id="card-${ad.id}">
-                    <div class="card-top">
-                        <div class="card-id-block">
-                            <span class="badge ${isLocked ? 'badge-success' : 'badge-warning'}">
-                                ${isLocked ? '● LOCKED' : 'SEARCHING'}
-                            </span>
-                            <div>
-                                <div class="card-title">${escapeHtml(ad.name)}</div>
-                                <div class="card-subtitle">Dev: /dev/dvb/adapter${ad.adapter_idx} | ${ad.delsys} @ ${fMhz} MHz</div>
-                            </div>
+            if (currentKeys !== g_renderedKeys) {
+                g_renderedKeys = currentKeys;
+                let html = '';
+
+                // Group by Adapter (Each adapter is a clean .card-stack with data-header)
+                g_adapters.forEach(ad => {
+                    const adapterStreams = g_streams.filter(st => st.adapter_idx === ad.adapter_idx);
+                    const fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
+                    const inBr = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
+                    const headerText = `${ad.name} • ${ad.delsys || 'DVB-T2'} @ ${fMhz} MHz • Ingest: ${inBr} Mbps (${adapterStreams.length} stream${adapterStreams.length !== 1 ? 's' : ''})`;
+
+                    const streamCardsHtml = adapterStreams.map(st => renderStreamCardHtml(st)).join('');
+                    html += `
+                        <div class="card-stack" data-header="${escapeHtml(headerText)}" id="stack-ad-${ad.id}">
+                            ${renderAdapterCardHtml(ad)}
+                            ${streamCardsHtml}
                         </div>
-                        <span class="badge badge-accent">${ad.delsys}</span>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="signal-grid">
-                            <div class="signal-meter">
-                                <div class="meter-top">
-                                    <span>Signal Quality (SNR)</span>
-                                    <span style="font-weight: 600; color: var(--accent-green);">${snr} dB</span>
-                                </div>
-                                <div class="sys-bar-track">
-                                    <div class="sys-bar-fill" style="width: ${Math.min(100, (snrVal / 35) * 100)}%; background: linear-gradient(90deg, #10b981, #06b6d4);"></div>
-                                </div>
-                            </div>
-
-                            <div class="signal-meter">
-                                <div class="meter-top">
-                                    <span>Signal Strength</span>
-                                    <span style="font-weight: 600; color: var(--accent-cyan);">${sig}% (${sigDbm})</span>
-                                </div>
-                                <div class="sys-bar-track">
-                                    <div class="sys-bar-fill" style="width: ${sig}%; background: linear-gradient(90deg, #06b6d4, #10b981);"></div>
-                                </div>
-                            </div>
-
-                            <div class="signal-meter">
-                                <div class="meter-top">
-                                    <span>Bitrate</span>
-                                    <span>${br} Mbps</span>
-                                </div>
-                                <div class="meter-val">${br} <span class="sys-unit">Mbps</span></div>
-                            </div>
-
-                            <div class="signal-meter">
-                                <div class="meter-top">
-                                    <span>Errors (BER)</span>
-                                    <span>${ad.ber || 0}</span>
-                                </div>
-                                <div class="meter-val">${ad.ber || 0}</div>
-                            </div>
-                        </div>
-
-                        <div class="card-actions">
-                            <button class="btn btn-sm btn-primary" onclick="openScanModal('${ad.id}')">
-                                🔍 Scan Channels (${chCount})
-                            </button>
-                            <button class="btn btn-sm" onclick="editAdapter('${ad.id}')">
-                                ⚙ Edit / Retune
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteAdapter('${ad.id}')">
-                                🗑 Delete
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Scanned Channels Preview -->
-                    ${chCount > 0 ? `
-                        <div class="scanned-channels-panel">
-                            ${ad.channels.map(c => `
-                                <div class="channel-row">
-                                    <div class="ch-info">
-                                        <span class="ch-sid">SID: ${c.service_id}</span>
-                                        <span class="ch-name">${escapeHtml(c.name)}</span>
-                                        ${c.scrambled ? '<span class="badge badge-warning">ENCRYPTED</span>' : '<span class="badge badge-success">FTA</span>'}
-                                    </div>
-                                    <button class="btn btn-sm btn-primary" onclick="quickCreateStreamFromChannel(${ad.adapter_idx}, ${c.service_id}, '${escapeHtml(c.name)}')">
-                                        + Stream
-                                    </button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-                `;
-            }).join('');
-        }
-
-        // Render Streams Table
-        function renderStreams() {
-            const count = g_streams.length;
-            document.getElementById('badge-stream-count').textContent = count;
-            const emptyEl = document.getElementById('empty-streams');
-            const wrapEl = document.getElementById('wrap-streams-table');
-            const tbody = document.getElementById('tbody-streams');
-
-            if (count === 0) {
-                emptyEl.style.display = 'block';
-                wrapEl.style.display = 'none';
-                tbody.innerHTML = '';
-                return;
-            }
-
-            emptyEl.style.display = 'none';
-            wrapEl.style.display = 'block';
-
-            tbody.innerHTML = g_streams.map(st => {
-                const br = (st.bitrate_mbps || 0).toFixed(2);
-                return `
-                <tr>
-                    <td>
-                        <label class="switch">
-                            <input type="checkbox" ${st.enabled ? 'checked' : ''} onchange="toggleStream('${st.id}', this.checked)">
-                            <span class="slider"></span>
-                        </label>
-                    </td>
-                    <td>
-                        <strong>${escapeHtml(st.name)}</strong>
-                        <div style="font-size: 0.75rem; color: var(--text-dim); font-family: monospace;">${escapeHtml(st.id)}</div>
-                    </td>
-                    <td>
-                        <code style="color: var(--primary);">${escapeHtml(st.input_url || ('Adapter ' + st.adapter_idx + ' (SID: ' + st.service_id + ')'))}</code>
-                    </td>
-                    <td>
-                        <strong style="color: #fff;">${st.is_rtp ? 'rtp' : 'udp'}://${st.ip}:${st.port}</strong>
-                        <div style="font-size: 0.75rem; color: var(--text-dim);">TTL: ${st.ttl || 16}</div>
-                    </td>
-                    <td>
-                        <span class="badge ${st.pacing ? 'badge-success' : 'badge-warning'}">
-                            ${st.pacing ? '1316B PACED' : 'OFF'}
-                        </span>
-                    </td>
-                    <td><strong>${br}</strong> <span class="sys-unit">Mbps</span></td>
-                    <td>${(st.packets_sent || 0).toLocaleString()}</td>
-                    <td>
-                        ${st.biss_key ? '<span class="badge badge-accent">BISS KEYED</span>' : '<span style="color: var(--text-dim);">-</span>'}
-                    </td>
-                    <td style="text-align: right;">
-                        <button class="btn btn-sm btn-danger" onclick="deleteStream('${st.id}')">Delete</button>
-                    </td>
-                </tr>
-                `;
-            }).join('');
-        }
-
-        // Render Global Channels Table
-        function renderAllChannelsTable() {
-            const filter = (document.getElementById('filter-channels').value || '').toLowerCase();
-            const tbody = document.getElementById('tbody-all-channels');
-            let rows = [];
-
-            g_adapters.forEach(ad => {
-                (ad.channels || []).forEach(ch => {
-                    if (filter && !ch.name.toLowerCase().includes(filter) && !String(ch.service_id).includes(filter)) return;
-                    rows.push({ adapter: ad, channel: ch });
+                    `;
                 });
-            });
 
-            if (rows.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted);">No channels discovered yet.</td></tr>';
-                return;
+                // Unassigned / Standalone Streams
+                const unassignedStreams = g_streams.filter(st => !g_adapters.some(ad => ad.adapter_idx === st.adapter_idx));
+                if (unassignedStreams.length > 0) {
+                    html += `
+                        <div class="card-stack" data-header="IP INPUTS / STANDALONE STREAMS (${unassignedStreams.length} STREAMS)" id="stack-unassigned">
+                            ${unassignedStreams.map(st => renderStreamCardHtml(st)).join('')}
+                        </div>
+                    `;
+                }
+
+                stackEl.innerHTML = html;
+            } else {
+                // Reactive in-place update (keeps dropdowns open & avoids flicker)
+                g_adapters.forEach(ad => {
+                    const el = document.getElementById(`card-ad-${ad.id}`);
+                    if (el) updateAdapterCard(el, ad);
+                    const stack = document.getElementById(`stack-ad-${ad.id}`);
+                    if (stack) {
+                        const adapterStreams = g_streams.filter(st => st.adapter_idx === ad.adapter_idx);
+                        const fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
+                        const inBr = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
+                        stack.setAttribute('data-header', `${ad.name} • ${ad.delsys || 'DVB-T2'} @ ${fMhz} MHz • Ingest: ${inBr} Mbps (${adapterStreams.length} stream${adapterStreams.length !== 1 ? 's' : ''})`);
+                    }
+                });
+                g_streams.forEach(st => {
+                    const el = document.getElementById(`card-st-${st.id}`);
+                    if (el) updateStreamCard(el, st);
+                });
+            }
+        }
+
+        function renderAdapterCardHtml(ad) {
+            const isEnabled = ad.enabled !== false;
+            const isLocked = isEnabled && ad.locked;
+            const snrVal = isEnabled ? (ad.snr_db !== undefined ? ad.snr_db : (ad.snr_raw ? ad.snr_raw / 10 : 0)) : 0;
+            const snr = snrVal.toFixed(1);
+            const snrPct = Math.min(100, Math.round((parseFloat(snr) / 35.0) * 100));
+            const sig = isEnabled ? (ad.signal_percent || 0) : 0;
+            const br = isEnabled ? (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2) : "0.00";
+            const chCount = (ad.channels || []).length;
+            const fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
+
+            const cardClass = isLocked ? 'card-true-2' : (isEnabled ? 'card-true-0' : 'card-false-0');
+            const dotClass = isLocked ? 'dot-locked' : (isEnabled ? 'dot-unlocked' : 'dot-disabled');
+
+            return `
+            <div id="card-ad-${ad.id}" class="card card-adapter ${cardClass}" onclick="editAdapter('${ad.id}')">
+                <div class="card-name" title="${escapeHtml(ad.name)} (${ad.delsys} @ ${fMhz} MHz)">
+                    <span class="status-dot ${dotClass}"></span>
+                    <span class="card-title-text">${escapeHtml(ad.name)}</span>
+                </div>
+                <details class="dropdown card-action" onclick="event.stopPropagation()">
+                    <summary title="Actions"><span class="btn-more">⋮</span></summary>
+                    <div class="menu">
+                        <a href="javascript:void(0)" onclick="restartAdapter('${ad.id}')">Restart</a>
+                        <a href="javascript:void(0)" onclick="toggleAdapter('${ad.id}', ${!isEnabled})">${isEnabled ? 'Disable' : 'Enable'}</a>
+                        <a href="javascript:void(0)" onclick="openScanModal('${ad.id}')">Scan Channels (${chCount})</a>
+                        <a href="javascript:void(0)" onclick="editAdapter('${ad.id}')">Edit</a>
+                        <hr>
+                        <a href="javascript:void(0)" class="text-danger" onclick="deleteAdapter('${ad.id}')">Remove</a>
+                    </div>
+                </details>
+
+                <!-- S (Signal Strength) Level Bar -->
+                <div class="dvb-status row monospace card-status" title="Signal Strength: ${sig}%">
+                    <div class="text">S</div>
+                    <div class="progress signal-level col-expand">
+                        <div class="progress-level level-fill-s" style="width: ${sig}%;"></div>
+                        <div class="progress-overlay"></div>
+                    </div>
+                    <div class="text level-val-s">${sig}%</div>
+                </div>
+
+                <!-- Q (Quality / SNR) Level Bar -->
+                <div class="dvb-status row monospace card-status" title="Signal SNR: ${snr} dB (${snrPct}%)">
+                    <div class="text">Q</div>
+                    <div class="progress signal-level col-expand">
+                        <div class="progress-level level-fill-q" style="width: ${snrPct}%;"></div>
+                        <div class="progress-overlay"></div>
+                    </div>
+                    <div class="text level-val-q">${snrPct}%</div>
+                </div>
+
+                <!-- Footer Info Line -->
+                <div class="card-status monospace footer-line">
+                    <span class="text footer-ad-stat">ber:0 unc:0 • ${br} Mbps</span>
+                </div>
+            </div>
+            `;
+        }
+
+        function renderStreamCardHtml(st) {
+            const isEnabled = st.enabled !== false;
+            const brVal = isEnabled ? (st.bitrate_mbps || (st.bitrate_bps ? st.bitrate_bps / 1e6 : 0)) : 0;
+            const br = brVal.toFixed(2);
+            const isOnAir = isEnabled && brVal > 0;
+            const proto = (st.is_rtp ? 'rtp' : 'udp');
+            const dest = `${proto}://${st.ip}:${st.port}`;
+            const pkts = (st.packets_sent || 0).toLocaleString();
+            const sidLabel = st.service_id > 0 ? `SID ${st.service_id}` : 'MPTS';
+
+            const cardClass = isOnAir ? 'card-true-2' : (isEnabled ? 'card-true-0' : 'card-false-0');
+            const dotClass = isOnAir ? 'dot-locked' : (isEnabled ? 'dot-unlocked' : 'dot-disabled');
+
+            return `
+            <div id="card-st-${st.id}" class="card card-stream ${cardClass}" onclick="editStream('${st.id}')">
+                <div class="card-name" title="${escapeHtml(st.name || st.id)}">
+                    <span class="status-dot ${dotClass}"></span>
+                    <span class="card-title-text">${escapeHtml(st.name || st.id)}</span>
+                </div>
+                <details class="dropdown card-action" onclick="event.stopPropagation()">
+                    <summary title="Actions"><span class="btn-more">⋮</span></summary>
+                    <div class="menu">
+                        <a href="javascript:void(0)" onclick="toggleStream('${st.id}', ${!isEnabled})">${isEnabled ? 'Disable' : 'Enable'}</a>
+                        <a href="javascript:void(0)" onclick="editStream('${st.id}')">Edit</a>
+                        <hr>
+                        <a href="javascript:void(0)" class="text-danger" onclick="deleteStream('${st.id}')">Remove</a>
+                    </div>
+                </details>
+
+                <div class="card-status">
+                    <span class="text ${isOnAir ? 'onair' : (isEnabled ? 'error' : 'text-dim')} val-stream-br">
+                        ${isOnAir ? `● ${br} Mbit/s` : (isEnabled ? '0.00 Mbit/s' : 'Disabled')}
+                    </span>
+                </div>
+
+                <div class="card-status monospace text-dest" title="${dest}">
+                    <span class="text">${dest}</span>
+                </div>
+
+                <div class="card-status monospace text-dim footer-line">
+                    <span class="text val-stream-pkts">${sidLabel} • ${pkts} pkts</span>
+                </div>
+            </div>
+            `;
+        }
+
+        function updateAdapterCard(cardEl, ad) {
+            const isEnabled = ad.enabled !== false;
+            const isLocked = isEnabled && ad.locked;
+            const snrVal = isEnabled ? (ad.snr_db !== undefined ? ad.snr_db : (ad.snr_raw ? ad.snr_raw / 10 : 0)) : 0;
+            const snr = snrVal.toFixed(1);
+            const snrPct = Math.min(100, Math.round((parseFloat(snr) / 35.0) * 100));
+            const sig = isEnabled ? (ad.signal_percent || 0) : 0;
+            const br = isEnabled ? (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2) : "0.00";
+
+            cardEl.className = `card card-adapter ${isLocked ? 'card-true-2' : (isEnabled ? 'card-true-0' : 'card-false-0')}`;
+
+            const dot = cardEl.querySelector('.status-dot');
+            if (dot) dot.className = `status-dot ${isLocked ? 'dot-locked' : (isEnabled ? 'dot-unlocked' : 'dot-disabled')}`;
+
+            const fillS = cardEl.querySelector('.level-fill-s');
+            if (fillS) fillS.style.width = `${sig}%`;
+            const valS = cardEl.querySelector('.level-val-s');
+            if (valS) valS.textContent = `${sig}%`;
+
+            const fillQ = cardEl.querySelector('.level-fill-q');
+            if (fillQ) fillQ.style.width = `${snrPct}%`;
+            const valQ = cardEl.querySelector('.level-val-q');
+            if (valQ) valQ.textContent = `${snrPct}%`;
+
+            const statEl = cardEl.querySelector('.footer-ad-stat');
+            if (statEl) statEl.textContent = `ber:0 unc:0 • ${br} Mbps`;
+        }
+
+        function updateStreamCard(cardEl, st) {
+            const isEnabled = st.enabled !== false;
+            const brVal = isEnabled ? (st.bitrate_mbps || (st.bitrate_bps ? st.bitrate_bps / 1e6 : 0)) : 0;
+            const br = brVal.toFixed(2);
+            const isOnAir = isEnabled && brVal > 0;
+            const pkts = (st.packets_sent || 0).toLocaleString();
+            const sidLabel = st.service_id > 0 ? `SID ${st.service_id}` : 'MPTS';
+
+            cardEl.className = `card card-stream ${isOnAir ? 'card-true-2' : (isEnabled ? 'card-true-0' : 'card-false-0')}`;
+
+            const dot = cardEl.querySelector('.status-dot');
+            if (dot) dot.className = `status-dot ${isOnAir ? 'dot-locked' : (isEnabled ? 'dot-unlocked' : 'dot-disabled')}`;
+
+            const brEl = cardEl.querySelector('.val-stream-br');
+            if (brEl) {
+                brEl.className = `text ${isOnAir ? 'onair' : (isEnabled ? 'error' : 'text-dim')} val-stream-br`;
+                brEl.textContent = isOnAir ? `● ${br} Mbit/s` : (isEnabled ? '0.00 Mbit/s' : 'Disabled');
             }
 
-            tbody.innerHTML = rows.map(({ adapter, channel }) => `
-                <tr>
-                    <td><strong>${channel.service_id}</strong></td>
-                    <td><strong>${escapeHtml(channel.name)}</strong></td>
-                    <td>${escapeHtml(channel.provider || '-')}</td>
-                    <td><span class="badge badge-accent">${escapeHtml(adapter.name)}</span></td>
-                    <td><code>${channel.pmt_pid || '-'}</code></td>
-                    <td><code>${channel.video_pid || '-'}</code></td>
-                    <td><code>${(channel.audio_pids || []).map(a => a.pid).join(', ') || '-'}</code></td>
-                    <td>
-                        <span class="badge ${channel.scrambled ? 'badge-warning' : 'badge-success'}">
-                            ${channel.scrambled ? 'ENCRYPTED' : 'CLEAR'}
-                        </span>
-                    </td>
-                    <td style="text-align: right;">
-                        <button class="btn btn-primary btn-sm" onclick="quickCreateStreamFromChannel(${adapter.adapter_idx}, ${channel.service_id}, '${escapeHtml(channel.name)}')">
-                            + Stream
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            const pktsEl = cardEl.querySelector('.val-stream-pkts');
+            if (pktsEl) pktsEl.textContent = `${sidLabel} • ${pkts} pkts`;
         }
+
+        // Backward compatibility helpers
+        function renderAdapters() { renderDashboardCards(); }
+        function renderStreams() { renderDashboardCards(); }
 
         // SoftCAM Key Management
         async function loadSoftcamKeys() {
@@ -1578,7 +1838,7 @@
                 <tr>
                     <td><code>${escapeHtml(k.id)}</code></td>
                     <td><strong>${escapeHtml(k.name || '-')}</strong></td>
-                    <td><span class="ch-sid">SID: ${k.service_id}</span></td>
+                    <td><span class="badge badge-warning">SID: ${k.service_id}</span></td>
                     <td><code>${k.key_hex}</code></td>
                     <td><span class="badge ${k.enabled ? 'badge-success' : 'badge-warning'}">${k.enabled ? 'ACTIVE' : 'DISABLED'}</span></td>
                     <td>${(k.packets_descrambled || 0).toLocaleString()}</td>
@@ -1590,58 +1850,128 @@
         }
 
         // Hardware Options
-        async function refreshHardwareSelect() {
+        function switchAdModalTab(tab) {
+            const isGen = (tab === 'general');
+            document.getElementById('tab-ad-general').style.display = isGen ? 'block' : 'none';
+            document.getElementById('tab-ad-advanced').style.display = isGen ? 'none' : 'block';
+            document.getElementById('btn-tab-ad-gen').classList.toggle('active', isGen);
+            document.getElementById('btn-tab-ad-adv').classList.toggle('active', !isGen);
+        }
+
+        function onAdRemoveToggle(checked) {
+            const btn = document.getElementById('btn-ad-apply');
+            if (checked) {
+                btn.textContent = 'Remove';
+                btn.className = 'btn btn-danger';
+            } else {
+                btn.textContent = 'Apply';
+                btn.className = 'btn btn-primary';
+            }
+        }
+
+        async function refreshHardwareSelect(preferredIdx) {
             const hw = await apiGet('/api/v1/hardware');
-            if (!hw || !Array.isArray(hw)) return;
-            g_hardware = hw;
             const sel = document.getElementById('ad-device');
             sel.innerHTML = '';
-            if (hw.length === 0) {
-                sel.innerHTML = '<option value="0">Adapter 0 (/dev/dvb/adapter0)</option>';
-                return;
-            }
-            hw.forEach(h => {
+
+            const availGroup = document.createElement('optgroup');
+            availGroup.label = 'Available';
+
+            const takenGroup = document.createElement('optgroup');
+            takenGroup.label = 'Taken';
+
+            let firstAvail = null;
+
+            if (!hw || !Array.isArray(hw) || hw.length === 0) {
                 const opt = document.createElement('option');
-                opt.value = h.adapter_idx;
-                const name = h.frontend_name || 'Silicon Labs Si2168';
-                const sys = h.delivery_systems || 'DVB-T/T2/C';
-                opt.textContent = `Adapter ${h.adapter_idx}: ${name} (${sys})${h.configured ? ' [In Use]' : ''}`;
-                sel.appendChild(opt);
-            });
+                opt.value = 0;
+                opt.textContent = '0.0 : Conexant EyeTV Stick';
+                availGroup.appendChild(opt);
+                firstAvail = 0;
+            } else {
+                g_hardware = hw;
+                hw.forEach(h => {
+                    const opt = document.createElement('option');
+                    opt.value = h.adapter_idx;
+                    const feName = h.frontend_name || 'Conexant EyeTV Stick';
+                    const busyAdapter = g_adapters.find(a => a.adapter_idx === h.adapter_idx && a.enabled);
+
+                    if (busyAdapter) {
+                        opt.textContent = `${h.adapter_idx}.0 : ${feName} (Taken: ${busyAdapter.name})`;
+                        takenGroup.appendChild(opt);
+                    } else {
+                        opt.textContent = `${h.adapter_idx}.0 : ${feName}`;
+                        availGroup.appendChild(opt);
+                        if (firstAvail === null) firstAvail = h.adapter_idx;
+                    }
+                });
+            }
+
+            if (availGroup.children.length > 0) sel.appendChild(availGroup);
+            if (takenGroup.children.length > 0) sel.appendChild(takenGroup);
+
+            if (preferredIdx !== undefined && preferredIdx !== null) {
+                sel.value = preferredIdx;
+            } else if (firstAvail !== null) {
+                sel.value = firstAvail;
+            } else if (sel.options.length > 0) {
+                sel.selectedIndex = 0;
+            }
         }
 
         // Adapter Modal Actions
-        function openAdapterModal() {
-            document.getElementById('modal-adapter-title').textContent = 'Configure DVB Adapter';
+        async function openAdapterModal() {
+            document.getElementById('modal-adapter-title').textContent = 'Adapter';
             document.getElementById('ad-edit-mode').value = 'false';
-            document.getElementById('ad-id').value = `adapter_${g_adapters.length}`;
-            document.getElementById('ad-name').value = `MUX-${g_adapters.length + 1}`;
+
+            let nextNum = g_adapters.length;
+            while (g_adapters.some(a => a.id === `adapter_${nextNum}`)) {
+                nextNum++;
+            }
+            document.getElementById('ad-id').value = `adapter_${nextNum}`;
+            document.getElementById('ad-enable').checked = true;
+            document.getElementById('ad-name').value = `MUX-${nextNum + 1}`;
             document.getElementById('ad-freq').value = '';
-            document.getElementById('ad-freq').placeholder = 'e.g. 498 MHz or 498000000 Hz';
             document.getElementById('ad-plp').value = '';
             document.getElementById('ad-mod').value = '';
-            refreshHardwareSelect();
+
+            document.getElementById('ad-remove-wrap').style.display = 'none';
+            document.getElementById('ad-remove').checked = false;
+            onAdRemoveToggle(false);
+
+            switchAdModalTab('general');
+            await refreshHardwareSelect();
             onDelsysChange();
             document.getElementById('modal-adapter').classList.add('open');
         }
 
-        function editAdapter(id) {
+        async function editAdapter(id) {
             const ad = g_adapters.find(a => a.id === id);
             if (!ad) return;
-            document.getElementById('modal-adapter-title').textContent = `Edit Adapter: ${ad.name}`;
+            document.getElementById('modal-adapter-title').textContent = `Adapter: ${ad.name}`;
             document.getElementById('ad-edit-mode').value = 'true';
             document.getElementById('ad-id').value = ad.id;
+            document.getElementById('ad-enable').checked = (ad.enabled !== false);
             document.getElementById('ad-name').value = ad.name;
-            document.getElementById('ad-device').value = ad.adapter_idx;
-            document.getElementById('ad-delsys').value = ad.delsys;
+            document.getElementById('ad-delsys').value = ad.delsys || 'DVBT2';
+
             let f = ad.frequency_mhz ? ad.frequency_mhz : (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency));
-            document.getElementById('ad-freq').value = f || '';
+            document.getElementById('ad-freq').value = f ? Math.round(f * 100) / 100 : '';
+
             if (ad.bandwidth_mhz) document.getElementById('ad-bandwidth').value = ad.bandwidth_mhz;
             if (ad.symbol_rate) document.getElementById('ad-srate').value = ad.symbol_rate;
             if (ad.polarization) document.getElementById('ad-pol').value = ad.polarization;
             if (ad.diseqc !== undefined) document.getElementById('ad-diseqc').value = ad.diseqc;
             if (ad.multistream_id !== undefined && ad.multistream_id >= 0) document.getElementById('ad-plp').value = ad.multistream_id;
+            else document.getElementById('ad-plp').value = '';
             if (ad.modulation) document.getElementById('ad-mod').value = ad.modulation;
+
+            document.getElementById('ad-remove-wrap').style.display = 'inline-flex';
+            document.getElementById('ad-remove').checked = false;
+            onAdRemoveToggle(false);
+
+            switchAdModalTab('general');
+            await refreshHardwareSelect(ad.adapter_idx);
             onDelsysChange();
             document.getElementById('modal-adapter').classList.add('open');
         }
@@ -1655,19 +1985,49 @@
             const isSat = delsys.includes('S');
             document.getElementById('group-bandwidth').style.display = isSat ? 'none' : 'flex';
             document.getElementById('group-terr-opts').style.display = isSat ? 'none' : 'grid';
-            document.getElementById('group-srate').style.display = isSat ? 'flex' : 'none';
             document.getElementById('group-sat-opts').style.display = isSat ? 'grid' : 'none';
+            document.getElementById('group-sat-diseqc').style.display = isSat ? 'flex' : 'none';
+
+            const fInput = document.getElementById('ad-freq');
+            const fLbl = document.getElementById('lbl-ad-freq');
+            const fHint = document.getElementById('hint-ad-freq');
+            if (isSat) {
+                fLbl.textContent = 'Frequency (MHz)';
+                fInput.placeholder = '950..40000 MHz';
+                fHint.textContent = 'Frequency in MHz (e.g. 3700 for 3.7 GHz)';
+            } else {
+                fLbl.textContent = 'Frequency (MHz)';
+                fInput.placeholder = '1..1000 MHz (e.g. 498)';
+                fHint.textContent = 'Frequency in MHz (e.g. 498 for 498 MHz)';
+            }
         }
 
-        async function handleAdapterSubmit(e) {
-            e.preventDefault();
+        async function saveAdapterInternal(autoScan) {
+            const adId = document.getElementById('ad-id').value.trim();
+            if (!adId) {
+                showToast("Please enter an adapter ID", true);
+                return;
+            }
+
+            if (document.getElementById('ad-remove').checked) {
+                await deleteAdapter(adId);
+                closeAdapterModal();
+                return;
+            }
+
+            const name = document.getElementById('ad-name').value.trim();
+            if (!name) {
+                showToast("Please enter an adapter name", true);
+                return;
+            }
+
             const delsys = document.getElementById('ad-delsys').value;
             const isSat = delsys.includes('S');
 
             let freqRaw = document.getElementById('ad-freq').value.trim();
             let freqNum = parseFloat(freqRaw);
             if (isNaN(freqNum) || freqNum <= 0) {
-                showToast("Please enter a valid tuning frequency (e.g. 498 MHz)", true);
+                showToast("Please enter a valid tuning frequency in MHz (e.g. 498)", true);
                 return;
             }
             if (freqNum < 1000) {
@@ -1680,29 +2040,64 @@
             const plpId = plpVal !== '' ? parseInt(plpVal) : -1;
 
             const payload = {
-                id: document.getElementById('ad-id').value.trim(),
-                name: document.getElementById('ad-name').value.trim(),
-                enabled: true,
+                id: adId,
+                name: name,
+                enabled: document.getElementById('ad-enable').checked,
                 adapter_idx: parseInt(document.getElementById('ad-device').value),
                 frontend_idx: 0,
                 delsys: delsys,
                 frequency: Math.round(freqNum),
-                bandwidth: isSat ? 0 : parseInt(document.getElementById('ad-bandwidth').value),
-                symbol_rate: isSat ? parseInt(document.getElementById('ad-srate').value) : 0,
+                bandwidth: isSat ? 0 : parseInt(document.getElementById('ad-bandwidth').value || 8),
+                symbol_rate: isSat ? parseInt(document.getElementById('ad-srate').value || 27500) : 0,
                 polarization: isSat ? document.getElementById('ad-pol').value : 'H',
-                diseqc: isSat ? parseInt(document.getElementById('ad-diseqc').value) : 0,
+                diseqc: isSat ? parseInt(document.getElementById('ad-diseqc').value || 0) : 0,
                 multistream_id: plpId,
                 modulation: document.getElementById('ad-mod').value
             };
 
             const res = await apiPost('/api/v1/adapters', payload);
             if (res && res.ok) {
-                showToast(`Adapter "${payload.name}" tuned to ${(freqNum / 1e6).toFixed(1)} MHz!`);
+                showToast(`Adapter "${payload.name}" saved!`);
                 closeAdapterModal();
                 await pollState();
-                openScanModal(payload.id);
+                if (autoScan) {
+                    openScanModal(payload.id);
+                }
             } else {
-                showToast(res ? res.error : "Failed to save and tune adapter", true);
+                showToast(res ? res.error : "Failed to save adapter", true);
+            }
+        }
+
+        async function handleAdapterSubmit(e) {
+            e.preventDefault();
+            await saveAdapterInternal(false);
+        }
+
+        async function handleAdapterSaveAndScan() {
+            await saveAdapterInternal(true);
+        }
+
+        async function toggleAdapter(id, enable) {
+            showToast(enable ? `Enabling adapter "${id}"...` : `Disabling adapter "${id}"...`);
+            const res = await apiPost('/api/v1/adapters/toggle', { id, enabled: enable });
+            if (res && res.ok) {
+                showToast(enable ? `Adapter "${id}" enabled and tuned` : `Adapter "${id}" disabled`);
+                await pollState();
+            } else {
+                showToast(res ? res.error : "Failed to toggle adapter", true);
+                await pollState();
+            }
+        }
+
+        async function restartAdapter(id) {
+            if (!confirm(`Restart adapter "${id}"? This will retune hardware frontend.`)) return;
+            showToast(`Restarting adapter "${id}"...`);
+            const res = await apiPost('/api/v1/adapters/restart', { id });
+            if (res && res.ok) {
+                showToast(`Adapter "${id}" restarted successfully`);
+                await pollState();
+            } else {
+                showToast(res ? res.error : "Failed to restart adapter", true);
             }
         }
 
@@ -1717,16 +2112,18 @@
             }
         }
 
-        // Live Scanner Dialog Management
+        // Channel Scanner Management
         let g_activeScanAdapterId = null;
         let g_scanTimer = null;
+        let g_hasInitializedScanCheckboxes = false;
 
         function openScanModal(adapter_id) {
             const ad = g_adapters.find(a => a.id === adapter_id);
             if (!ad) return;
             g_activeScanAdapterId = adapter_id;
+            g_hasInitializedScanCheckboxes = false;
             let fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
-            document.getElementById('scan-modal-title').textContent = `Live Scanner: ${ad.name}`;
+            document.getElementById('scan-modal-title').textContent = `Channel Scanner: ${ad.name}`;
             document.getElementById('scan-modal-subtitle').textContent = `Adapter ${ad.adapter_idx} • ${fMhz} MHz (${ad.delsys})`;
 
             document.getElementById('modal-scan').classList.add('open');
@@ -1743,6 +2140,7 @@
                 g_scanTimer = null;
             }
             g_activeScanAdapterId = null;
+            g_hasInitializedScanCheckboxes = false;
         }
 
         async function triggerScanRefresh() {
@@ -1753,45 +2151,39 @@
             const ad = g_adapters.find(a => a.id === g_activeScanAdapterId);
             if (!ad) return;
 
-            // Signal strength
             const sig = ad.signal_percent || 0;
             const sigDbm = ad.signal_dbm !== undefined ? ad.signal_dbm.toFixed(1) + ' dBm' : (sig > 0 ? (-100 + sig).toFixed(1) + ' dBm' : '-- dBm');
             document.getElementById('scan-sig-val').textContent = `${sig}%`;
             document.getElementById('scan-sig-dbm').textContent = sigDbm;
             document.getElementById('scan-sig-bar').style.width = `${sig}%`;
 
-            // Signal SNR / C/N
             const snrDbVal = (ad.snr_db !== undefined ? ad.snr_db : (ad.snr_raw ? ad.snr_raw / 10 : 0)).toFixed(1);
             const snrPct = Math.min(100, Math.round((parseFloat(snrDbVal) / 35.0) * 100));
             document.getElementById('scan-snr-val').textContent = `${snrPct}%`;
             document.getElementById('scan-snr-db').textContent = `${snrDbVal} dB`;
             document.getElementById('scan-snr-bar').style.width = `${snrPct}%`;
 
-            // Lock badge
             const badge = document.getElementById('scan-lock-badge');
             if (ad.locked) {
                 badge.className = 'badge badge-success';
                 badge.textContent = 'LOCKED (DVB SYNC)';
-                badge.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.4)';
             } else {
                 badge.className = 'badge badge-warning';
                 badge.textContent = 'SEARCHING...';
-                badge.style.boxShadow = 'none';
             }
 
             const br = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
             document.getElementById('scan-bitrate').textContent = `${br} Mbps`;
 
-            // Channel list
             const chs = ad.channels || [];
             document.getElementById('scan-channel-count').textContent = chs.length;
             const tbody = document.getElementById('tbody-scan-channels');
 
             if (chs.length === 0) {
                 if (ad.locked) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Demuxing transponder PAT/SDT... incoming packets received.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 18px;">Demuxing PAT/SDT... incoming TS packets detected.</td></tr>';
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Waiting for RF lock on transponder...</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 18px;">Waiting for RF carrier lock...</td></tr>';
                 }
                 return;
             }
@@ -1801,15 +2193,18 @@
                 checkedSids.add(parseInt(cb.value));
             });
 
+            const firstInit = !g_hasInitializedScanCheckboxes;
+            g_hasInitializedScanCheckboxes = true;
+
             tbody.innerHTML = chs.map(c => {
-                const isChecked = checkedSids.has(c.service_id) || checkedSids.size === 0;
+                const isChecked = firstInit ? true : checkedSids.has(c.service_id);
                 return `
                 <tr>
                     <td style="text-align: center;">
                         <input type="checkbox" value="${c.service_id}" data-name="${escapeHtml(c.name)}" ${isChecked ? 'checked' : ''}>
                     </td>
                     <td><strong>${c.service_id}</strong></td>
-                    <td><strong style="color: #fff;">${escapeHtml(c.name)}</strong></td>
+                    <td><strong>${escapeHtml(c.name)}</strong></td>
                     <td>${escapeHtml(c.provider || '-')}</td>
                     <td><code>${c.pmt_pid || '-'}</code></td>
                     <td>${c.scrambled ? '<span class="badge badge-warning">ENCRYPTED</span>' : '<span class="badge badge-success">FTA</span>'}</td>
@@ -1881,12 +2276,66 @@
         }
 
         // Stream Modal Actions
-        function openStreamModal() {
-            document.getElementById('st-id').value = `stream_${g_streams.length + 1}`;
+        function openStreamModal(defaultAdapterIdx) {
+            document.getElementById('modal-stream-title').textContent = 'Create Multicast Stream';
+            const idInput = document.getElementById('st-id');
+            idInput.readOnly = false;
+            idInput.value = `stream_${g_streams.length + 1}`;
             document.getElementById('st-name').value = `Stream ${g_streams.length + 1}`;
             document.getElementById('st-ip').value = `239.255.1.${g_streams.length + 1}`;
             document.getElementById('st-port').value = '5000';
+            document.getElementById('st-input-url').value = '';
+            document.getElementById('st-sid').value = '0';
+            document.getElementById('st-biss').value = '';
             populateStreamSourceDropdown();
+            if (defaultAdapterIdx !== undefined) {
+                const sel = document.getElementById('st-source-select');
+                for (let i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value.includes(`adapter=${defaultAdapterIdx}`)) {
+                        sel.selectedIndex = i;
+                        onStreamSourceChange();
+                        break;
+                    }
+                }
+            }
+            document.getElementById('group-st-input-url').style.display = 'none';
+            document.getElementById('modal-stream').classList.add('open');
+        }
+
+        function editStream(id) {
+            const st = g_streams.find(s => s.id === id);
+            if (!st) return;
+            populateStreamSourceDropdown();
+            document.getElementById('modal-stream-title').textContent = `Edit Stream: ${st.name || st.id}`;
+            const idInput = document.getElementById('st-id');
+            idInput.value = st.id;
+            idInput.readOnly = true;
+            document.getElementById('st-name').value = st.name || '';
+            document.getElementById('st-ip').value = st.ip || '';
+            document.getElementById('st-port').value = st.port || 5000;
+            document.getElementById('st-protocol').value = st.is_rtp ? 'rtp' : 'udp';
+            document.getElementById('st-ttl').value = st.ttl || 16;
+            document.getElementById('st-pacing').value = st.pacing ? 'true' : 'false';
+            document.getElementById('st-biss').value = st.biss_key || '';
+            document.getElementById('st-sid').value = st.service_id !== undefined ? st.service_id : 0;
+
+            const sel = document.getElementById('st-source-select');
+            const inputUrl = st.input_url || '';
+            document.getElementById('st-input-url').value = inputUrl;
+            let found = false;
+            for (let i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].value === inputUrl) {
+                    sel.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                sel.value = 'manual';
+                document.getElementById('group-st-input-url').style.display = 'block';
+            } else {
+                document.getElementById('group-st-input-url').style.display = 'none';
+            }
             document.getElementById('modal-stream').classList.add('open');
         }
 
@@ -1917,10 +2366,10 @@
             const sel = document.getElementById('st-source-select');
             const val = sel.value;
             if (val === 'manual') {
-                document.getElementById('group-st-input-url').style.display = 'flex';
+                document.getElementById('group-st-input-url').style.display = 'block';
             } else {
+                document.getElementById('group-st-input-url').style.display = 'none';
                 document.getElementById('st-input-url').value = val;
-                // Parse SID
                 const pnrMatch = val.match(/pnr=(\d+)/);
                 if (pnrMatch) {
                     document.getElementById('st-sid').value = pnrMatch[1];
@@ -1928,25 +2377,20 @@
             }
         }
 
-        function quickCreateStreamFromChannel(adapterIdx, sid, name) {
-            openStreamModal();
-            document.getElementById('st-name').value = name;
-            document.getElementById('st-sid').value = sid;
-            document.getElementById('st-input-url').value = `dvb://#adapter=${adapterIdx}&pnr=${sid}`;
-            document.getElementById('st-source-select').value = `dvb://#adapter=${adapterIdx}&pnr=${sid}`;
-        }
-
         async function handleStreamSubmit(e) {
             e.preventDefault();
+            const stId = document.getElementById('st-id').value.trim();
+            const existingSt = g_streams.find(s => s.id === stId);
+            const isEnabled = existingSt ? (existingSt.enabled !== false) : true;
             const sid = parseInt(document.getElementById('st-sid').value) || 0;
             const ip = document.getElementById('st-ip').value.trim();
             const port = parseInt(document.getElementById('st-port').value) || 5000;
             const isRtp = document.getElementById('st-protocol').value === 'rtp';
 
             const payload = {
-                id: document.getElementById('st-id').value.trim(),
+                id: stId,
                 name: document.getElementById('st-name').value.trim(),
-                enabled: true,
+                enabled: isEnabled,
                 type: sid === 0 ? 'mpts' : 'spts',
                 input_url: document.getElementById('st-input-url').value.trim(),
                 output_url: `${isRtp ? 'rtp' : 'udp'}://${ip}:${port}`,
@@ -1961,11 +2405,11 @@
 
             const res = await apiPost('/api/v1/streams', payload);
             if (res && res.ok) {
-                showToast(`Stream "${payload.name}" saved and active!`);
+                showToast(`Stream "${payload.name}" saved!`);
                 closeStreamModal();
                 pollState();
             } else {
-                showToast(res ? res.error : "Failed to create stream", true);
+                showToast(res ? res.error : "Failed to save stream", true);
             }
         }
 

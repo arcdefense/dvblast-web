@@ -33,6 +33,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include <ev.h>
 
 #include "dvblast.h"
@@ -149,6 +150,7 @@ static int i_tuner_errors = 0;
 static mtime_t i_last_error = 0;
 static mtime_t i_last_reset = 0;
 static struct ev_timer print_watcher;
+static bool b_scan_completed = false;
 
 #ifdef HAVE_ICONV
 static iconv_t iconv_handle = (iconv_t)-1;
@@ -496,8 +498,9 @@ void demux_Open( void )
         p_pids[i].i_pes_status = -1;
     }
 
-    if ( b_budget_mode )
-        i_demux_fd = pf_SetFilter(8192);
+    /* In budget mode, wildcard TS filter (PID 0x2000) is managed dynamically by dvb_TuneFrontend
+     * to ensure correct adapter index and clean lifecycle during retune/disable */
+    (void)i_demux_fd;
 
     psi_table_init( pp_current_pat_sections );
     psi_table_init( pp_next_pat_sections );
@@ -3153,7 +3156,10 @@ static void HandleSDT( mtime_t i_dts )
             fprintf(print_fh, "\n");
     }
 
-    demux_ExtractDiscoveredChannels();
+    if ( !b_scan_completed )
+    {
+        demux_ExtractDiscoveredChannels();
+    }
 
 out_sdt:
     SendSDT( i_dts );
@@ -3855,10 +3861,19 @@ inline void demux_get_PIDS_info( uint8_t *p_data ) {
         demux_get_PID_info( i_pid, p_data + ( i_pid * sizeof(ts_pid_info_t) ) );
 }
 
+void demux_TriggerScan( void )
+{
+    b_scan_completed = false;
+    demux_ExtractDiscoveredChannels();
+}
+
 void demux_ExtractDiscoveredChannels( void )
 {
     if ( !psi_table_validate( pp_current_sdt_sections ) )
         return;
+
+    int total_services = 0;
+    int resolved_pmts = 0;
 
     uint8_t i_last_section = psi_table_get_lastsection( pp_current_sdt_sections );
     for ( int i = 0; i <= i_last_section; i++ )
@@ -3870,6 +3885,7 @@ void demux_ExtractDiscoveredChannels( void )
         int j = 0;
         while ( (p_service = sdt_get_service( p_section, j++ )) != NULL )
         {
+            total_services++;
             uint16_t i_sid = sdtn_get_sid( p_service );
             channel_info_t ch;
             memset( &ch, 0, sizeof(ch) );
@@ -3908,6 +3924,7 @@ void demux_ExtractDiscoveredChannels( void )
             sid_t *p_sid = FindSID( i_sid );
             if ( p_sid && p_sid->p_current_pmt && pmt_validate( p_sid->p_current_pmt ) )
             {
+                resolved_pmts++;
                 ch.pmt_pid = p_sid->i_pmt_pid;
                 uint8_t *p_es;
                 int es_idx = 0;
@@ -3937,4 +3954,42 @@ void demux_ExtractDiscoveredChannels( void )
             web_state_add_channel( &ch );
         }
     }
+
+    /* Once SDT services are extracted and PMTs are resolved, mark scan complete (run only 1 time) */
+    if ( total_services > 0 && resolved_pmts > 0 )
+    {
+        b_scan_completed = true;
+    }
 }
+
+void demux_ResetTables( void )
+{
+    b_scan_completed = false;
+    for (int i = 0; i < MAX_PIDS; i++) {
+        if (p_pids[i].i_demux_fd >= 0) {
+            close(p_pids[i].i_demux_fd);
+            p_pids[i].i_demux_fd = -1;
+        }
+    }
+
+    psi_table_free( pp_current_pat_sections );
+    psi_table_init( pp_current_pat_sections );
+    psi_table_free( pp_next_pat_sections );
+    psi_table_init( pp_next_pat_sections );
+
+    psi_table_free( pp_current_cat_sections );
+    psi_table_init( pp_current_cat_sections );
+    psi_table_free( pp_next_cat_sections );
+    psi_table_init( pp_next_cat_sections );
+
+    psi_table_free( pp_current_nit_sections );
+    psi_table_init( pp_current_nit_sections );
+    psi_table_free( pp_next_nit_sections );
+    psi_table_init( pp_next_nit_sections );
+
+    psi_table_free( pp_current_sdt_sections );
+    psi_table_init( pp_current_sdt_sections );
+    psi_table_free( pp_next_sdt_sections );
+    psi_table_init( pp_next_sdt_sections );
+}
+

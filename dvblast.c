@@ -37,6 +37,7 @@
 #include <signal.h>
 #include <getopt.h>
 #include <errno.h>
+#include <sys/prctl.h>
 
 #include <ev.h>
 
@@ -76,7 +77,21 @@ static char *psz_web_host = NULL;
 static char *psz_json_config = NULL;
 static bool b_web_enabled = true;
 static struct ev_timer web_telemetry_watcher;
+static struct ev_async web_async_watcher;
+pthread_t g_main_thread_id;
 extern int i_frontend;
+void web_manager_handle_async_action(void);
+
+static void web_async_cb(struct ev_loop *loop, struct ev_async *w, int revents)
+{
+    (void)loop; (void)w; (void)revents;
+    web_manager_handle_async_action();
+}
+
+void web_manager_notify_async(void)
+{
+    ev_async_send(event_loop, &web_async_watcher);
+}
 
 static void web_telemetry_cb(struct ev_loop *loop, struct ev_timer *w, int revents)
 {
@@ -94,6 +109,7 @@ static void web_telemetry_cb(struct ev_loop *loop, struct ev_timer *w, int reven
                                                 st.i_ber, 0);
         }
     }
+    web_manager_poll_secondary_telemetry();
     web_state_calc_bitrates();
 }
 int i_fenum = 0;
@@ -123,7 +139,7 @@ int i_transmission = -1;
 int i_hierarchy = -1;
 mtime_t i_frontend_timeout_duration = DEFAULT_FRONTEND_TIMEOUT;
 mtime_t i_quit_timeout_duration = 0;
-int b_budget_mode = 0;
+int b_budget_mode = 1;
 int b_any_type = 0;
 int b_select_pmts = 0;
 int b_random_tsid = 0;
@@ -933,7 +949,8 @@ int main( int i_argc, char **pp_argv )
             break;
 
         case '5':
-            psz_delsys = optarg;
+            free( psz_delsys );
+            psz_delsys = strdup( optarg );
             break;
 
         case '9':
@@ -997,7 +1014,8 @@ int main( int i_argc, char **pp_argv )
             break;
 
         case 'm':
-            psz_modulation = optarg;
+            free( psz_modulation );
+            psz_modulation = strdup( optarg );
             break;
 
         case 'P':
@@ -1294,6 +1312,14 @@ int main( int i_argc, char **pp_argv )
     if ( i_verbose )
         DisplayVersion();
 
+    char proc_name[16];
+    if ( b_web_enabled ) {
+        snprintf(proc_name, sizeof(proc_name), "dvblast-master");
+    } else {
+        snprintf(proc_name, sizeof(proc_name), "dvblast-ad%d", i_adapter);
+    }
+    prctl(PR_SET_NAME, proc_name, 0, 0, 0);
+
     msg_Warn( NULL, "restarting" );
 
     switch (i_print_type) 
@@ -1354,6 +1380,8 @@ int main( int i_argc, char **pp_argv )
 
     srand( time(NULL) * getpid() );
 
+    web_state_init_shm( b_web_enabled );
+
     demux_Open();
 
     // init the mrtg logfile
@@ -1383,30 +1411,39 @@ int main( int i_argc, char **pp_argv )
         ev_timer_start(event_loop, &quit_watcher);
     }
 
+    g_main_thread_id = pthread_self();
+    ev_async_init(&web_async_watcher, web_async_cb);
+    ev_async_start(event_loop, &web_async_watcher);
+
     outputs_Init();
 
     /* Initialize SoftCAM, Gateway State, and Web Server */
     softcam_csa_init();
-    web_state_init( i_web_port, psz_web_host, psz_json_config ? psz_json_config : "dvblast.json" );
-    web_state_load_json( psz_json_config ? psz_json_config : "dvblast.json" );
-    web_manager_sync_outputs();
-    if ( b_web_enabled )
+    if ( b_web_enabled ) {
+        web_state_init( i_web_port, psz_web_host, psz_json_config ? psz_json_config : "dvblast.json" );
+        web_state_load_json( psz_json_config ? psz_json_config : "dvblast.json" );
+        web_manager_sync_outputs();
         web_server_start( i_web_port, psz_web_host );
 
-    ev_timer_init(&web_telemetry_watcher, web_telemetry_cb, 1.0, 1.0);
-    ev_timer_start(event_loop, &web_telemetry_watcher);
+        ev_timer_init(&web_telemetry_watcher, web_telemetry_cb, 1.0, 1.0);
+        ev_timer_start(event_loop, &web_telemetry_watcher);
+    }
 
     ev_run(event_loop, 0);
 
-    ev_timer_stop(event_loop, &web_telemetry_watcher);
-    if ( b_web_enabled )
+    if ( b_web_enabled ) {
+        ev_timer_stop(event_loop, &web_telemetry_watcher);
         web_server_stop();
+        web_manager_cleanup();
+        web_state_cleanup();
+    }
+    ev_async_stop(event_loop, &web_async_watcher);
     softcam_csa_cleanup();
-    web_state_cleanup();
 
     mrtgClose();
     outputs_Close( i_nb_outputs );
     demux_Close();
+    dvb_ReleaseAll();
     dvb_string_clean( &network_name );
     dvb_string_clean( &provider_name );
     if ( conf_iconv != (iconv_t)-1 )

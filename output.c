@@ -469,15 +469,8 @@ static void output_Flush( output_t *p_output )
     {
         p_output->i_sent_packets += p_packet->i_depth;
         p_output->i_sent_bytes += (p_packet->i_depth * TS_SIZE);
-        web_state_update_output_stats( p_packet->i_depth * TS_SIZE, p_packet->i_depth );
-
-        if ( p_output->config.psz_displayname ) {
-            web_stream_config_t *ws = web_state_find_stream( p_output->config.psz_displayname );
-            if ( ws ) {
-                ws->packets_sent += p_packet->i_depth;
-                ws->bytes_sent += (p_packet->i_depth * TS_SIZE);
-            }
-        }
+        web_state_record_output( p_output->sz_stream_id[0] ? p_output->sz_stream_id : p_output->config.psz_displayname,
+                                 p_packet->i_depth * TS_SIZE, p_packet->i_depth );
     }
     /* Update the wallclock because writev() can take some time. */
     i_wallclock = mdate();

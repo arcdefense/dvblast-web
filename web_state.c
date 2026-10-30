@@ -7,7 +7,32 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
 #include <math.h>
+
+#define DVBLAST_SHM_PATH "/dev/shm/dvblast_stats.dat"
+
+typedef struct {
+    uint64_t input_bytes;
+    uint64_t input_packets;
+} dvb_shm_adapter_t;
+
+typedef struct {
+    char id[64];
+    uint64_t bytes_sent;
+    uint64_t packets_sent;
+} dvb_shm_stream_t;
+
+typedef struct {
+    dvb_shm_adapter_t adapters[MAX_WEB_ADAPTERS];
+    dvb_shm_stream_t streams[MAX_WEB_STREAMS];
+} dvb_shm_stats_t;
+
+static dvb_shm_stats_t *g_shm_stats = NULL;
+
+typedef int64_t mtime_t;
+mtime_t mdate(void);
 
 gateway_state_t g_gateway;
 
@@ -68,7 +93,7 @@ void web_state_init(int http_port, const char *http_host, const char *config_fil
     snprintf(g_gateway.config_file, sizeof(g_gateway.config_file), "%s", (config_file && *config_file) ? config_file : "dvblast.json");
     snprintf(g_gateway.access_log, sizeof(g_gateway.access_log), "/var/log/dvblast_web.log");
     g_gateway.start_time = time(NULL);
-    g_gateway.last_bitrate_calc = g_gateway.start_time;
+    g_gateway.last_bitrate_calc_us = 0;
 
     /* Clean initial state: 0 adapters, 0 streams */
     g_gateway.num_adapters = 0;
@@ -79,6 +104,11 @@ void web_state_init(int http_port, const char *http_host, const char *config_fil
 }
 
 void web_state_cleanup(void) {
+    if (g_shm_stats) {
+        munmap(g_shm_stats, sizeof(dvb_shm_stats_t));
+        g_shm_stats = NULL;
+        unlink(DVBLAST_SHM_PATH);
+    }
     pthread_mutex_destroy(&g_gateway.lock);
 }
 
@@ -200,8 +230,17 @@ web_adapter_t *web_state_find_adapter(const char *id) {
 }
 
 web_adapter_t *web_state_find_adapter_by_idx(int adapter_idx) {
+    /* Prefer enabled adapter on this index */
     for (int i = 0; i < g_gateway.num_adapters; i++) {
-        if (g_gateway.adapters[i].adapter_idx == adapter_idx) return &g_gateway.adapters[i];
+        if (g_gateway.adapters[i].adapter_idx == adapter_idx && g_gateway.adapters[i].enabled) {
+            return &g_gateway.adapters[i];
+        }
+    }
+    /* Fallback to any adapter with this index */
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        if (g_gateway.adapters[i].adapter_idx == adapter_idx) {
+            return &g_gateway.adapters[i];
+        }
     }
     return NULL;
 }
@@ -209,7 +248,7 @@ web_adapter_t *web_state_find_adapter_by_idx(int adapter_idx) {
 void web_state_update_adapter_signal_ext(int adapter_idx, bool locked, uint16_t strength, float snr_db, float signal_dbm, uint32_t ber, uint32_t ucb) {
     pthread_mutex_lock(&g_gateway.lock);
     for (int i = 0; i < g_gateway.num_adapters; i++) {
-        if (g_gateway.adapters[i].adapter_idx == adapter_idx) {
+        if (g_gateway.adapters[i].adapter_idx == adapter_idx && g_gateway.adapters[i].enabled) {
             g_gateway.adapters[i].locked = locked;
             g_gateway.adapters[i].signal_percent = strength;
             g_gateway.adapters[i].snr_db = snr_db;
@@ -218,7 +257,13 @@ void web_state_update_adapter_signal_ext(int adapter_idx, bool locked, uint16_t 
             g_gateway.adapters[i].ber = ber;
             g_gateway.adapters[i].ucb = ucb;
             g_gateway.adapters[i].last_status_time = time(NULL);
-            break;
+        } else if (!g_gateway.adapters[i].enabled) {
+            g_gateway.adapters[i].locked = false;
+            g_gateway.adapters[i].signal_percent = 0;
+            g_gateway.adapters[i].snr_db = 0.0f;
+            g_gateway.adapters[i].signal_dbm = -100.0f;
+            g_gateway.adapters[i].snr_raw = 0;
+            g_gateway.adapters[i].bitrate_bps = 0;
         }
     }
     pthread_mutex_unlock(&g_gateway.lock);
@@ -248,18 +293,15 @@ void web_state_add_adapter_channel(int adapter_idx, const channel_info_t *ch) {
 
     web_adapter_t *ad = NULL;
     for (int i = 0; i < g_gateway.num_adapters; i++) {
-        if (g_gateway.adapters[i].adapter_idx == adapter_idx) {
+        if (g_gateway.adapters[i].adapter_idx == adapter_idx && g_gateway.adapters[i].enabled) {
             ad = &g_gateway.adapters[i];
             break;
         }
     }
 
     if (!ad) {
-        if (g_gateway.num_adapters > 0) ad = &g_gateway.adapters[0];
-        else {
-            pthread_mutex_unlock(&g_gateway.lock);
-            return;
-        }
+        pthread_mutex_unlock(&g_gateway.lock);
+        return;
     }
 
     channel_info_t *target = NULL;
@@ -380,9 +422,12 @@ bool web_state_delete_stream(const char *id) {
 }
 
 web_stream_config_t *web_state_find_stream(const char *id) {
-    if (!id) return NULL;
+    if (!id || !*id) return NULL;
     for (int i = 0; i < g_gateway.num_streams; i++) {
-        if (strcmp(g_gateway.streams[i].id, id) == 0) return &g_gateway.streams[i];
+        if (strcmp(g_gateway.streams[i].id, id) == 0 ||
+            (g_gateway.streams[i].name[0] && strcmp(g_gateway.streams[i].name, id) == 0)) {
+            return &g_gateway.streams[i];
+        }
     }
     return NULL;
 }
@@ -398,52 +443,190 @@ web_stream_config_t *web_state_find_stream_by_dest(const char *ip, int port) {
 }
 
 /* ========================================================================= */
-/*  STATS & TELEMETRY                                                        */
+/*  STATS & TELEMETRY (CROSS-PROCESS IPC VIA SHARED MEMORY)                  */
 /* ========================================================================= */
 
-void web_state_update_input_stats(int adapter_idx, uint64_t bytes, uint64_t packets) {
-    pthread_mutex_lock(&g_gateway.lock);
-    g_gateway.total_input_bytes += bytes;
-    g_gateway.total_input_packets += packets;
+void web_state_init_shm(bool is_master) {
+    if (g_shm_stats) return;
 
-    for (int i = 0; i < g_gateway.num_adapters; i++) {
-        if (g_gateway.adapters[i].adapter_idx == adapter_idx) {
-            g_gateway.adapters[i].total_bytes += bytes;
-            g_gateway.adapters[i].total_packets += packets;
-            break;
+    int fd = open(DVBLAST_SHM_PATH, O_RDWR | O_CREAT, 0666);
+    if (fd < 0) {
+        fd = open("/tmp/dvblast_stats.dat", O_RDWR | O_CREAT, 0666);
+    }
+    if (fd < 0) return;
+
+    if (is_master) {
+        if (ftruncate(fd, sizeof(dvb_shm_stats_t)) != 0) {
+            close(fd);
+            return;
+        }
+    } else {
+        struct stat st;
+        if (fstat(fd, &st) != 0 || st.st_size < (off_t)sizeof(dvb_shm_stats_t)) {
+            if (ftruncate(fd, sizeof(dvb_shm_stats_t)) != 0) {
+                close(fd);
+                return;
+            }
         }
     }
-    pthread_mutex_unlock(&g_gateway.lock);
+
+    void *ptr = mmap(NULL, sizeof(dvb_shm_stats_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    close(fd);
+
+    if (ptr == MAP_FAILED) {
+        g_shm_stats = NULL;
+        return;
+    }
+
+    g_shm_stats = (dvb_shm_stats_t *)ptr;
+    if (is_master) {
+        memset(g_shm_stats, 0, sizeof(dvb_shm_stats_t));
+    }
+}
+
+void web_state_update_input_stats(int adapter_idx, uint64_t bytes, uint64_t packets) {
+    if (g_shm_stats && adapter_idx >= 0 && adapter_idx < MAX_WEB_ADAPTERS) {
+        __sync_fetch_and_add(&g_shm_stats->adapters[adapter_idx].input_bytes, bytes);
+        __sync_fetch_and_add(&g_shm_stats->adapters[adapter_idx].input_packets, packets);
+    }
 }
 
 void web_state_update_output_stats(uint64_t bytes, uint64_t packets) {
-    pthread_mutex_lock(&g_gateway.lock);
-    g_gateway.total_output_bytes += bytes;
-    g_gateway.total_output_packets += packets;
-    pthread_mutex_unlock(&g_gateway.lock);
+    (void)bytes;
+    (void)packets;
+}
+
+void web_state_record_output(const char *stream_id_or_name, uint64_t bytes, uint64_t packets) {
+    if (g_shm_stats && stream_id_or_name && *stream_id_or_name) {
+        for (int i = 0; i < MAX_WEB_STREAMS; i++) {
+            if (strcmp(g_shm_stats->streams[i].id, stream_id_or_name) == 0) {
+                __sync_fetch_and_add(&g_shm_stats->streams[i].bytes_sent, bytes);
+                __sync_fetch_and_add(&g_shm_stats->streams[i].packets_sent, packets);
+                return;
+            }
+            if (g_shm_stats->streams[i].id[0] == '\0') {
+                snprintf(g_shm_stats->streams[i].id, sizeof(g_shm_stats->streams[i].id), "%s", stream_id_or_name);
+                __sync_fetch_and_add(&g_shm_stats->streams[i].bytes_sent, bytes);
+                __sync_fetch_and_add(&g_shm_stats->streams[i].packets_sent, packets);
+                return;
+            }
+        }
+    }
 }
 
 void web_state_calc_bitrates(void) {
     read_system_cpu();
 
+    mtime_t now_us = mdate();
     pthread_mutex_lock(&g_gateway.lock);
-    time_t now = time(NULL);
-    double elapsed = difftime(now, g_gateway.last_bitrate_calc);
-    if (elapsed >= 1.0) {
-        uint64_t delta_in = g_gateway.total_input_bytes - g_gateway.last_calc_in_bytes;
-        g_gateway.total_input_bitrate_bps = (uint32_t)((delta_in * 8) / elapsed);
-        g_gateway.last_calc_in_bytes = g_gateway.total_input_bytes;
 
-        uint64_t delta_out = g_gateway.total_output_bytes - g_gateway.last_calc_out_bytes;
-        g_gateway.total_output_bitrate_bps = (uint32_t)((delta_out * 8) / elapsed);
-        g_gateway.last_calc_out_bytes = g_gateway.total_output_bytes;
+    /* Sync live statistics across all worker processes and Master from Shared Memory */
+    if (g_shm_stats) {
+        uint64_t cur_in = 0;
+        uint64_t cur_in_pkts = 0;
+        uint64_t cur_out = 0;
+        uint64_t cur_out_pkts = 0;
 
         for (int i = 0; i < g_gateway.num_adapters; i++) {
-            g_gateway.adapters[i].bitrate_bps = g_gateway.total_input_bitrate_bps;
+            int a_idx = g_gateway.adapters[i].adapter_idx;
+            if (a_idx >= 0 && a_idx < MAX_WEB_ADAPTERS) {
+                g_gateway.adapters[i].total_bytes = g_shm_stats->adapters[a_idx].input_bytes;
+                g_gateway.adapters[i].total_packets = g_shm_stats->adapters[a_idx].input_packets;
+                if (g_gateway.adapters[i].enabled) {
+                    cur_in += g_gateway.adapters[i].total_bytes;
+                    cur_in_pkts += g_gateway.adapters[i].total_packets;
+                }
+            }
         }
+        g_gateway.total_input_bytes = cur_in;
+        g_gateway.total_input_packets = cur_in_pkts;
 
-        g_gateway.last_bitrate_calc = now;
+        for (int i = 0; i < g_gateway.num_streams; i++) {
+            web_stream_config_t *ws = &g_gateway.streams[i];
+            char dest_str[128];
+            snprintf(dest_str, sizeof(dest_str), "%s:%d", ws->ip, ws->port);
+
+            for (int s = 0; s < MAX_WEB_STREAMS; s++) {
+                if (g_shm_stats->streams[s].id[0] == '\0') break;
+                if (strcmp(g_shm_stats->streams[s].id, ws->id) == 0 ||
+                    (ws->name[0] && strcmp(g_shm_stats->streams[s].id, ws->name) == 0) ||
+                    strcmp(g_shm_stats->streams[s].id, dest_str) == 0) {
+                    ws->bytes_sent = g_shm_stats->streams[s].bytes_sent;
+                    ws->packets_sent = g_shm_stats->streams[s].packets_sent;
+                    break;
+                }
+            }
+            if (ws->enabled) {
+                cur_out += ws->bytes_sent;
+                cur_out_pkts += ws->packets_sent;
+            }
+        }
+        g_gateway.total_output_bytes = cur_out;
+        g_gateway.total_output_packets = cur_out_pkts;
     }
+
+    if (g_gateway.last_bitrate_calc_us == 0) {
+        g_gateway.last_bitrate_calc_us = now_us;
+        g_gateway.last_calc_in_bytes = g_gateway.total_input_bytes;
+        g_gateway.last_calc_out_bytes = g_gateway.total_output_bytes;
+        for (int i = 0; i < g_gateway.num_adapters; i++) {
+            g_gateway.adapters[i].last_calc_bytes = g_gateway.adapters[i].total_bytes;
+        }
+        for (int i = 0; i < g_gateway.num_streams; i++) {
+            g_gateway.streams[i].last_calc_bytes = g_gateway.streams[i].bytes_sent;
+        }
+        pthread_mutex_unlock(&g_gateway.lock);
+        return;
+    }
+
+    mtime_t elapsed_us = now_us - g_gateway.last_bitrate_calc_us;
+    if (elapsed_us < 800000) {
+        /* Maintain steady calculation window (>= 800ms) */
+        pthread_mutex_unlock(&g_gateway.lock);
+        return;
+    }
+
+    /* Total Input Bitrate (bps) */
+    uint64_t cur_in = g_gateway.total_input_bytes;
+    uint64_t delta_in = (cur_in >= g_gateway.last_calc_in_bytes) ? (cur_in - g_gateway.last_calc_in_bytes) : 0;
+    g_gateway.total_input_bitrate_bps = (uint32_t)((delta_in * 8ULL * 1000000ULL) / elapsed_us);
+    g_gateway.last_calc_in_bytes = cur_in;
+
+    /* Total Output Bitrate (bps) */
+    uint64_t cur_out = g_gateway.total_output_bytes;
+    uint64_t delta_out = (cur_out >= g_gateway.last_calc_out_bytes) ? (cur_out - g_gateway.last_calc_out_bytes) : 0;
+    g_gateway.total_output_bitrate_bps = (uint32_t)((delta_out * 8ULL * 1000000ULL) / elapsed_us);
+    g_gateway.last_calc_out_bytes = cur_out;
+
+    /* Per-Adapter Bitrates */
+    for (int i = 0; i < g_gateway.num_adapters; i++) {
+        web_adapter_t *ad = &g_gateway.adapters[i];
+        if (!ad->enabled || !ad->locked) {
+            ad->bitrate_bps = 0;
+            ad->last_calc_bytes = ad->total_bytes;
+            continue;
+        }
+        uint64_t ad_cur = ad->total_bytes;
+        uint64_t ad_delta = (ad_cur >= ad->last_calc_bytes) ? (ad_cur - ad->last_calc_bytes) : 0;
+        ad->bitrate_bps = (uint32_t)((ad_delta * 8ULL * 1000000ULL) / elapsed_us);
+        ad->last_calc_bytes = ad_cur;
+    }
+
+    /* Per-Stream Bitrates */
+    for (int i = 0; i < g_gateway.num_streams; i++) {
+        web_stream_config_t *st = &g_gateway.streams[i];
+        if (!st->enabled) {
+            st->bitrate_bps = 0;
+            st->last_calc_bytes = st->bytes_sent;
+            continue;
+        }
+        uint64_t st_cur = st->bytes_sent;
+        uint64_t st_delta = (st_cur >= st->last_calc_bytes) ? (st_cur - st->last_calc_bytes) : 0;
+        st->bitrate_bps = (uint32_t)((st_delta * 8ULL * 1000000ULL) / elapsed_us);
+        st->last_calc_bytes = st_cur;
+    }
+
+    g_gateway.last_bitrate_calc_us = now_us;
     pthread_mutex_unlock(&g_gateway.lock);
 }
 
@@ -639,8 +822,6 @@ bool web_state_load_json(const char *path) {
 /* ========================================================================= */
 
 json_t *web_state_telemetry_to_json(void) {
-    web_state_calc_bitrates();
-
     uint64_t ram_total_kb = 0, ram_avail_kb = 0;
     read_system_ram(&ram_total_kb, &ram_avail_kb);
     uint64_t ram_used_kb = (ram_total_kb > ram_avail_kb) ? (ram_total_kb - ram_avail_kb) : 0;
@@ -659,11 +840,13 @@ json_t *web_state_telemetry_to_json(void) {
     json_object_set_new(root, "total_input_bytes", json_integer((json_int_t)g_gateway.total_input_bytes));
     json_object_set_new(root, "total_input_packets", json_integer((json_int_t)g_gateway.total_input_packets));
     json_object_set_new(root, "input_bitrate_bps", json_integer(g_gateway.total_input_bitrate_bps));
+    json_object_set_new(root, "input_bitrate_kbps", json_integer(g_gateway.total_input_bitrate_bps / 1000));
     json_object_set_new(root, "input_bitrate_mbps", json_real((double)g_gateway.total_input_bitrate_bps / 1000000.0));
 
     json_object_set_new(root, "total_output_bytes", json_integer((json_int_t)g_gateway.total_output_bytes));
     json_object_set_new(root, "total_output_packets", json_integer((json_int_t)g_gateway.total_output_packets));
     json_object_set_new(root, "output_bitrate_bps", json_integer(g_gateway.total_output_bitrate_bps));
+    json_object_set_new(root, "output_bitrate_kbps", json_integer(g_gateway.total_output_bitrate_bps / 1000));
     json_object_set_new(root, "output_bitrate_mbps", json_real((double)g_gateway.total_output_bitrate_bps / 1000000.0));
 
     json_object_set_new(root, "adapters_count", json_integer(g_gateway.num_adapters));
@@ -713,6 +896,7 @@ json_t *web_state_adapters_to_json(void) {
         json_object_set_new(obj, "ber", json_integer(ad->ber));
         json_object_set_new(obj, "ucb", json_integer(ad->ucb));
         json_object_set_new(obj, "bitrate_bps", json_integer(ad->bitrate_bps));
+        json_object_set_new(obj, "bitrate_kbps", json_integer(ad->bitrate_bps / 1000));
         json_object_set_new(obj, "bitrate_mbps", json_real((double)ad->bitrate_bps / 1000000.0));
         json_object_set_new(obj, "total_packets", json_integer((json_int_t)ad->total_packets));
         json_object_set_new(obj, "total_bytes", json_integer((json_int_t)ad->total_bytes));
@@ -844,6 +1028,7 @@ json_t *web_state_streams_to_json(void) {
         json_object_set_new(obj, "is_rtp", json_boolean(s->is_rtp));
         json_object_set_new(obj, "pacing", json_boolean(s->pacing));
         json_object_set_new(obj, "bitrate_bps", json_integer(s->bitrate_bps));
+        json_object_set_new(obj, "bitrate_kbps", json_integer(s->bitrate_bps / 1000));
         json_object_set_new(obj, "bitrate_mbps", json_real((double)s->bitrate_bps / 1000000.0));
         json_object_set_new(obj, "packets_sent", json_integer((json_int_t)s->packets_sent));
         json_object_set_new(obj, "bytes_sent", json_integer((json_int_t)s->bytes_sent));

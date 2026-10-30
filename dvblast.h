@@ -194,6 +194,7 @@ typedef struct output_t
 
     /* web gateway & pacing */
     bool b_pacing;
+    char sz_stream_id[64];
     uint64_t i_sent_packets;
     uint64_t i_sent_bytes;
 } output_t;
@@ -288,6 +289,8 @@ void config_Defaults( output_config_t *p_config );
 bool config_ParseHost( output_config_t *p_config, char *psz_string );
 void config_Free( output_config_t *p_config );
 void demux_ExtractDiscoveredChannels( void );
+void demux_TriggerScan( void );
+void demux_ResetTables( void );
 
 /* Connect/Disconnect from syslogd */
 void msg_Connect( const char *ident );
@@ -333,6 +336,7 @@ extern int i_frontend;
 extern float dvb_live_signal_dbm;
 extern float dvb_live_snr_db;
 void dvb_CloseDevices( void );
+void dvb_ReleaseAll( void );
 bool dvb_TuneFrontend(int adapter, int frontend, uint64_t freq_hz, int bw_mhz,
                       const char *delsys, int stream_id, const char *modulation,
                       const char *guard, const char *transmit, int symbol_rate,

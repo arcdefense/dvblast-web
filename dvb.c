@@ -150,12 +150,6 @@ void dvb_OpenSec( void )
  *****************************************************************************/
 void dvb_CloseDevices( void )
 {
-    if ( i_frontend >= 0 )
-    {
-        ev_io_stop(event_loop, &frontend_watcher);
-        close(i_frontend);
-        i_frontend = -1;
-    }
     if ( i_dvr >= 0 )
     {
         ev_io_stop(event_loop, &dvr_watcher);
@@ -164,11 +158,23 @@ void dvb_CloseDevices( void )
     }
     if ( i_demux_wildcard_fd >= 0 )
     {
+        ioctl(i_demux_wildcard_fd, DMX_STOP);
         close(i_demux_wildcard_fd);
         i_demux_wildcard_fd = -1;
     }
     ev_timer_stop(event_loop, &lock_watcher);
     ev_timer_stop(event_loop, &mute_watcher);
+}
+
+void dvb_ReleaseAll( void )
+{
+    dvb_CloseDevices();
+    if ( i_frontend >= 0 )
+    {
+        ev_io_stop(event_loop, &frontend_watcher);
+        close(i_frontend);
+        i_frontend = -1;
+    }
 }
 
 /*****************************************************************************
@@ -180,13 +186,19 @@ bool dvb_TuneFrontend(int adapter, int frontend, uint64_t freq_hz, int bw_mhz,
                       int voltage, int diseqc, int tone)
 {
     (void)guard; (void)transmit;
-    dvb_CloseDevices();
 
     if (freq_hz > 0 && freq_hz < 1000) freq_hz *= 1000000;
     else if (freq_hz >= 1000 && freq_hz < 1000000) freq_hz *= 1000;
     if (freq_hz <= 0) return false;
 
     if (bw_mhz <= 0) bw_mhz = 8;
+
+    /* If switching adapter or frontend number, release old hardware */
+    if (i_frontend >= 0 && (i_adapter != adapter || i_fenum != frontend)) {
+        dvb_ReleaseAll();
+    } else {
+        dvb_CloseDevices();
+    }
 
     i_adapter = adapter;
     i_fenum = frontend;
@@ -198,56 +210,71 @@ bool dvb_TuneFrontend(int adapter, int frontend, uint64_t freq_hz, int bw_mhz,
     i_satnum = diseqc;
     b_tone = tone;
 
-    if (delsys && *delsys) {
+    if (delsys && *delsys && delsys != psz_delsys) {
         free(psz_delsys);
         psz_delsys = strdup(delsys);
     }
-    if (modulation && *modulation) {
+    if (modulation && *modulation && modulation != psz_modulation) {
         free(psz_modulation);
         psz_modulation = strdup(modulation);
     }
 
     char psz_tmp[128];
-    sprintf(psz_tmp, "/dev/dvb/adapter%d/frontend%d", i_adapter, i_fenum);
-    if ((i_frontend = open(psz_tmp, O_RDWR | O_NONBLOCK)) < 0) {
-        msg_Err(NULL, "opening device %s failed (%s)", psz_tmp, strerror(errno));
-        i_frontend = -1;
-        return false;
+    if (i_frontend < 0) {
+        sprintf(psz_tmp, "/dev/dvb/adapter%d/frontend%d", i_adapter, i_fenum);
+        if ((i_frontend = open(psz_tmp, O_RDWR | O_NONBLOCK | O_CLOEXEC)) < 0) {
+            msg_Err(NULL, "opening device %s failed (%s)", psz_tmp, strerror(errno));
+            i_frontend = -1;
+            return false;
+        }
+        ev_io_init(&frontend_watcher, FrontendRead, i_frontend, EV_READ);
+        ev_io_start(event_loop, &frontend_watcher);
     }
 
     FrontendSet(true);
 
     /* Open demux wildcard filter (0x2000) for full transponder pass-through */
-    sprintf(psz_tmp, "/dev/dvb/adapter%d/demux%d", i_adapter, i_fenum);
-    int dmx_fd = open(psz_tmp, O_RDWR | O_NONBLOCK);
-    if (dmx_fd >= 0) {
-        struct dmx_pes_filter_params filter;
-        memset(&filter, 0, sizeof(filter));
-        filter.pid = 0x2000;
-        filter.input = DMX_IN_FRONTEND;
-        filter.output = DMX_OUT_TS_TAP;
-        filter.pes_type = DMX_PES_OTHER;
-        filter.flags = DMX_IMMEDIATE_START;
-        if (ioctl(dmx_fd, DMX_SET_PES_FILTER, &filter) == 0) {
-            i_demux_wildcard_fd = dmx_fd;
-        } else {
-            msg_Warn(NULL, "setting demux wildcard filter on %s failed (%s)", psz_tmp, strerror(errno));
-            close(dmx_fd);
+    if (i_demux_wildcard_fd < 0) {
+        sprintf(psz_tmp, "/dev/dvb/adapter%d/demux%d", i_adapter, i_fenum);
+        int dmx_fd = -1;
+        for (int retry = 0; retry < 5; retry++) {
+            dmx_fd = open(psz_tmp, O_RDWR | O_NONBLOCK | O_CLOEXEC);
+            if (dmx_fd >= 0) break;
+            usleep(20000);
+        }
+        if (dmx_fd >= 0) {
+            struct dmx_pes_filter_params filter;
+            memset(&filter, 0, sizeof(filter));
+            filter.pid = 0x2000;
+            filter.input = DMX_IN_FRONTEND;
+            filter.output = DMX_OUT_TS_TAP;
+            filter.pes_type = DMX_PES_OTHER;
+            filter.flags = DMX_IMMEDIATE_START;
+            if (ioctl(dmx_fd, DMX_SET_PES_FILTER, &filter) == 0) {
+                i_demux_wildcard_fd = dmx_fd;
+            } else {
+                msg_Warn(NULL, "setting demux wildcard filter on %s failed (%s)", psz_tmp, strerror(errno));
+                close(dmx_fd);
+            }
         }
     }
 
     /* Open DVR device with 16MB buffer */
-    sprintf(psz_tmp, "/dev/dvb/adapter%d/dvr%d", i_adapter, i_fenum);
-    if ((i_dvr = open(psz_tmp, O_RDONLY | O_NONBLOCK)) < 0) {
-        msg_Err(NULL, "opening device %s failed (%s)", psz_tmp, strerror(errno));
-    } else {
-        ioctl(i_dvr, DMX_SET_BUFFER_SIZE, 16 * 1024 * 1024);
-        ev_io_init(&dvr_watcher, DVRRead, i_dvr, EV_READ);
-        ev_io_start(event_loop, &dvr_watcher);
+    if (i_dvr < 0) {
+        sprintf(psz_tmp, "/dev/dvb/adapter%d/dvr%d", i_adapter, i_fenum);
+        for (int retry = 0; retry < 5; retry++) {
+            i_dvr = open(psz_tmp, O_RDONLY | O_NONBLOCK | O_CLOEXEC);
+            if (i_dvr >= 0) break;
+            usleep(20000);
+        }
+        if (i_dvr < 0) {
+            msg_Err(NULL, "opening device %s failed (%s)", psz_tmp, strerror(errno));
+        } else {
+            ioctl(i_dvr, DMX_SET_BUFFER_SIZE, 16 * 1024 * 1024);
+            ev_io_init(&dvr_watcher, DVRRead, i_dvr, EV_READ);
+            ev_io_start(event_loop, &dvr_watcher);
+        }
     }
-
-    ev_io_init(&frontend_watcher, FrontendRead, i_frontend, EV_READ);
-    ev_io_start(event_loop, &frontend_watcher);
 
     ev_timer_init(&lock_watcher, FrontendLockCb,
                   i_frontend_timeout_duration / 1000000.,

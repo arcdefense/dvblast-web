@@ -68,6 +68,7 @@ typedef struct {
     uint32_t bitrate_bps;
     uint64_t total_packets;
     uint64_t total_bytes;
+    uint64_t last_calc_bytes;
     time_t   last_status_time;
 
     /* Channels discovered on this adapter's transponder */
@@ -93,6 +94,7 @@ typedef struct {
     uint32_t bitrate_bps;       /* Current stream bitrate */
     uint64_t packets_sent;
     uint64_t bytes_sent;
+    uint64_t last_calc_bytes;
     uint32_t cc_errors;
     bool     scrambled;
     char     biss_key[64];
@@ -126,7 +128,7 @@ typedef struct {
     uint64_t total_output_bytes;
     uint64_t total_output_packets;
     uint32_t total_output_bitrate_bps;
-    time_t   last_bitrate_calc;
+    uint64_t last_bitrate_calc_us;
     uint64_t last_calc_in_bytes;
     uint64_t last_calc_out_bytes;
 
@@ -161,8 +163,10 @@ web_stream_config_t *web_state_find_stream(const char *id);
 web_stream_config_t *web_state_find_stream_by_dest(const char *ip, int port);
 
 /* Stats & System */
+void web_state_init_shm(bool is_master);
 void web_state_update_input_stats(int adapter_idx, uint64_t bytes, uint64_t packets);
 void web_state_update_output_stats(uint64_t bytes, uint64_t packets);
+void web_state_record_output(const char *stream_id_or_name, uint64_t bytes, uint64_t packets);
 void web_state_calc_bitrates(void);
 
 /* Persistence */
