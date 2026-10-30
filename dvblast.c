@@ -53,7 +53,7 @@
 #include "mrtg-cnt.h"
 #include "en50221.h"
 #include "comm.h"
-#include "softcam_csa.h"
+#include "modules/softcam/softcam.h"
 #include "web_state.h"
 #include "web_manager.h"
 #include "web_server.h"
@@ -1418,7 +1418,7 @@ int main( int i_argc, char **pp_argv )
     outputs_Init();
 
     /* Initialize SoftCAM, Gateway State, and Web Server */
-    softcam_csa_init();
+    softcam_init();
     if ( b_web_enabled ) {
         web_state_init( i_web_port, psz_web_host, psz_json_config ? psz_json_config : "dvblast.json" );
         web_state_load_json( psz_json_config ? psz_json_config : "dvblast.json" );
@@ -1438,7 +1438,7 @@ int main( int i_argc, char **pp_argv )
         web_state_cleanup();
     }
     ev_async_stop(event_loop, &web_async_watcher);
-    softcam_csa_cleanup();
+    softcam_cleanup();
 
     mrtgClose();
     outputs_Close( i_nb_outputs );
