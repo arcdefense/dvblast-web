@@ -287,11 +287,19 @@
   "categories": [],
   "http_play": {
     "enabled": true,
-    "buffer_kb": 2048,
-    "max_clients": 128,
+    "port": 8088,
+    "playlist_name": "channels",
+    "buffer_kb": 4096,
+    "max_clients": 64,
+    "m3u_header": "type=\"m3u\"",
+    "xspf_title": "DVBlast Master Live Streams",
+    "tv_logos_path": "/logos",
+    "allow_http": true,
+    "allow_hls": true,
+    "disable_tls": false,
     "active_clients": 0,
-    "total_clients_served": 0,
-    "total_bytes_streamed": 0,
+    "total_clients_served": 13,
+    "total_bytes_streamed": 2235696,
     "clients": []
   },
   "http_auth": {
@@ -328,9 +336,2023 @@
     "interval_sec": 60,
     "retention_hours": 24,
     "preferred_lang": "all",
-    "total_events_cached": 0,
-    "last_parse_time": 0,
-    "services": []
+    "total_events_cached": 220,
+    "last_parse_time": 1793392765,
+    "services": [
+      {
+        "service_id": 30267,
+        "channel_name": "INDOSIAR HD",
+        "last_updated": 1793392765,
+        "events": [
+          {
+            "event_id": 33066,
+            "start_time": 1793390400,
+            "duration_sec": 5400,
+            "title": "MEGA FILM ASIA: LOVING YOU EPS #",
+            "description": "MEGA FILM ASIA ADALAH PROGRAM YANG MEMUTARKAN FILM-FILM ASIA YANG DITAYANGKAN DI INDOSIAR. ACARA INI DITAYANGKAN PERDANA PADA TAHUN 1996 SILAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33131,
+            "start_time": 1793514600,
+            "duration_sec": 5400,
+            "title": "KISAH NYATA: KISAH MASA LALU BERUJUNG DERITA DI MASA KINI EPS #1415",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33092,
+            "start_time": 1793520000,
+            "duration_sec": 9000,
+            "title": "BRI SUPER LEAGUE 2026/27 : BRI SUPER LEAGUE 2026/27 : PSIM YOGYAKARTA VS BORNEO FC SAMARINDA EPS #51",
+            "description": "BRI SUPER LEAGUE 2026/27",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33093,
+            "start_time": 1793529000,
+            "duration_sec": 3600,
+            "title": "MERANGKAI KISAH INDAH: MERANGKAI KISAH INDAH EPS #474",
+            "description": "MEGA SERIES TERBARU RADEN RAKHA DAN BASMALAH GRALIND DI INDOSIAR \"MERANGKAI KISAH INDAH\" TAYANG SETIAP HARI, MULAI SENIN, 14 JULI 2025 PUKUL 17:00 WIB. KISAH DERITA MUTIARA YANG MENCARI ORANGTUA KANDUNGNYA KARENA SEWAKTU BAYI DITUKAR OLEH IBU ANGK",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33094,
+            "start_time": 1793532600,
+            "duration_sec": 9000,
+            "title": "BRI SUPER LEAGUE 2026/27 : BRI SUPER LEAGUE 2026/27 : GARUDAYAKSA VS PSS SLEMAN EPS #52",
+            "description": "BRI SUPER LEAGUE 2026/27",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33095,
+            "start_time": 1793541600,
+            "duration_sec": 7200,
+            "title": "BRI SUPER LEAGUE 2026/27 : BRI SUPER LEAGUE 2026/27 : PERSIB BANDUNG VS ISENMULANG KALTENG FC EPS #53",
+            "description": "BRI SUPER LEAGUE 2026/27",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33067,
+            "start_time": 1793395800,
+            "duration_sec": 5400,
+            "title": "FOKUS PAGI: FOKUS PAGI 2610 EPS #",
+            "description": "BERITA LENGKAP DAN TERKINI DARI DALAM DAN LUAR NEGERI SEPUTAR ISU POLITIK, EKONOMI, HUKUM, KRIMINAL, SOSIAL BUDAYA, OLAHRAGA, DAN LAIN-LAIN.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33096,
+            "start_time": 1793548800,
+            "duration_sec": 7200,
+            "title": "MEGA FILM ASIA: DRAGON SQUAD EPS #",
+            "description": "MEGA FILM ASIA ADALAH PROGRAM YANG MEMUTARKAN FILM-FILM ASIA YANG DITAYANGKAN DI INDOSIAR. ACARA INI DITAYANGKAN PERDANA PADA TAHUN 1996 SILAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33097,
+            "start_time": 1793556000,
+            "duration_sec": 7200,
+            "title": "MEGA FILM ASIA: STRIKING RESCUE EPS #",
+            "description": "MEGA FILM ASIA ADALAH PROGRAM YANG MEMUTARKAN FILM-FILM ASIA YANG DITAYANGKAN DI INDOSIAR. ACARA INI DITAYANGKAN PERDANA PADA TAHUN 1996 SILAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33098,
+            "start_time": 1793563200,
+            "duration_sec": 5400,
+            "title": "MEGA FILM ASIA: THE 36TH CHAMBER OF SHAOLIN EPS #",
+            "description": "MEGA FILM ASIA ADALAH PROGRAM YANG MEMUTARKAN FILM-FILM ASIA YANG DITAYANGKAN DI INDOSIAR. ACARA INI DITAYANGKAN PERDANA PADA TAHUN 1996 SILAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33055,
+            "start_time": 1793322000,
+            "duration_sec": 5400,
+            "title": "KISAH NYATA PAGI: AKHIR PETUALANGAN CINTA ISTRI YANG JAGO MENDUA EPS #957",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33117,
+            "start_time": 1793327400,
+            "duration_sec": 3600,
+            "title": "HOT KISS: HOT KISS EPS #",
+            "description": "BERITA TER-HOT DAN TERUPDATE SEPUTAR ARTIS TERNAMA TANAH AIR YANG DIKEMAS SECARA LUGAS DAN MENARIK. SAKSIKAN SETIAP HARI RABU & KAMIS PUKUL 08.00-10.30 WIB, HANYA DI INDOSIAR",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33118,
+            "start_time": 1793331000,
+            "duration_sec": 1800,
+            "title": "PATROLI SIANG: PATROLI SIANG 2610 EPS #",
+            "description": "BERITA TERKINI SEPUTAR PERISTIWA KRIMINAL, TINDAK KEJAHATAN, ORANG HILANG, HINGGA BENCANA ALAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33119,
+            "start_time": 1793332800,
+            "duration_sec": 1800,
+            "title": "FOKUS SIANG: FOKUS SIANG 2610 EPS #",
+            "description": "PROGRAM BERITA AKTUAL DAN TERKINI TENTANG BERBAGAI ISU DI TANAH AIR, MELIPUTI POLITIK, EKONOMI, HUKUM, SOSIAL, BUDAYA, OLAH RAGA, DAN LAIN-LAIN.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33128,
+            "start_time": 1793334600,
+            "duration_sec": 5400,
+            "title": "KISAH NYATA SIANG: KISAH LAMA YANG MEMBUKA LUKA BARU EPS #1418",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP. SAKSIKAN SETIAP HARI PUKUL 13.30 WIB, HANYA DI INDOSIAR.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33129,
+            "start_time": 1793340000,
+            "duration_sec": 7200,
+            "title": "KISAH NYATA: SETIAP TEROR DATANG, DIA SELALU ADA EPS #1694",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33061,
+            "start_time": 1793347200,
+            "duration_sec": 9000,
+            "title": "BRI SUPER LEAGUE 2026/27 : BRI SUPER LEAGUE 2026/27 : JAVA UNITED VS BHAYANGKARA PRESISI LAMPUNG FC EPS #46",
+            "description": "BRI SUPER LEAGUE 2026/27",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33062,
+            "start_time": 1793356200,
+            "duration_sec": 3600,
+            "title": "MERANGKAI KISAH INDAH: MERANGKAI KISAH INDAH EPS #472",
+            "description": "MEGA SERIES TERBARU RADEN RAKHA DAN BASMALAH GRALIND DI INDOSIAR \"MERANGKAI KISAH INDAH\" TAYANG SETIAP HARI, MULAI SENIN, 14 JULI 2025 PUKUL 17:00 WIB. KISAH DERITA MUTIARA YANG MENCARI ORANGTUA KANDUNGNYA KARENA SEWAKTU BAYI DITUKAR OLEH IBU ANGK",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33063,
+            "start_time": 1793359800,
+            "duration_sec": 9000,
+            "title": "BRI SUPER LEAGUE 2026/27 : BRI SUPER LEAGUE 2026/27 : PERSEBAYA SURABAYA VS PERSIJAP JEPARA EPS #47",
+            "description": "BRI SUPER LEAGUE 2026/27",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33064,
+            "start_time": 1793368800,
+            "duration_sec": 14400,
+            "title": "D'ACADEMY 8: D'ACADEMY 8 - BEST OF TOP 12 RESULT MALAM KETIGA EPS #",
+            "description": "D'ACADEMY 8",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33127,
+            "start_time": 1793383200,
+            "duration_sec": 7200,
+            "title": "MEGA FILM ASIA: FLASH POINT EPS #",
+            "description": "MEGA FILM ASIA ADALAH PROGRAM YANG MEMUTARKAN FILM-FILM ASIA YANG DITAYANGKAN DI INDOSIAR. ACARA INI DITAYANGKAN PERDANA PADA TAHUN 1996 SILAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33068,
+            "start_time": 1793401200,
+            "duration_sec": 3600,
+            "title": "MERANGKAI KISAH INDAH: MERANGKAI KISAH INDAH EPS #472",
+            "description": "MEGA SERIES TERBARU RADEN RAKHA DAN BASMALAH GRALIND DI INDOSIAR \"MERANGKAI KISAH INDAH\" TAYANG SETIAP HARI, MULAI SENIN, 14 JULI 2025 PUKUL 17:00 WIB. KISAH DERITA MUTIARA YANG MENCARI ORANGTUA KANDUNGNYA KARENA SEWAKTU BAYI DITUKAR OLEH IBU ANGK",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33111,
+            "start_time": 1793404800,
+            "duration_sec": 5400,
+            "title": "KISAH NYATA PAGI: AKIBAT MELANGGAR JANJI PERNIKAHAN EPS #1588",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33070,
+            "start_time": 1793410200,
+            "duration_sec": 5400,
+            "title": "KISAH NYATA PAGI: DI BALIK KEKAYAAN KELUARGA, ADA DENDAM YANG TERSEMBUNYI EPS #1622",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33071,
+            "start_time": 1793415600,
+            "duration_sec": 3600,
+            "title": "BEST KISS: BEST KISS EPS #",
+            "description": "BERITA TER-KISS DAN TERUPDATE SEPUTAR ARTIS TERNAMA TANAH AIR YANG DIKEMAS SECARA LUGAS DAN MENARIK. SAKSIKAN SETIAP JUMAT HINGGA MINGGU PUKUL 08.00-10.30 WIB, HANYA DI INDOSIAR",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33072,
+            "start_time": 1793419200,
+            "duration_sec": 1800,
+            "title": "PATROLI SIANG: PATROLI SIANG 2610 EPS #",
+            "description": "BERITA TERKINI SEPUTAR PERISTIWA KRIMINAL, TINDAK KEJAHATAN, ORANG HILANG, HINGGA BENCANA ALAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33073,
+            "start_time": 1793421000,
+            "duration_sec": 1800,
+            "title": "FOKUS SIANG: FOKUS SIANG 2610 EPS #",
+            "description": "PROGRAM BERITA AKTUAL DAN TERKINI TENTANG BERBAGAI ISU DI TANAH AIR, MELIPUTI POLITIK, EKONOMI, HUKUM, SOSIAL, BUDAYA, OLAH RAGA, DAN LAIN-LAIN.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33074,
+            "start_time": 1793422800,
+            "duration_sec": 5400,
+            "title": "KISAH NYATA SIANG: MISTERI YANG TERSIMPAN DI KADO PERNIKAHAN EPS #1230",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP. SAKSIKAN SETIAP HARI PUKUL 13.30 WIB, HANYA DI INDOSIAR.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33075,
+            "start_time": 1793428200,
+            "duration_sec": 5400,
+            "title": "KISAH NYATA: MISTERI SUARA GITAR DI TENGAH MALAM",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33076,
+            "start_time": 1793433600,
+            "duration_sec": 9000,
+            "title": "BRI SUPER LEAGUE 2026/27 : BRI SUPER LEAGUE 2026/27 : AREMA FC VS BALI UNITED FC EPS #48",
+            "description": "BRI SUPER LEAGUE 2026/27",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33077,
+            "start_time": 1793442600,
+            "duration_sec": 3600,
+            "title": "MERANGKAI KISAH INDAH: MERANGKAI KISAH INDAH EPS #473",
+            "description": "MEGA SERIES TERBARU RADEN RAKHA DAN BASMALAH GRALIND DI INDOSIAR \"MERANGKAI KISAH INDAH\" TAYANG SETIAP HARI, MULAI SENIN, 14 JULI 2025 PUKUL 17:00 WIB. KISAH DERITA MUTIARA YANG MENCARI ORANGTUA KANDUNGNYA KARENA SEWAKTU BAYI DITUKAR OLEH IBU ANGK",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33078,
+            "start_time": 1793446200,
+            "duration_sec": 9000,
+            "title": "BRI SUPER LEAGUE 2026/27 : BRI SUPER LEAGUE 2026/27 : DEWA UNITED BANTEN FC VS PERSIJA JAKARTA EPS #49",
+            "description": "BRI SUPER LEAGUE 2026/27",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33079,
+            "start_time": 1793455200,
+            "duration_sec": 7200,
+            "title": "BRI SUPER LEAGUE 2026/27 : BRI SUPER LEAGUE 2026/27 : PSM MAKASSAR VS MADURA UNITED FC EPS #50",
+            "description": "BRI SUPER LEAGUE 2026/27",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33080,
+            "start_time": 1793462400,
+            "duration_sec": 7200,
+            "title": "MEGA FILM ASIA: CRIME STORY EPS #",
+            "description": "MEGA FILM ASIA ADALAH PROGRAM YANG MEMUTARKAN FILM-FILM ASIA YANG DITAYANGKAN DI INDOSIAR. ACARA INI DITAYANGKAN PERDANA PADA TAHUN 1996 SILAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33081,
+            "start_time": 1793469600,
+            "duration_sec": 7200,
+            "title": "MEGA FILM ASIA: VIRAL FACTOR EPS #",
+            "description": "MEGA FILM ASIA ADALAH PROGRAM YANG MEMUTARKAN FILM-FILM ASIA YANG DITAYANGKAN DI INDOSIAR. ACARA INI DITAYANGKAN PERDANA PADA TAHUN 1996 SILAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33082,
+            "start_time": 1793476800,
+            "duration_sec": 5400,
+            "title": "MEGA FILM ASIA: GAMBLING GHOST EPS #",
+            "description": "MEGA FILM ASIA ADALAH PROGRAM YANG MEMUTARKAN FILM-FILM ASIA YANG DITAYANGKAN DI INDOSIAR. ACARA INI DITAYANGKAN PERDANA PADA TAHUN 1996 SILAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33083,
+            "start_time": 1793482200,
+            "duration_sec": 5400,
+            "title": "FOKUS PAGI: FOKUS PAGI 2611 EPS #",
+            "description": "BERITA LENGKAP DAN TERKINI DARI DALAM DAN LUAR NEGERI SEPUTAR ISU POLITIK, EKONOMI, HUKUM, KRIMINAL, SOSIAL BUDAYA, OLAHRAGA, DAN LAIN-LAIN.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33084,
+            "start_time": 1793487600,
+            "duration_sec": 3600,
+            "title": "MERANGKAI KISAH INDAH: MERANGKAI KISAH INDAH EPS #473",
+            "description": "MEGA SERIES TERBARU RADEN RAKHA DAN BASMALAH GRALIND DI INDOSIAR \"MERANGKAI KISAH INDAH\" TAYANG SETIAP HARI, MULAI SENIN, 14 JULI 2025 PUKUL 17:00 WIB. KISAH DERITA MUTIARA YANG MENCARI ORANGTUA KANDUNGNYA KARENA SEWAKTU BAYI DITUKAR OLEH IBU ANGK",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33085,
+            "start_time": 1793491200,
+            "duration_sec": 5400,
+            "title": "KISAH NYATA PAGI: RAHASIA GELAP DI HARI AKU MENIKAH EPS #1488",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33086,
+            "start_time": 1793496600,
+            "duration_sec": 5400,
+            "title": "KISAH NYATA PAGI: SENGKOLO WARISAN #1658",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33087,
+            "start_time": 1793502000,
+            "duration_sec": 3600,
+            "title": "BEST KISS: BEST KISS EPS #",
+            "description": "BERITA TER-KISS DAN TERUPDATE SEPUTAR ARTIS TERNAMA TANAH AIR YANG DIKEMAS SECARA LUGAS DAN MENARIK. SAKSIKAN SETIAP JUMAT HINGGA MINGGU PUKUL 08.00-10.30 WIB, HANYA DI INDOSIAR",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33088,
+            "start_time": 1793505600,
+            "duration_sec": 1800,
+            "title": "PATROLI SIANG: PATROLI SIANG 2611 EPS #",
+            "description": "BERITA TERKINI SEPUTAR PERISTIWA KRIMINAL, TINDAK KEJAHATAN, ORANG HILANG, HINGGA BENCANA ALAM.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33089,
+            "start_time": 1793507400,
+            "duration_sec": 1800,
+            "title": "FOKUS SIANG: FOKUS SIANG 2611 EPS #",
+            "description": "PROGRAM BERITA AKTUAL DAN TERKINI TENTANG BERBAGAI ISU DI TANAH AIR, MELIPUTI POLITIK, EKONOMI, HUKUM, SOSIAL, BUDAYA, OLAH RAGA, DAN LAIN-LAIN.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 33130,
+            "start_time": 1793509200,
+            "duration_sec": 5400,
+            "title": "KISAH NYATA SIANG: MISTERI PENGHUNI LAIN DI RUMAH BARUKU EPS ##1656",
+            "description": "FTV YANG DIAMBIL DARI KISAH KEHIDUPAN SEHARI-HARI PEMIRSA YANG PENUH INTRIK, KONFLIK DAN PENGKHIANATAN UNTUK MEMBERIKAN BERBAGAI PELAJARAN HIDUP. SAKSIKAN SETIAP HARI PUKUL 13.30 WIB, HANYA DI INDOSIAR.",
+            "lang": "ind",
+            "scrambled": false
+          }
+        ]
+      },
+      {
+        "service_id": 30268,
+        "channel_name": "MOJI HD",
+        "last_updated": 1793392765,
+        "events": [
+          {
+            "event_id": 24600,
+            "start_time": 1793611841,
+            "duration_sec": 9431,
+            "title": "VNL 2026",
+            "description": "VNL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24686,
+            "start_time": 1793392450,
+            "duration_sec": 5150,
+            "title": "AVC MEN'S CONTINENTAL 2026",
+            "description": "AVC MEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24601,
+            "start_time": 1793621272,
+            "duration_sec": 9120,
+            "title": "VNL 2026",
+            "description": "VNL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24602,
+            "start_time": 1793630392,
+            "duration_sec": 10560,
+            "title": "VNL 2026",
+            "description": "VNL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24603,
+            "start_time": 1793640952,
+            "duration_sec": 7625,
+            "title": "AVC MEN'S CONTINENTAL 2026",
+            "description": "AVC MEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24604,
+            "start_time": 1793648577,
+            "duration_sec": 8223,
+            "title": "AVC WOMEN'S CONTINENTAL 2026",
+            "description": "AVC WOMEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24605,
+            "start_time": 1793656800,
+            "duration_sec": 4541,
+            "title": "MOJI SPORT",
+            "description": "MOJI SPORT",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24606,
+            "start_time": 1793661341,
+            "duration_sec": 2700,
+            "title": "LIPUTAN 6 PAGI MOJI",
+            "description": "LIPUTAN 6 PAGI MOJI",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24563,
+            "start_time": 1793397600,
+            "duration_sec": 4541,
+            "title": "MOJI SPORT",
+            "description": "MOJI SPORT",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24555,
+            "start_time": 1793345410,
+            "duration_sec": 7210,
+            "title": "LIGA VOLI MAHASISWA PUTRA - SERI JAKARTA (LIVE)",
+            "description": "LIGA VOLI MAHASISWA PUTRA - SERI JAKARTA (LIVE)",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24556,
+            "start_time": 1793352620,
+            "duration_sec": 7221,
+            "title": "LIGA VOLI MAHASISWA PUTRI - SERI JAKARTA (LIVE)",
+            "description": "LIGA VOLI MAHASISWA PUTRI - SERI JAKARTA (LIVE)",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24557,
+            "start_time": 1793359841,
+            "duration_sec": 8959,
+            "title": "LIGA VOLI MAHASISWA PUTRA - SERI JAKARTA (LIVE)",
+            "description": "LIGA VOLI MAHASISWA PUTRA - SERI JAKARTA (LIVE)",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24683,
+            "start_time": 1793368800,
+            "duration_sec": 9180,
+            "title": "VNL 2026",
+            "description": "VNL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24684,
+            "start_time": 1793377980,
+            "duration_sec": 8225,
+            "title": "AVC MEN'S CONTINENTAL 2026",
+            "description": "AVC MEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24685,
+            "start_time": 1793386205,
+            "duration_sec": 6245,
+            "title": "AVC WOMEN'S CONTINENTAL 2026",
+            "description": "AVC WOMEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24564,
+            "start_time": 1793402141,
+            "duration_sec": 2659,
+            "title": "LIPUTAN 6 PAGI MOJI",
+            "description": "LIPUTAN 6 PAGI MOJI",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24687,
+            "start_time": 1793404800,
+            "duration_sec": 1805,
+            "title": "BISNIS UPDATE",
+            "description": "BISNIS UPDATE",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24565,
+            "start_time": 1793406605,
+            "duration_sec": 1800,
+            "title": "BISIK PAGI",
+            "description": "BISIK PAGI",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24688,
+            "start_time": 1793408405,
+            "duration_sec": 9000,
+            "title": "UNGKAP",
+            "description": "UNGKAP",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24568,
+            "start_time": 1793417405,
+            "duration_sec": 7210,
+            "title": "LIGA VOLI MAHASISWA PUTRI - SERI JAKARTA (LIVE)",
+            "description": "LIGA VOLI MAHASISWA PUTRI - SERI JAKARTA (LIVE)",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24569,
+            "start_time": 1793424615,
+            "duration_sec": 7210,
+            "title": "LIGA VOLI MAHASISWA PUTRA - SERI JAKARTA (LIVE)",
+            "description": "LIGA VOLI MAHASISWA PUTRA - SERI JAKARTA (LIVE)",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24570,
+            "start_time": 1793431825,
+            "duration_sec": 7210,
+            "title": "LIGA VOLI MAHASISWA PUTRI - SERI JAKARTA (LIVE)",
+            "description": "LIGA VOLI MAHASISWA PUTRI - SERI JAKARTA (LIVE)",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24571,
+            "start_time": 1793439035,
+            "duration_sec": 8970,
+            "title": "LIGA VOLI MAHASISWA PUTRA - SERI JAKARTA (LIVE)",
+            "description": "LIGA VOLI MAHASISWA PUTRA - SERI JAKARTA (LIVE)",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24572,
+            "start_time": 1793448005,
+            "duration_sec": 1800,
+            "title": "AWARDING CEREMONY LIGA VOLI MAHASISWA",
+            "description": "AWARDING CEREMONY LIGA VOLI MAHASISWA",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24689,
+            "start_time": 1793449805,
+            "duration_sec": 7680,
+            "title": "VNL 2026",
+            "description": "VNL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24690,
+            "start_time": 1793457485,
+            "duration_sec": 8760,
+            "title": "VNL 2026",
+            "description": "VNL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24691,
+            "start_time": 1793466245,
+            "duration_sec": 4745,
+            "title": "ONE FRIDAY FIGHTS",
+            "description": "ONE FRIDAY FIGHTS",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24692,
+            "start_time": 1793470990,
+            "duration_sec": 7445,
+            "title": "AVC MEN'S CONTINENTAL 2026",
+            "description": "AVC MEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24693,
+            "start_time": 1793478435,
+            "duration_sec": 5564,
+            "title": "AVC WOMEN'S CONTINENTAL 2026",
+            "description": "AVC WOMEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24578,
+            "start_time": 1793483999,
+            "duration_sec": 1,
+            "title": "AVC MEN'S CONTINENTAL 2026",
+            "description": "AVC MEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24579,
+            "start_time": 1793484000,
+            "duration_sec": 4541,
+            "title": "MOJI SPORT",
+            "description": "MOJI SPORT",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24580,
+            "start_time": 1793488541,
+            "duration_sec": 2700,
+            "title": "LIPUTAN 6 PAGI MOJI",
+            "description": "LIPUTAN 6 PAGI MOJI",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24581,
+            "start_time": 1793491241,
+            "duration_sec": 1805,
+            "title": "BISNIS UPDATE",
+            "description": "BISNIS UPDATE",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24582,
+            "start_time": 1793493046,
+            "duration_sec": 1800,
+            "title": "BISIK PAGI",
+            "description": "BISIK PAGI",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24583,
+            "start_time": 1793494846,
+            "duration_sec": 3600,
+            "title": "UNGKAP",
+            "description": "UNGKAP",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24584,
+            "start_time": 1793498446,
+            "duration_sec": 6420,
+            "title": "UNGKAP",
+            "description": "UNGKAP",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24585,
+            "start_time": 1793504866,
+            "duration_sec": 7860,
+            "title": "TERCYDUK",
+            "description": "TERCYDUK",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24586,
+            "start_time": 1793512726,
+            "duration_sec": 12120,
+            "title": "TERCYDUK",
+            "description": "TERCYDUK",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24587,
+            "start_time": 1793524846,
+            "duration_sec": 8951,
+            "title": "VNL 2026",
+            "description": "VNL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24588,
+            "start_time": 1793533797,
+            "duration_sec": 8700,
+            "title": "VNL 2026",
+            "description": "VNL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24589,
+            "start_time": 1793542497,
+            "duration_sec": 8820,
+            "title": "VNL 2026",
+            "description": "VNL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24590,
+            "start_time": 1793551317,
+            "duration_sec": 5885,
+            "title": "AVC MEN'S CONTINENTAL 2026",
+            "description": "AVC MEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24591,
+            "start_time": 1793557202,
+            "duration_sec": 7865,
+            "title": "AVC WOMEN'S CONTINENTAL 2026",
+            "description": "AVC WOMEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24592,
+            "start_time": 1793565067,
+            "duration_sec": 5333,
+            "title": "AVC WOMEN'S CONTINENTAL 2026",
+            "description": "AVC WOMEN'S CONTINENTAL 2026",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24593,
+            "start_time": 1793570400,
+            "duration_sec": 4541,
+            "title": "MOJI SPORT",
+            "description": "MOJI SPORT",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24594,
+            "start_time": 1793574941,
+            "duration_sec": 2700,
+            "title": "LIPUTAN 6 PAGI MOJI",
+            "description": "LIPUTAN 6 PAGI MOJI",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24595,
+            "start_time": 1793577641,
+            "duration_sec": 3600,
+            "title": "BISIK PAGI",
+            "description": "BISIK PAGI",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24596,
+            "start_time": 1793581241,
+            "duration_sec": 3480,
+            "title": "UNGKAP",
+            "description": "UNGKAP",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24597,
+            "start_time": 1793584721,
+            "duration_sec": 6420,
+            "title": "UNGKAP",
+            "description": "UNGKAP",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24598,
+            "start_time": 1793591141,
+            "duration_sec": 7740,
+            "title": "TERCYDUK",
+            "description": "TERCYDUK",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 24599,
+            "start_time": 1793598881,
+            "duration_sec": 12960,
+            "title": "TERCYDUK",
+            "description": "TERCYDUK",
+            "lang": "ind",
+            "scrambled": false
+          }
+        ]
+      },
+      {
+        "service_id": 30269,
+        "channel_name": "MENTARI HD",
+        "last_updated": 1793392765,
+        "events": [
+          {
+            "event_id": 51377,
+            "start_time": 1793660400,
+            "duration_sec": 3600,
+            "title": "NUMBERBLOCKS",
+            "description": "NUMBERBLOCKS ADALAH SERIAL ANIMASI PENDIDIKAN UNTUK ANAK-ANAK PRASEKOLAH YANG MENGAJARKAN KONSEP MATEMATIKA MELALUI KARAKTER BLOK ANGKA YANG HIDUP DAN BERPETUALANG. SETIAP BLOK ANGKA MEMILIKI NILAI NUMERIKNYA SENDIRI DAN MEMILIKI KEPRIBADIAN YANG ",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51292,
+            "start_time": 1793350800,
+            "duration_sec": 3600,
+            "title": "TIAN TIAN",
+            "description": "SEBUAH KELUARGA SEDERHANA DARI KOTA BESAR MEMUTUSKAN UNTUK MENINGGALKAN GEMERLAP PERKOTAAN DAN KEMBALI KE DESA DEMI ANAK MEREKA YANG TAKUT PERGI KE SEKOLAH. DI DESA, MEREKA BERINTERAKSI DENGAN TEMAN, TETANGGA, DAN HEWAN-HEWAN SEKITAR, MENYEBABKAN ",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51293,
+            "start_time": 1793354400,
+            "duration_sec": 1800,
+            "title": "CIPUNG ABUBU",
+            "description": "BERAWAL DARI LAHIRNYA RAYYANZA MALIK AHMAD (CIPUNG), PUTRA KEDUA DARI RAFFI AHMAD DAN\nNAGITA SLAVINA YANG MEMBAWA KEBAHAGIAAN UNTUK SEMUA ORANG, BAHKAN SEPUPUNYA ZAYN DAN ZUNEY.\nNAMUN, BERBEDA DENGAN RAFATHAR, SI ANAK SULUNG, DIA JUSTRU CEMBURU KA",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51294,
+            "start_time": 1793356200,
+            "duration_sec": 1800,
+            "title": "BLUEY",
+            "description": "BLUEY ADALAH SERIAL ANIMASI ASAL AUSTRALIA YANG MENGIKUTI PETUALANGAN SEHARI-HARI SEEKOR ANAK ANJING RAS BLUE HEELER BERUSIA ENAM TAHUN BERNAMA BLUEY. BERSAMA ADIKNYA, BINGO, SERTA KEDUA ORANG TUANYA, BANDIT DAN CHILLI, BLUEY MENJALANI BERBAGAI PE",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51295,
+            "start_time": 1793358000,
+            "duration_sec": 1800,
+            "title": "MAGIC 5 THE ANIMATION",
+            "description": "MAGIC 5 THE ANIMATION MENCERITAKAN PETUALANGAN LIMA REMAJA ISTIMEWA?NAURA, RAHSYA, ADARA, GIBRAN, DAN IRSHAD?YANG DITEMUKAN DAN DIASUH OLEH FATHIR.KELIMA ANAK INI MEMILIKI KEKUATAN SUPER YANG UNIK DAN BERBEDA. MEREKA MENGGUNAKAN KEKUATAN TERSEBUT ",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51296,
+            "start_time": 1793359800,
+            "duration_sec": 1800,
+            "title": "NEW KELUARGA SOMAT",
+            "description": "IKUTI PETUALANGAN SERU KELUARGA PAK SOMAT SAAT MEMULAI HIDUP BARU DI CITEKO! DARI MEMBANGUN WARUNG IMPIAN BU INAH, KEHEBOHAN BERTETANGGA DENGAN CEU KOKOM, HINGGA PERJUANGAN PAK SOMAT MENJADI OJEK ONLINE DEMI KELUARGA. KISAH HANGAT PENUH TAWA DAN P",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51297,
+            "start_time": 1793361600,
+            "duration_sec": 7200,
+            "title": "BIOSKOP KELUARGA INDONESIA (SAGAI UNITED)",
+            "description": "SIAPA BILANG TIM DARI PELOSOK TIDAK BISA MAIN BOLA? IKUTI KISAH LUCU DAN SERU PAOTU YANG MELATIH PARA PEMUDA PEDALAMAN MENJADI TIM HEBAT \"SAGAI UNITED\". AYO TONTON AKSI PANTANG MENYERAH MEREKA MELAWAN TIM-TIM KUAT DI TURNAMEN KING'S CUP BANGKOK HA",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51298,
+            "start_time": 1793368800,
+            "duration_sec": 5400,
+            "title": "POKEMON SEASON 26: HORIZONS",
+            "description": "POKEMON SEASON 26 HORIZONS, MENGIKUTI PETUALANGAN BARU ASH KETCHUM DAN TEMAN-TEMANNYA SAAT MEREKA MENJELAJAHI WILAYAH BARU YANG BELUM PERNAH MEREKA JELAJAHI SEBELUMNYA. SETELAH BERHASIL MENAKLUKKAN LIGA POKEMON DI WILAYAH SEBELUMNYA, ASH MEMUTUSKA",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51299,
+            "start_time": 1793374200,
+            "duration_sec": 5400,
+            "title": "KELUARGA SOMAT",
+            "description": "KELUARGA SOMAT  MENCERITAKAN BAHWA KITA HIDUP HARUS SALING BERDAMPINGAN DAN MEMBANTU SATU SAMA LAIN SEBAGAI MASYARAKAT MAUPUN PELAJAR.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51300,
+            "start_time": 1793379600,
+            "duration_sec": 3600,
+            "title": "PLENTIS KENTUS",
+            "description": "PLENTIS KENTUS ADALAH SEBUAH ANIMASI ANAK-ANAK ASAL INDONESIA YANG POPULER DENGAN LAGU-LAGU CERIA DAN PENUH SEMANGAT. MEREKA DICIPTAKAN SEBAGAI BENTUK INOVASI DALAM INDUSTRI MUSIK ANAK-ANAK DI INDONESIA. PLENTIS DAN KENTUS ADALAH DUA SAHABAT KARIB",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51301,
+            "start_time": 1793383200,
+            "duration_sec": 3600,
+            "title": "BEDU DAN ADUL",
+            "description": "BEDU DAN ADUL ADALAH SEBUAH SERIAL FILM ANIMASI 3D TENTANG PETUALANGAN ANAK-ANAK DI KAWASAN PINGGIRAN JAKARTA YANG MULTIKULTURAL. KARAKTER ANAK YANG SELALU INGIN TAHU MEMBUAT MEREKA INGIN SELALU BEREKSPLORASI HINGGA KADANG MENIMBULKAN KEHEBOHAN",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51302,
+            "start_time": 1793386800,
+            "duration_sec": 3600,
+            "title": "MADUN",
+            "description": "SERIAL MADUN MENCERITAKAN PERJALANAN HIDUP MADUN (16 TAHUN) DALAM MEMPERJUANGKAN CITA-CITANYA MENJADI PESEPAKBOLA. AYAHNYA, SYAFEI (50 TAHUN) KETURUNAN MEDAN SANGAT MENGINGINKAN ANAKNYA MENJADI USTADZ. KARENA ITU. SYAFEI SELALU MENGHALANGI UPAYA M",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51304,
+            "start_time": 1793394000,
+            "duration_sec": 3600,
+            "title": "MINIBODS",
+            "description": "SELAMAT DATANG DI DUNIA MINIBODS! BERSAMA VERSI KECIL DARI KARAKTER ODDBODS YANG IKONIK, SAKSIKAN PETUALANGAN SERU DAN LUCU MEREKA. MELALUI BERMAIN DAN TAWA, PARA SAHABAT INI BELAJAR BEKERJA SAMA DAN MEMECAHKAN MASALAH DENGAN CARA YANG SANGAT MENG",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51305,
+            "start_time": 1793397600,
+            "duration_sec": 1800,
+            "title": "BABY ZU",
+            "description": "SAKSIKAN KESERUAN MOMO, CICI, BLU DAN GENG. MENEMANI TUMBUH KEMBANGMU, GENERASI EMAS INDONESIA UNTUK DUNIA!",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51306,
+            "start_time": 1793399400,
+            "duration_sec": 1800,
+            "title": "COCOMELON IND",
+            "description": "ANIMASI DAN LAGU 3D BERBAHASA INDONESIA, COCOMELON MENCIPTAKAN DUNIA YANG BERPUSAT PADA PENGALAMAN SEHARI-HARI ANAK KECIL.\nSELAIN MEMBANTU ANAK-ANAK PRASEKOLAH MEMPELAJARI HURUF, ANGKA, SUARA BINATANG, WARNA, DAN BANYAK LAGI. VIDEO TERSEBUT MEMBER",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51307,
+            "start_time": 1793401200,
+            "duration_sec": 3600,
+            "title": "THE FIXIES",
+            "description": "THE FIXIES ADALAH SERIAL ANIMASI RUSIA YANG MENGIKUTI PETUALANGAN PARA \"FIXIES,\" MAKHLUK KECIL YANG HIDUP DI DALAM PERANGKAT ELEKTRONIK. MEREKA MEMPERBAIKI MASALAH TEKNOLOGI SEHARI-HARI SAMBIL MENGAJARKAN PENONTON TENTANG SAINS DAN TEKNOLOGI SECAR",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51308,
+            "start_time": 1793404800,
+            "duration_sec": 3600,
+            "title": "MORPHLE",
+            "description": "LITTLE MILA MENGUBAH WAKTU BERMAIN MENJADI SERANGKAIAN PETUALANGAN YANG MENYENANGKAN DAN MENDIDIK DENGAN HEWAN PELIHARAAN AJAIBNYA. MORPHLE. YANG BISA BERUBAH MENJADI APA PUN YANG DIIMPIKANNYA!",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51309,
+            "start_time": 1793408400,
+            "duration_sec": 1800,
+            "title": "WAKAKIBO KIDS",
+            "description": "DI DASAR GUNUNG PISANG, TEPAT DI PINGGIRAN HUTAN TROPIS FANTASI YANG DIPENUHI DENGAN BERBAGAI HEWAN LUCU DAN MENGGEMASKAN, TERLETAKLAH DESA TEMPAT TINGGAL DUA SAHABAT KITA: WAKA DAN KIBO. WAKA, SEORANG ANAK YANG GEMAR MAKAN DAN TERLIHAT SEPERTI AN",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51310,
+            "start_time": 1793410200,
+            "duration_sec": 3600,
+            "title": "TITIPO TITIPO",
+            "description": "KERETA LITTLE TITIPO YANG BARU LAHIR DI KOTA CHOO CHOO BARU SAJA LULUS UJIAN MENGEMUDI DAN SIAP BEKERJA DI DESA KERETA API. MESKIPUN TITIPO BERMIMPI MENJADI KERETA TERBAIK DI DUNIA, KEPRIBADIANNYA YANG PENASARAN MEMBUATNYA SELALU BERADA DI DALAM P",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51311,
+            "start_time": 1793413800,
+            "duration_sec": 5400,
+            "title": "KATURI",
+            "description": "KATURI ADALAH SEBUAH ACARA MENARIK TENTANG EMPAT ANAK BURUNG PEGAR YANG TUMBUH DI HUTAN ALAMI DI BAWAH PERAWATAN DAN KASIH SAYANG LEMBUT IBU FLORA. IBU FLORA SELALU MENDORONG ANAK-ANAKNYA UNTUK MENJELAJAHI DUNIA BERSAMA HEWAN LAIN DAN MEMBANTU MER",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51312,
+            "start_time": 1793419200,
+            "duration_sec": 7200,
+            "title": "PORORO, THE LITTLE PENGUIN",
+            "description": "PORORO SI PENGUIN KECIL DAN TEMAN -TEMANNYA TINGGAL DI TANAH YANG DAMAI YANG DITUTUPI SALJU DAN ES. MEREKA SEMUA MEMILIKI KEPRIBADIAN DAN MINAT YANG BERBEDA, YANG TERKADANG MENYEBABKAN SEDIKIT MASALAH DI DUNIA MUSIM DINGIN YANG TENANG. TETAPI SELA",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51313,
+            "start_time": 1793426400,
+            "duration_sec": 3600,
+            "title": "SHIMAJIRO",
+            "description": "ANIMASI SHIMAJIRO ADALAH KARAKTER UNTUK ANAK-ANAK PRASEKOLAH, YANG MENGGABUNGKAN KEKUATAN HIBURAN DENGAN MANFAAT PERKEMBANGAN AWAL UNTUK MEMBERI ANDA DAN ANAK ANDA PENGALAMAN BELAJAR YANG INOVATIF. SHIMAJIRO AKAN MENGHIBUR DAN MENDIDIK ANAK ANDA D",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51314,
+            "start_time": 1793430000,
+            "duration_sec": 3600,
+            "title": "SHUKE AND BEITA",
+            "description": "DUA TIKUS, SHUKE DAN BETA, MENJADI MITRA DAN MEMULAI PETUALANGAN YANG MENAKJUBKAN. MEREKA MEMBANTU HEWAN LAIN DENGAN HELIKOPTER DAN TANK MEREKA DAN MENERIMA CINTA DAN PERSAHABATAN SEPANJANG PERJALANAN MEREKA.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51315,
+            "start_time": 1793433600,
+            "duration_sec": 3600,
+            "title": "RAINBOW BUBBLEGEM",
+            "description": "DI DUNIA BAWAH LAUT, PUTRI DUYUNG BERNAMA PURPLE MERINDUKAN PETUALANGAN DI DARATAN DAN SECARA DIAM-DIAM MENGAMBIL RISIKO BESAR DENGAN MENGUBAH DIRINYA MENJADI MANUSIA. DENGAN BANTUAN PINK STAR, PERI PENJAGA BUBBLEGEM YANG SEDANG TERTIDUR, PURPLE B",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51316,
+            "start_time": 1793437200,
+            "duration_sec": 3600,
+            "title": "TIAN TIAN",
+            "description": "SEBUAH KELUARGA SEDERHANA DARI KOTA BESAR MEMUTUSKAN UNTUK MENINGGALKAN GEMERLAP PERKOTAAN DAN KEMBALI KE DESA DEMI ANAK MEREKA YANG TAKUT PERGI KE SEKOLAH. DI DESA, MEREKA BERINTERAKSI DENGAN TEMAN, TETANGGA, DAN HEWAN-HEWAN SEKITAR, MENYEBABKAN ",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51317,
+            "start_time": 1793440800,
+            "duration_sec": 1800,
+            "title": "ABANG L THE EXPLORER",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51318,
+            "start_time": 1793442600,
+            "duration_sec": 3600,
+            "title": "BLUEY",
+            "description": "BLUEY ADALAH SERIAL ANIMASI ASAL AUSTRALIA YANG MENGIKUTI PETUALANGAN SEHARI-HARI SEEKOR ANAK ANJING RAS BLUE HEELER BERUSIA ENAM TAHUN BERNAMA BLUEY. BERSAMA ADIKNYA, BINGO, SERTA KEDUA ORANG TUANYA, BANDIT DAN CHILLI, BLUEY MENJALANI BERBAGAI PE",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51319,
+            "start_time": 1793446200,
+            "duration_sec": 3600,
+            "title": "NEW KELUARGA SOMAT",
+            "description": "IKUTI PETUALANGAN SERU KELUARGA PAK SOMAT SAAT MEMULAI HIDUP BARU DI CITEKO! DARI MEMBANGUN WARUNG IMPIAN BU INAH, KEHEBOHAN BERTETANGGA DENGAN CEU KOKOM, HINGGA PERJUANGAN PAK SOMAT MENJADI OJEK ONLINE DEMI KELUARGA. KISAH HANGAT PENUH TAWA DAN P",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51349,
+            "start_time": 1793449800,
+            "duration_sec": 5400,
+            "title": "BIOSKOP KELUARGA INDONESIA LIBURAN (PORORO SWEET CASTLE ADVENTURE)",
+            "description": "SINTERKLAS DALAM BAHAYA! PORORO, CRONG, DAN TEMAN-TEMANNYA MENERIMA PESAN DARURAT DAN SEGERA TERBANG KE KERAJAAN DESSERT. DI SANA, MEREKA MENGHADAPI DR. CHOCOLEO, PENYIHIR AMBISIUS YANG MENGUBAH SEGALANYA MENJADI COKELAT. BERSAMA TEMAN-TEMAN BARU,",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51321,
+            "start_time": 1793455200,
+            "duration_sec": 5400,
+            "title": "POKEMON SEASON 27 HORIZON SEASON 2",
+            "description": "LIKO, ROY, DAN DOT BERGABUNG DENGAN AKADEMI NARANJA UNTUK MENGIKUTI PELATIHAN TERA TRAINING, DI MANA MEREKA HARUS MENGHADAPI BERBAGAI GYM LEADER. SELAMA PERJALANAN, MEREKA BERTEMU DENGAN TEMAN LAMA, RIVAL BARU, SERTA MENGHADAPI ANCAMAN DARI KELOMP",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51322,
+            "start_time": 1793460600,
+            "duration_sec": 5400,
+            "title": "KELUARGA SOMAT",
+            "description": "KELUARGA SOMAT  MENCERITAKAN BAHWA KITA HIDUP HARUS SALING BERDAMPINGAN DAN MEMBANTU SATU SAMA LAIN SEBAGAI MASYARAKAT MAUPUN PELAJAR.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51323,
+            "start_time": 1793466000,
+            "duration_sec": 3600,
+            "title": "PLENTIS KENTUS",
+            "description": "PLENTIS KENTUS ADALAH SEBUAH ANIMASI ANAK-ANAK ASAL INDONESIA YANG POPULER DENGAN LAGU-LAGU CERIA DAN PENUH SEMANGAT. MEREKA DICIPTAKAN SEBAGAI BENTUK INOVASI DALAM INDUSTRI MUSIK ANAK-ANAK DI INDONESIA. PLENTIS DAN KENTUS ADALAH DUA SAHABAT KARIB",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51324,
+            "start_time": 1793469600,
+            "duration_sec": 3600,
+            "title": "BEDU DAN ADUL",
+            "description": "BEDU DAN ADUL ADALAH SEBUAH SERIAL FILM ANIMASI 3D TENTANG PETUALANGAN ANAK-ANAK DI KAWASAN PINGGIRAN JAKARTA YANG MULTIKULTURAL. KARAKTER ANAK YANG SELALU INGIN TAHU MEMBUAT MEREKA INGIN SELALU BEREKSPLORASI HINGGA KADANG MENIMBULKAN KEHEBOHAN",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51325,
+            "start_time": 1793473200,
+            "duration_sec": 3600,
+            "title": "MADUN",
+            "description": "SERIAL MADUN MENCERITAKAN PERJALANAN HIDUP MADUN (16 TAHUN) DALAM MEMPERJUANGKAN CITA-CITANYA MENJADI PESEPAKBOLA. AYAHNYA, SYAFEI (50 TAHUN) KETURUNAN MEDAN SANGAT MENGINGINKAN ANAKNYA MENJADI USTADZ. KARENA ITU. SYAFEI SELALU MENGHALANGI UPAYA M",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51326,
+            "start_time": 1793476800,
+            "duration_sec": 3600,
+            "title": "JUST FOR LAUGHS",
+            "description": "SIAPAKAH YANG SEDANG JADI KORBAN LELUCON HARI INI? JUST FOR LAUGHS KEMBALI DENGAN SEJUTA KEJUTAN YANG SIAP MENGOCOK PERUT ANDA! ACARA KOMEDI IKONIK INI TERUS MENYAJIKAN LELUCON KAMERA TERSEMBUNYI YANG MAKIN KREATIF. BAYANGKAN REAKSI ANDA JIKA TIBA",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51327,
+            "start_time": 1793480400,
+            "duration_sec": 3600,
+            "title": "MINIBODS",
+            "description": "SELAMAT DATANG DI DUNIA MINIBODS! BERSAMA VERSI KECIL DARI KARAKTER ODDBODS YANG IKONIK, SAKSIKAN PETUALANGAN SERU DAN LUCU MEREKA. MELALUI BERMAIN DAN TAWA, PARA SAHABAT INI BELAJAR BEKERJA SAMA DAN MEMECAHKAN MASALAH DENGAN CARA YANG SANGAT MENG",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51328,
+            "start_time": 1793484000,
+            "duration_sec": 1800,
+            "title": "BABY ZU",
+            "description": "SAKSIKAN KESERUAN MOMO, CICI, BLU DAN GENG. MENEMANI TUMBUH KEMBANGMU, GENERASI EMAS INDONESIA UNTUK DUNIA!",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51329,
+            "start_time": 1793485800,
+            "duration_sec": 1800,
+            "title": "COCOMELON IND",
+            "description": "ANIMASI DAN LAGU 3D BERBAHASA INDONESIA, COCOMELON MENCIPTAKAN DUNIA YANG BERPUSAT PADA PENGALAMAN SEHARI-HARI ANAK KECIL.\nSELAIN MEMBANTU ANAK-ANAK PRASEKOLAH MEMPELAJARI HURUF, ANGKA, SUARA BINATANG, WARNA, DAN BANYAK LAGI. VIDEO TERSEBUT MEMBER",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51330,
+            "start_time": 1793487600,
+            "duration_sec": 3600,
+            "title": "THE FIXIES",
+            "description": "THE FIXIES ADALAH SERIAL ANIMASI RUSIA YANG MENGIKUTI PETUALANGAN PARA \"FIXIES,\" MAKHLUK KECIL YANG HIDUP DI DALAM PERANGKAT ELEKTRONIK. MEREKA MEMPERBAIKI MASALAH TEKNOLOGI SEHARI-HARI SAMBIL MENGAJARKAN PENONTON TENTANG SAINS DAN TEKNOLOGI SECAR",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51331,
+            "start_time": 1793491200,
+            "duration_sec": 3600,
+            "title": "MORPHLE",
+            "description": "LITTLE MILA MENGUBAH WAKTU BERMAIN MENJADI SERANGKAIAN PETUALANGAN YANG MENYENANGKAN DAN MENDIDIK DENGAN HEWAN PELIHARAAN AJAIBNYA. MORPHLE. YANG BISA BERUBAH MENJADI APA PUN YANG DIIMPIKANNYA!",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51332,
+            "start_time": 1793494800,
+            "duration_sec": 1800,
+            "title": "WAKAKIBO KIDS",
+            "description": "DI DASAR GUNUNG PISANG, TEPAT DI PINGGIRAN HUTAN TROPIS FANTASI YANG DIPENUHI DENGAN BERBAGAI HEWAN LUCU DAN MENGGEMASKAN, TERLETAKLAH DESA TEMPAT TINGGAL DUA SAHABAT KITA: WAKA DAN KIBO. WAKA, SEORANG ANAK YANG GEMAR MAKAN DAN TERLIHAT SEPERTI AN",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51333,
+            "start_time": 1793496600,
+            "duration_sec": 3600,
+            "title": "TITIPO TITIPO",
+            "description": "KERETA LITTLE TITIPO YANG BARU LAHIR DI KOTA CHOO CHOO BARU SAJA LULUS UJIAN MENGEMUDI DAN SIAP BEKERJA DI DESA KERETA API. MESKIPUN TITIPO BERMIMPI MENJADI KERETA TERBAIK DI DUNIA, KEPRIBADIANNYA YANG PENASARAN MEMBUATNYA SELALU BERADA DI DALAM P",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51334,
+            "start_time": 1793500200,
+            "duration_sec": 5400,
+            "title": "KATURI",
+            "description": "KATURI ADALAH SEBUAH ACARA MENARIK TENTANG EMPAT ANAK BURUNG PEGAR YANG TUMBUH DI HUTAN ALAMI DI BAWAH PERAWATAN DAN KASIH SAYANG LEMBUT IBU FLORA. IBU FLORA SELALU MENDORONG ANAK-ANAKNYA UNTUK MENJELAJAHI DUNIA BERSAMA HEWAN LAIN DAN MEMBANTU MER",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51335,
+            "start_time": 1793505600,
+            "duration_sec": 7200,
+            "title": "PORORO, THE LITTLE PENGUIN",
+            "description": "PORORO SI PENGUIN KECIL DAN TEMAN -TEMANNYA TINGGAL DI TANAH YANG DAMAI YANG DITUTUPI SALJU DAN ES. MEREKA SEMUA MEMILIKI KEPRIBADIAN DAN MINAT YANG BERBEDA, YANG TERKADANG MENYEBABKAN SEDIKIT MASALAH DI DUNIA MUSIM DINGIN YANG TENANG. TETAPI SELA",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51336,
+            "start_time": 1793512800,
+            "duration_sec": 3600,
+            "title": "SHIMAJIRO",
+            "description": "ANIMASI SHIMAJIRO ADALAH KARAKTER UNTUK ANAK-ANAK PRASEKOLAH, YANG MENGGABUNGKAN KEKUATAN HIBURAN DENGAN MANFAAT PERKEMBANGAN AWAL UNTUK MEMBERI ANDA DAN ANAK ANDA PENGALAMAN BELAJAR YANG INOVATIF. SHIMAJIRO AKAN MENGHIBUR DAN MENDIDIK ANAK ANDA D",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51337,
+            "start_time": 1793516400,
+            "duration_sec": 3600,
+            "title": "SHUKE AND BEITA",
+            "description": "DUA TIKUS, SHUKE DAN BETA, MENJADI MITRA DAN MEMULAI PETUALANGAN YANG MENAKJUBKAN. MEREKA MEMBANTU HEWAN LAIN DENGAN HELIKOPTER DAN TANK MEREKA DAN MENERIMA CINTA DAN PERSAHABATAN SEPANJANG PERJALANAN MEREKA.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51338,
+            "start_time": 1793520000,
+            "duration_sec": 3600,
+            "title": "RAINBOW BUBBLEGEM",
+            "description": "DI DUNIA BAWAH LAUT, PUTRI DUYUNG BERNAMA PURPLE MERINDUKAN PETUALANGAN DI DARATAN DAN SECARA DIAM-DIAM MENGAMBIL RISIKO BESAR DENGAN MENGUBAH DIRINYA MENJADI MANUSIA. DENGAN BANTUAN PINK STAR, PERI PENJAGA BUBBLEGEM YANG SEDANG TERTIDUR, PURPLE B",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51339,
+            "start_time": 1793523600,
+            "duration_sec": 3600,
+            "title": "TIAN TIAN",
+            "description": "SEBUAH KELUARGA SEDERHANA DARI KOTA BESAR MEMUTUSKAN UNTUK MENINGGALKAN GEMERLAP PERKOTAAN DAN KEMBALI KE DESA DEMI ANAK MEREKA YANG TAKUT PERGI KE SEKOLAH. DI DESA, MEREKA BERINTERAKSI DENGAN TEMAN, TETANGGA, DAN HEWAN-HEWAN SEKITAR, MENYEBABKAN ",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51340,
+            "start_time": 1793527200,
+            "duration_sec": 1800,
+            "title": "ABANG L THE EXPLORER",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51341,
+            "start_time": 1793529000,
+            "duration_sec": 1800,
+            "title": "BLUEY",
+            "description": "BLUEY ADALAH SERIAL ANIMASI ASAL AUSTRALIA YANG MENGIKUTI PETUALANGAN SEHARI-HARI SEEKOR ANAK ANJING RAS BLUE HEELER BERUSIA ENAM TAHUN BERNAMA BLUEY. BERSAMA ADIKNYA, BINGO, SERTA KEDUA ORANG TUANYA, BANDIT DAN CHILLI, BLUEY MENJALANI BERBAGAI PE",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51342,
+            "start_time": 1793530800,
+            "duration_sec": 10800,
+            "title": "MENTARITV ISTIMEW4",
+            "description": "HAPPY BIRTHDAY MENTARITV... KAKAK DAN ADIK SAKSIKAN YUK SIARAN LANGSUNG KEMERIAHAN PERAYAAN ULANG TAHUN KE 4 MENTARITV ISTIMEW4",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51343,
+            "start_time": 1793541600,
+            "duration_sec": 5400,
+            "title": "POKEMON SEASON 27 HORIZON SEASON 2",
+            "description": "LIKO, ROY, DAN DOT BERGABUNG DENGAN AKADEMI NARANJA UNTUK MENGIKUTI PELATIHAN TERA TRAINING, DI MANA MEREKA HARUS MENGHADAPI BERBAGAI GYM LEADER. SELAMA PERJALANAN, MEREKA BERTEMU DENGAN TEMAN LAMA, RIVAL BARU, SERTA MENGHADAPI ANCAMAN DARI KELOMP",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51344,
+            "start_time": 1793547000,
+            "duration_sec": 5400,
+            "title": "KELUARGA SOMAT",
+            "description": "KELUARGA SOMAT  MENCERITAKAN BAHWA KITA HIDUP HARUS SALING BERDAMPINGAN DAN MEMBANTU SATU SAMA LAIN SEBAGAI MASYARAKAT MAUPUN PELAJAR.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51345,
+            "start_time": 1793552400,
+            "duration_sec": 3600,
+            "title": "PLENTIS KENTUS",
+            "description": "PLENTIS KENTUS ADALAH SEBUAH ANIMASI ANAK-ANAK ASAL INDONESIA YANG POPULER DENGAN LAGU-LAGU CERIA DAN PENUH SEMANGAT. MEREKA DICIPTAKAN SEBAGAI BENTUK INOVASI DALAM INDUSTRI MUSIK ANAK-ANAK DI INDONESIA. PLENTIS DAN KENTUS ADALAH DUA SAHABAT KARIB",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51346,
+            "start_time": 1793556000,
+            "duration_sec": 3600,
+            "title": "BEDU DAN ADUL",
+            "description": "BEDU DAN ADUL ADALAH SEBUAH SERIAL FILM ANIMASI 3D TENTANG PETUALANGAN ANAK-ANAK DI KAWASAN PINGGIRAN JAKARTA YANG MULTIKULTURAL. KARAKTER ANAK YANG SELALU INGIN TAHU MEMBUAT MEREKA INGIN SELALU BEREKSPLORASI HINGGA KADANG MENIMBULKAN KEHEBOHAN",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51347,
+            "start_time": 1793559600,
+            "duration_sec": 3600,
+            "title": "MADUN",
+            "description": "SERIAL MADUN MENCERITAKAN PERJALANAN HIDUP MADUN (16 TAHUN) DALAM MEMPERJUANGKAN CITA-CITANYA MENJADI PESEPAKBOLA. AYAHNYA, SYAFEI (50 TAHUN) KETURUNAN MEDAN SANGAT MENGINGINKAN ANAKNYA MENJADI USTADZ. KARENA ITU. SYAFEI SELALU MENGHALANGI UPAYA M",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51348,
+            "start_time": 1793563200,
+            "duration_sec": 3600,
+            "title": "JUST FOR LAUGHS",
+            "description": "SIAPAKAH YANG SEDANG JADI KORBAN LELUCON HARI INI? JUST FOR LAUGHS KEMBALI DENGAN SEJUTA KEJUTAN YANG SIAP MENGOCOK PERUT ANDA! ACARA KOMEDI IKONIK INI TERUS MENYAJIKAN LELUCON KAMERA TERSEMBUNYI YANG MAKIN KREATIF. BAYANGKAN REAKSI ANDA JIKA TIBA",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51350,
+            "start_time": 1793566800,
+            "duration_sec": 3600,
+            "title": "ODDBODS",
+            "description": "GENG FUSE, NEWT, POGO, BUBBLES, JEFF, ZEE, DAN SLICK YANG UNIK DAN JENAKA. BERMAIN DAN MENJALANI HIDUP MEREKA.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51351,
+            "start_time": 1793570400,
+            "duration_sec": 1800,
+            "title": "LITTLE ANGEL",
+            "description": "BERNYANYILAH BERSAMA BAYI JOHN DAN KELUARGANYA DENGAN LAGU ANAK-ANAK KLASIK DAN LAGU-LAGU BARU YANG MENARIK YANG MEMBANTU ANAK-ANAK PRASEKOLAH MEMPELAJARI SEMUA TENTANG DUNIA.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51352,
+            "start_time": 1793572200,
+            "duration_sec": 1800,
+            "title": "COCOMELON IND",
+            "description": "ANIMASI DAN LAGU 3D BERBAHASA INDONESIA, COCOMELON MENCIPTAKAN DUNIA YANG BERPUSAT PADA PENGALAMAN SEHARI-HARI ANAK KECIL.\nSELAIN MEMBANTU ANAK-ANAK PRASEKOLAH MEMPELAJARI HURUF, ANGKA, SUARA BINATANG, WARNA, DAN BANYAK LAGI. VIDEO TERSEBUT MEMBER",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51353,
+            "start_time": 1793574000,
+            "duration_sec": 3600,
+            "title": "NUMBERBLOCKS",
+            "description": "NUMBERBLOCKS ADALAH SERIAL ANIMASI PENDIDIKAN UNTUK ANAK-ANAK PRASEKOLAH YANG MENGAJARKAN KONSEP MATEMATIKA MELALUI KARAKTER BLOK ANGKA YANG HIDUP DAN BERPETUALANG. SETIAP BLOK ANGKA MEMILIKI NILAI NUMERIKNYA SENDIRI DAN MEMILIKI KEPRIBADIAN YANG ",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51354,
+            "start_time": 1793577600,
+            "duration_sec": 3600,
+            "title": "PINKFONG & FRIENDS",
+            "description": "PROGRAM ANAK-ANAK YANG MENAMPILKAN KARAKTER-KARAKTER YANG MEMBAWA KECERIAAN DAN EDUKASI. PROGRAM INI BERFOKUS PADA EDUKASI ANAK MELALUI LAGU-LAGU CERIA DAN CERITA YANG MENARIK. AYO BERGEMBIRA BERSAMA PINKFONG, BABY SHARK, BEBEFINN DAN TEMAN-TEMAN!",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51355,
+            "start_time": 1793581200,
+            "duration_sec": 5400,
+            "title": "TAYO, THE LITTLE BUS",
+            "description": "DI KOTA BESAR DI MANA BERBAGAI KENDARAAN DENGAN SENANG HATI HIDUP BERSAMA, BUS KECIL TAYO BARU SAJA MULAI MEMPELAJARI RUTENYA DI KOTA. ADA BANYAK HAL YANG HARUS DIPELAJARI TAYO. TAYO DAN TEMAN-TEMANNYA, ROGI, LANI DAN GANI SALING MEMBANTU UNTUK ME",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 51356,
+            "start_time": 1793586600,
+            "duration_sec": 5400,
+            "title": "KATURI",
+            "description": "KATURI ADALAH SEBUAH ACARA MENARIK TENTANG EMPAT ANAK BURUNG PEGAR YANG TUMBUH DI HUTAN ALAMI DI BAWAH PERAWATAN DAN KASIH SAYANG LEMBUT IBU FLORA. IBU FLORA SELALU MENDORONG ANAK-ANAKNYA UNTUK MENJELAJAHI DUNIA BERSAMA HEWAN LAIN DAN MEMBANTU MER",
+            "lang": "ind",
+            "scrambled": false
+          }
+        ]
+      },
+      {
+        "service_id": 107,
+        "channel_name": "KOMPASTV HD",
+        "last_updated": 1793392765,
+        "events": [
+          {
+            "event_id": 36291,
+            "start_time": 1793372400,
+            "duration_sec": 3600,
+            "title": "KOMPAS MALAM",
+            "description": "Program berita penutup hari di Kompas TV yang menyajikan rangkuman peristiwa secara reflektif, tenang, namun tetap kritis. Program ini hadir untuk memberikan informasi penting yang terjadi sejak pagi hingga menjelang tengah malam",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36292,
+            "start_time": 1793376000,
+            "duration_sec": 1800,
+            "title": "KOMPAS SPORT",
+            "description": "Acara yang menampilkan berita olahraga baik dalam negeri maupun mancanegara",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36293,
+            "start_time": 1793377800,
+            "duration_sec": 1799,
+            "title": "KILAS KOMPAS",
+            "description": "Program berita menyuguhkan perkembangan terbaru dan berbagai peristiwa penting yang terjadi di seluruh Indonesia.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36278,
+            "start_time": 1793318400,
+            "duration_sec": 9000,
+            "title": "SAPA INDONESIA PAGI",
+            "description": "Berita dan laporan sejumlah peristiwa terhangat di berbagai belahan dunia",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36279,
+            "start_time": 1793327400,
+            "duration_sec": 3600,
+            "title": "BERITA UTAMA",
+            "description": "Program berita reguler di Kompas TV yang dirancang untuk menyampaikan rentetan peristiwa paling penting dan terbaru dari seluruh penjuru Indonesia dan dunia",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36280,
+            "start_time": 1793331000,
+            "duration_sec": 1800,
+            "title": "BORGOL",
+            "description": "Acara yang menyuguhkan kumpulan berita - berita kriminal yang terjadi di Indonesia",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36281,
+            "start_time": 1793332800,
+            "duration_sec": 7200,
+            "title": "KOMPAS SIANG",
+            "description": "Program berita di siang hari yang memberikan informasi krusial mengenai isu-isu yang sedang berkembang secara terkini",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36282,
+            "start_time": 1793340000,
+            "duration_sec": 3600,
+            "title": "SAPA INDONESIA SIANG",
+            "description": "Program berita di siang hari yang memberikan informasi krusial mengenai isu-isu yang sedang berkembang secara terkini",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36283,
+            "start_time": 1793343600,
+            "duration_sec": 1800,
+            "title": "KOMPAS SPORT",
+            "description": "Acara yang menampilkan berita olahraga baik dalam negeri maupun mancanegara",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36284,
+            "start_time": 1793345400,
+            "duration_sec": 1800,
+            "title": "JURNAL NUSANTARA",
+            "description": "Program yang meliput berbagai peristiwa di beberapa daerah di Indonesia",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36285,
+            "start_time": 1793347200,
+            "duration_sec": 1800,
+            "title": "JURNAL MERAH PUTIH",
+            "description": "Program yang membahas tentang kebijakan Pemerintahan Prabowo-Gibran",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36286,
+            "start_time": 1793349000,
+            "duration_sec": 1800,
+            "title": "BORGOL",
+            "description": "Acara yang menyuguhkan kumpulan berita - berita kriminal yang terjadi di Indonesia",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36287,
+            "start_time": 1793350800,
+            "duration_sec": 5400,
+            "title": "KOMPAS PETANG",
+            "description": "Program berita di Kompas TV yang ditayangkan setiap sore. Program ini menyajikan berita terkini seputar peristiwa, politik, hukum, kriminal, hingga humaniora.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36288,
+            "start_time": 1793356200,
+            "duration_sec": 5400,
+            "title": "SAPA INDONESIA MALAM",
+            "description": "Informasi terkini seputar dunia politik, ekonomi, kriminal, olahraga, serta hiburan dari dalam dan luar negeri.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36289,
+            "start_time": 1793361600,
+            "duration_sec": 3599,
+            "title": "BERITA UTAMA",
+            "description": "Informasi terhangat yang berkaitan dengan isu-isu politik dan ekonomi",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 36290,
+            "start_time": 1793367000,
+            "duration_sec": 5400,
+            "title": "BOLA LIAR",
+            "description": "Program diskusi bersama beberapa narasumber yang membahas tema tertentu secara mendalam",
+            "lang": "ind",
+            "scrambled": false
+          }
+        ]
+      },
+      {
+        "service_id": 30266,
+        "channel_name": "SCTV HD",
+        "last_updated": 1793392765,
+        "events": [
+          {
+            "event_id": 53541,
+            "start_time": 1793394000,
+            "duration_sec": 1620,
+            "title": "BARAKALLAH",
+            "description": "Ceramah islami penuh makna. Tayang setiap selasa - minggu, mulai pukul 04.00 WIB",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53629,
+            "start_time": 1793354100,
+            "duration_sec": 5280,
+            "title": "SINETRON BIARKAN HATI BICARA",
+            "description": "Mimpi bahagia Arina (Febby Rastanty) berubah jadi ancaman saat hari pernikahannya bersama Reno (Randy Jhon) dihancurkan oleh Fico (Rangga Azof) yang dikuasai dendam keluarga! saksikan kisahnya dalam sinetron \"biarkan hati bicara\"",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53630,
+            "start_time": 1793359380,
+            "duration_sec": 5220,
+            "title": "SINETRON CINTA SELUAS SAMUDRA",
+            "description": "Sinetron Cinta Seluas Samudra bercerita tentang pernikahan palsu yang terpaksa dijalani Andrian dengan asisten rumah tangganya, Maya, demi menyelamatkan nama baik keluarga pasca-kaburnya sang pengantin asli, perlahan menumbuhkan cinta tulus yang d",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53635,
+            "start_time": 1793391120,
+            "duration_sec": 2880,
+            "title": "SINEMA DINI HARI \"TUNGGU AKU DI YOGYA\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53631,
+            "start_time": 1793364600,
+            "duration_sec": 6000,
+            "title": "SINETRON WAJAH CINTA YANG LAIN",
+            "description": "Rasa sakit dan cinta di ingatakanku akan terus kekal. Dan Sekarang, cinta itu kembali dengan wajah yang lain..? \"Wajah Cinta Yang lain\" dibintangi oleh Dinda Kirana, Ibrahim Risyad, Oka Antara, Aulia Sarah, Andi Anissa, dan Andri Mashadi.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53579,
+            "start_time": 1793370600,
+            "duration_sec": 6120,
+            "title": "SINETRON KESETIAAN",
+            "description": "Nadya (ANGGIKA BOLSTERLI), seorang dosen sukses, telah menikah dengan Pram (OMAR DANIEL). Setelah Pram kehilangan pekerjaan dan berkali-kali gagal membangun bisnis karena insiden kecelakaan di masa lalu, Nadya menjadi tulang punggung keluarga. Mer",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53632,
+            "start_time": 1793376720,
+            "duration_sec": 6420,
+            "title": "FTV PRIMETIME \"BIARKAN SEMESTA BEKERJA AKU DAN KAMU LOVE- LOVEAN AJA\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53633,
+            "start_time": 1793383140,
+            "duration_sec": 3960,
+            "title": "FTV UTAMA \"UNBOXING HATI JURAGAN KAMBING\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53649,
+            "start_time": 1793387100,
+            "duration_sec": 4020,
+            "title": "SINEMA MALAM \"1/2 CINTAKU UNTUKMU, 1/2 UNTUKNYA\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53654,
+            "start_time": 1793395620,
+            "duration_sec": 1620,
+            "title": "BUSER",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53655,
+            "start_time": 1793397240,
+            "duration_sec": 3960,
+            "title": "LIPUTAN 6 PAGI - LIVE",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53544,
+            "start_time": 1793401200,
+            "duration_sec": 4200,
+            "title": "HALO SELEBRITI",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53639,
+            "start_time": 1793405400,
+            "duration_sec": 3780,
+            "title": "TIBA TIBA KUIS",
+            "description": "Kuis kejutan ini akan hadir setiap hari  . Para pembawa acara akan datang secara tiba-tiba ke lokasi pemirsa tanpa pemberitahuan untuk memberikan tantangan games yang lucu dan menyentuh. Dipandu oleh Baim Wong, Asri Welas, dan Anna Jobling. Saksik",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53667,
+            "start_time": 1793409180,
+            "duration_sec": 5700,
+            "title": "FTV PAGI SPESIAL \"LOVE LANGUAGE-KU PADAMU ALL YOU CAN EAT\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53657,
+            "start_time": 1793414880,
+            "duration_sec": 7140,
+            "title": "SCTV FTV PAGI \"ISI BENSIN SAMPE FULL, MBA ASDOS SO BEAUTIFUL\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53658,
+            "start_time": 1793422020,
+            "duration_sec": 2340,
+            "title": "LIPUTAN 6 SIANG - LIVE",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53659,
+            "start_time": 1793424360,
+            "duration_sec": 7740,
+            "title": "FILM LAYAR LEBAR \"KAPAL GOYANG KAPTEN\"",
+            "description": "Para perompak amatiran, Daniel (Ge Pamungkas), Cakka (Muhadkly Acho) dan Bertus (Mamat Alkatiri) yang terpaksa membajak sebuah kapal wisata di perairan Maluku untuk pertama kalinya. Akibat sebuah kebodohan, mereka justru kehilangan hasil rampokan ",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53660,
+            "start_time": 1793432100,
+            "duration_sec": 8700,
+            "title": "FILM LAYAR LEBAR \"MODAL NEKAD\"",
+            "description": "Film yang menceritakan tentang Tiga bersaudara, Saipul (Gading Marten), Jamal (Tarra Budiman), dan Marwan (Fatih Unru) terpaksa akur kembali untuk melunasi utang tagihan rumah sakit ayahnya. Dengan modal nekat, mereka memutuskan untuk mencuri TV d",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53605,
+            "start_time": 1793440800,
+            "duration_sec": 5280,
+            "title": "SINETRON BIARKAN HATI BICARA",
+            "description": "Mimpi bahagia Arina (Febby Rastanty) berubah jadi ancaman saat hari pernikahannya bersama Reno (Randy Jhon) dihancurkan oleh Fico (Rangga Azof) yang dikuasai dendam keluarga! saksikan kisahnya dalam sinetron \"biarkan hati bicara\"",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53661,
+            "start_time": 1793446080,
+            "duration_sec": 4980,
+            "title": "SINETRON CINTA SELUAS SAMUDRA",
+            "description": "Sinetron Cinta Seluas Samudra bercerita tentang pernikahan palsu yang terpaksa dijalani Andrian dengan asisten rumah tangganya, Maya, demi menyelamatkan nama baik keluarga pasca-kaburnya sang pengantin asli, perlahan menumbuhkan cinta tulus yang d",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53662,
+            "start_time": 1793451060,
+            "duration_sec": 5880,
+            "title": "SINETRON WAJAH CINTA YANG LAIN",
+            "description": "Rasa sakit dan cinta di ingatakanku akan terus kekal. Dan Sekarang, cinta itu kembali dengan wajah yang lain..? \"Wajah Cinta Yang lain\" dibintangi oleh Dinda Kirana, Ibrahim Risyad, Oka Antara, Aulia Sarah, Andi Anissa, dan Andri Mashadi.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53663,
+            "start_time": 1793456940,
+            "duration_sec": 6180,
+            "title": "SINETRON KESETIAAN",
+            "description": "Nadya (ANGGIKA BOLSTERLI), seorang dosen sukses, telah menikah dengan Pram (OMAR DANIEL). Setelah Pram kehilangan pekerjaan dan berkali-kali gagal membangun bisnis karena insiden kecelakaan di masa lalu, Nadya menjadi tulang punggung keluarga. Mer",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53664,
+            "start_time": 1793463120,
+            "duration_sec": 3180,
+            "title": "FTV PRIMETIME \"SI PALING RENANG PANTAS BANYAK GAYA\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53665,
+            "start_time": 1793466300,
+            "duration_sec": 8580,
+            "title": "SPURS VS CRYSTAL PALACE - PREMIER LEAGUE - LIVE",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53666,
+            "start_time": 1793474880,
+            "duration_sec": 2820,
+            "title": "SINEMA MALAM \"MY BEST FRIEND'S WEDDING\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53607,
+            "start_time": 1793477700,
+            "duration_sec": 2700,
+            "title": "SINEMA DINI HARI \"SI CANTIK KETEMU CINTA\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53556,
+            "start_time": 1793480400,
+            "duration_sec": 1800,
+            "title": "BARAKALLAH",
+            "description": "Ceramah islami penuh makna. Tayang setiap selasa - minggu, mulai pukul 04.00 WIB",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53557,
+            "start_time": 1793482200,
+            "duration_sec": 1800,
+            "title": "BUSER",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53558,
+            "start_time": 1793484000,
+            "duration_sec": 3600,
+            "title": "LIPUTAN 6 PAGI - LIVE",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53559,
+            "start_time": 1793487600,
+            "duration_sec": 1800,
+            "title": "POINT OF VIEW",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53560,
+            "start_time": 1793489400,
+            "duration_sec": 2400,
+            "title": "HALO SELEBRITI",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53643,
+            "start_time": 1793491800,
+            "duration_sec": 3840,
+            "title": "TIBA TIBA KUIS",
+            "description": "Kuis kejutan ini akan hadir setiap hari  . Para pembawa acara akan datang secara tiba-tiba ke lokasi pemirsa tanpa pemberitahuan untuk memberikan tantangan games yang lucu dan menyentuh. Dipandu oleh Baim Wong, Asri Welas, dan Anna Jobling. Saksik",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53668,
+            "start_time": 1793495640,
+            "duration_sec": 6360,
+            "title": "FTV PAGI SPESIAL \"SATU MIMPI BEDA PROFESI SATU CINTA\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53637,
+            "start_time": 1793502000,
+            "duration_sec": 5400,
+            "title": "SCTV FTV PAGI \"KAMU GAK SAYANG AKU, AWAS ITU HOAX\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53644,
+            "start_time": 1793507400,
+            "duration_sec": 1860,
+            "title": "LIPUTAN 6 SIANG - LIVE",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53645,
+            "start_time": 1793509260,
+            "duration_sec": 2640,
+            "title": "FTV SIANG SPESIAL \"PANGERAN YANG MENYAMAR\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53646,
+            "start_time": 1793511900,
+            "duration_sec": 9000,
+            "title": "FILM LAYAR LEBAR \"1 KAKAK 7 PONAKAN\"",
+            "description": "Film yang berkisah tentang tragedi yang menimpa keluarga seorang mahasiswa arsitektur yang sedang menanti kelulusannya. Dibintangi oleh Chicco Kurniawan, Amanda Rawles, Niken Anjani, Ringgo Agus Rahman, dll. Saksikan,  hanya di SCTV.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53647,
+            "start_time": 1793520900,
+            "duration_sec": 6300,
+            "title": "FILM LAYAR LEBAR \"DILAN 1990 EXTENDED\"",
+            "description": "Film Dilan 1990 bercerita tentang pertemuan yang dialami oleh dua remaja yang masih sekolah di SMA. Film ini mengangkat sebuah kisah romansa remaja SMA di Bandung yang bernama Dilan (Iqbaal Ramadhan) dan Milea (Vanesha Prescilla).Awalnya, Dilan da",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53608,
+            "start_time": 1793527200,
+            "duration_sec": 4500,
+            "title": "SINETRON BIARKAN HATI BICARA",
+            "description": "Mimpi bahagia Arina (Febby Rastanty) berubah jadi ancaman saat hari pernikahannya bersama Reno (Randy Jhon) dihancurkan oleh Fico (Rangga Azof) yang dikuasai dendam keluarga! saksikan kisahnya dalam sinetron \"biarkan hati bicara\"",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53567,
+            "start_time": 1793531700,
+            "duration_sec": 6300,
+            "title": "SINETRON CINTA SELUAS SAMUDRA",
+            "description": "Sinetron Cinta Seluas Samudra bercerita tentang pernikahan palsu yang terpaksa dijalani Andrian dengan asisten rumah tangganya, Maya, demi menyelamatkan nama baik keluarga pasca-kaburnya sang pengantin asli, perlahan menumbuhkan cinta tulus yang d",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53568,
+            "start_time": 1793538000,
+            "duration_sec": 5400,
+            "title": "SINETRON WAJAH CINTA YANG LAIN",
+            "description": "Rasa sakit dan cinta di ingatakanku akan terus kekal. Dan Sekarang, cinta itu kembali dengan wajah yang lain..? \"Wajah Cinta Yang lain\" dibintangi oleh Dinda Kirana, Ibrahim Risyad, Oka Antara, Aulia Sarah, Andi Anissa, dan Andri Mashadi.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53583,
+            "start_time": 1793543400,
+            "duration_sec": 7200,
+            "title": "SINETRON KESETIAAN",
+            "description": "Nadya (ANGGIKA BOLSTERLI), seorang dosen sukses, telah menikah dengan Pram (OMAR DANIEL). Setelah Pram kehilangan pekerjaan dan berkali-kali gagal membangun bisnis karena insiden kecelakaan di masa lalu, Nadya menjadi tulang punggung keluarga. Mer",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53570,
+            "start_time": 1793550600,
+            "duration_sec": 7200,
+            "title": "LIVERPOOL VS ARSENAL - PREMIER LEAGUE - LIVE",
+            "description": "",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53652,
+            "start_time": 1793557800,
+            "duration_sec": 5400,
+            "title": "SINEMA MALAM \"CINTA OBAT PATAH HATI\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          },
+          {
+            "event_id": 53653,
+            "start_time": 1793563200,
+            "duration_sec": 3599,
+            "title": "SINEMA DINI HARI \"SATU CINTA YANG KUPERCAYA\"",
+            "description": "Film televisi yang mengangkat kisah romantisme kehidupan dengan konflik yang menarik. Tayang setiap hari.",
+            "lang": "ind",
+            "scrambled": false
+          }
+        ]
+      }
+    ]
   },
   "cas": {
     "enabled": false,

@@ -192,10 +192,11 @@ void web_manager_sync_worker(int adapter_idx) {
         fprintf(fp, "# idle\n");
     } else {
         for (int i = 0; i < active_streams; i++) {
+            const char *proto = streams_for_ad[i].is_rtp ? "" : "/udp";
             if (streams_for_ad[i].service_id > 0) {
-                fprintf(fp, "%s:%d 1 %d/dvb/epg\n", streams_for_ad[i].ip, streams_for_ad[i].port, streams_for_ad[i].service_id);
+                fprintf(fp, "%s:%d%s 1 %d/dvb/epg\n", streams_for_ad[i].ip, streams_for_ad[i].port, proto, streams_for_ad[i].service_id);
             } else {
-                fprintf(fp, "%s:%d 1 0\n", streams_for_ad[i].ip, streams_for_ad[i].port);
+                fprintf(fp, "%s:%d%s 1 0\n", streams_for_ad[i].ip, streams_for_ad[i].port, proto);
             }
         }
     }
@@ -750,6 +751,7 @@ bool web_manager_add_stream(const web_stream_config_t *stream) {
                 p_output->config.psz_displayname = strdup(stream->name[0] ? stream->name : stream->id);
                 p_output->b_pacing = stream->pacing;
                 snprintf(p_output->sz_stream_id, sizeof(p_output->sz_stream_id), "%s", stream->id);
+                p_output->config.i_sid = stream->service_id;
                 output_Change(p_output, &config);
                 demux_Change(p_output, &config);
             }
