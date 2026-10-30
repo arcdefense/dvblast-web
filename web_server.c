@@ -2,7 +2,6 @@
 #include "web_state.h"
 #include "web_manager.h"
 #include "web_ui_embed.h"
-#include "softcam_csa.h"
 #include "modules/softcam/softcam.h"
 #include "modules/cas/cas.h"
 #include "modules/http_play/http_play.h"
@@ -101,7 +100,7 @@ static int handle_get_request(struct MHD_Connection *conn, const char *url) {
     /* SoftCAM Keys */
     if (strcmp(url, "/api/v1/softcam") == 0 || strcmp(url, "/api/v1/descramble/keys") == 0 ||
         strcmp(url, "/api/v1/modules/softcam") == 0) {
-        return send_json(conn, 200, softcam_csa_to_json());
+        return send_json(conn, 200, softcam_to_json());
     }
 
     /* Module Configurations */
@@ -404,7 +403,7 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
             json_decref(payload);
             return send_json_error(conn, 400, "Missing 'id' or 'key'");
         }
-        bool ok = softcam_csa_set_key(id, nm, sid, key, en);
+        bool ok = softcam_set_key(id, nm, sid, key, en);
         web_state_save_json(NULL);
         json_decref(payload);
         return ok ? send_json_ok(conn, "SoftCAM key saved") : send_json_error(conn, 500, "Failed to set SoftCAM key");
@@ -420,7 +419,7 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
             json_decref(payload);
             return send_json_error(conn, 400, "Missing key 'id'");
         }
-        bool ok = softcam_csa_del_key(id);
+        bool ok = softcam_del_key(id);
         web_state_save_json(NULL);
         json_decref(payload);
         return ok ? send_json_ok(conn, "SoftCAM key deleted") : send_json_error(conn, 404, "Key not found");

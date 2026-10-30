@@ -1,6 +1,6 @@
 #include "web_manager.h"
 #include "dvblast.h"
-#include "softcam_csa.h"
+#include "modules/softcam/softcam.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -700,7 +700,7 @@ bool web_manager_add_stream(const web_stream_config_t *stream) {
 
     /* Register SoftCAM BISS key if provided */
     if (stream->biss_key[0] && stream->service_id > 0) {
-        softcam_csa_set_key(stream->id, stream->name, stream->service_id, stream->biss_key, true);
+        softcam_set_key(stream->id, stream->name, stream->service_id, stream->biss_key, true);
     }
 
     if (stream->adapter_idx == i_adapter) {

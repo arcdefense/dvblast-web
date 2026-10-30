@@ -37,7 +37,7 @@
 #include <ev.h>
 
 #include "dvblast.h"
-#include "softcam_csa.h"
+#include "modules/softcam/softcam.h"
 #include "modules/http_play/http_play.h"
 #include "modules/hls/hls.h"
 #include "web_state.h"
@@ -505,7 +505,7 @@ void output_Put( output_t *p_output, block_t *p_block )
 
     /* Modular Streaming & Descramble Hooks */
     if ( p_output->config.i_sid ) {
-        softcam_csa_descramble( p_output->config.i_sid, p_block->p_ts );
+        softcam_descramble( p_output->config.i_sid, p_block->p_ts );
         http_play_push_packet( p_output->config.i_sid, p_block->p_ts, 188 );
         hls_push_packet( p_output->config.i_sid, p_block->p_ts, 188 );
     }
