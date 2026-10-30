@@ -21,30 +21,37 @@ static auth_session_t g_sessions[MAX_AUTH_SESSIONS];
 static int g_num_sessions = 0;
 static pthread_mutex_t g_auth_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static const char b64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
 static int base64_decode(const char *in, unsigned char *out, int max_out) {
+    if (!in || !out || max_out <= 0) return 0;
+    static const int b64_val[128] = {
+        ['A']=0, ['B']=1, ['C']=2, ['D']=3, ['E']=4, ['F']=5, ['G']=6, ['H']=7,
+        ['I']=8, ['J']=9, ['K']=10,['L']=11,['M']=12,['N']=13,['O']=14,['P']=15,
+        ['Q']=16,['R']=17,['S']=18,['T']=19,['U']=20,['V']=21,['W']=22,['X']=23,
+        ['Y']=24,['Z']=25,['a']=26,['b']=27,['c']=28,['d']=29,['e']=30,['f']=31,
+        ['g']=32,['h']=33,['i']=34,['j']=35,['k']=36,['l']=37,['m']=38,['n']=39,
+        ['o']=40,['p']=41,['q']=42,['r']=43,['s']=44,['t']=45,['u']=46,['v']=47,
+        ['w']=48,['x']=49,['y']=50,['z']=51,['0']=52,['1']=53,['2']=54,['3']=55,
+        ['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63
+    };
+
     int len = strlen(in);
     int i = 0, j = 0;
-    int b64_rev[256];
-    memset(b64_rev, -1, sizeof(b64_rev));
-    for (int k = 0; k < 64; k++) b64_rev[(unsigned char)b64_table[k]] = k;
+    while (i + 3 < len && j < max_out) {
+        unsigned char c0 = (unsigned char)in[i++];
+        unsigned char c1 = (unsigned char)in[i++];
+        unsigned char c2 = (unsigned char)in[i++];
+        unsigned char c3 = (unsigned char)in[i++];
 
-    while (i < len && j < max_out) {
-        while (i < len && (b64_rev[(unsigned char)in[i]] < 0 && in[i] != '=')) i++;
-        if (i >= len) break;
+        uint32_t b0 = (c0 < 128) ? b64_val[c0] : 0;
+        uint32_t b1 = (c1 < 128) ? b64_val[c1] : 0;
+        uint32_t b2 = (c2 == '=') ? 0 : ((c2 < 128) ? b64_val[c2] : 0);
+        uint32_t b3 = (c3 == '=') ? 0 : ((c3 < 128) ? b64_val[c3] : 0);
 
-        int c1 = b64_rev[(unsigned char)in[i++]];
-        int c2 = (i < len) ? b64_rev[(unsigned char)in[i++]] : -1;
-        int c3 = (i < len) ? ((in[i] == '=') ? 0 : b64_rev[(unsigned char)in[i]]) : -1;
-        if (in[i] == '=') i++;
-        int c4 = (i < len) ? ((in[i] == '=') ? 0 : b64_rev[(unsigned char)in[i]]) : -1;
-        if (in[i] == '=') i++;
+        uint32_t triple = (b0 << 18) | (b1 << 12) | (b2 << 6) | b3;
 
-        if (c1 < 0 || c2 < 0) break;
-        out[j++] = (unsigned char)((c1 << 2) | (c2 >> 4));
-        if (c3 >= 0 && j < max_out) out[j++] = (unsigned char)(((c2 & 0x0F) << 4) | (c3 >> 2));
-        if (c4 >= 0 && j < max_out) out[j++] = (unsigned char)(((c3 & 0x03) << 6) | c4);
+        if (j < max_out) out[j++] = (triple >> 16) & 0xFF;
+        if (c2 != '=' && j < max_out) out[j++] = (triple >> 8) & 0xFF;
+        if (c3 != '=' && j < max_out) out[j++] = triple & 0xFF;
     }
     return j;
 }
@@ -137,6 +144,8 @@ auth_result_t http_auth_check(struct MHD_Connection *conn, const char *url, cons
     if (strcmp(url, "/") == 0 ||
         strcmp(url, "/index.html") == 0 ||
         strcmp(url, "/favicon.ico") == 0 ||
+        strcmp(url, "/epg.xml") == 0 ||
+        strcmp(url, "/api/v1/epg/xmltv") == 0 ||
         strcmp(url, "/api/v1/auth/login") == 0 ||
         strcmp(url, "/auth/login") == 0 ||
         strcmp(url, "/api/v1/auth/logout") == 0 ||
@@ -146,6 +155,17 @@ auth_result_t http_auth_check(struct MHD_Connection *conn, const char *url, cons
         strcmp(url, "/api/v1/telemetry") == 0) {
         pthread_mutex_unlock(&g_auth_mutex);
         return AUTH_RES_OK;
+    }
+
+    /* Check query string token (?token=xxx or ?auth=xxx) */
+    const char *q_tok = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "token");
+    if (!q_tok) q_tok = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "auth");
+    if (q_tok && *q_tok) {
+        auth_role_t qr = verify_token(q_tok);
+        if (qr != ROLE_NONE) {
+            pthread_mutex_unlock(&g_auth_mutex);
+            return (strcasecmp(method, "GET") == 0 || qr == ROLE_ADMIN) ? AUTH_RES_OK : AUTH_RES_FORBIDDEN;
+        }
     }
 
     /* Check Authorization Header */
