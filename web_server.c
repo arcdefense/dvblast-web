@@ -9,6 +9,9 @@
 #include "modules/http_auth/http_auth.h"
 #include "modules/hls/hls.h"
 #include "modules/epg/epg.h"
+#include "modules/general/general.h"
+#include "modules/license/license.h"
+#include "modules/groups/groups.h"
 
 #include <microhttpd.h>
 #include <jansson.h>
@@ -117,6 +120,15 @@ static int handle_get_request(struct MHD_Connection *conn, const char *url) {
     }
     if (strcmp(url, "/api/v1/modules/cas") == 0) {
         return send_json(conn, 200, cas_to_json());
+    }
+    if (strcmp(url, "/api/v1/modules/general") == 0 || strcmp(url, "/api/v1/settings/general") == 0) {
+        return send_json(conn, 200, general_to_json());
+    }
+    if (strcmp(url, "/api/v1/modules/groups") == 0 || strcmp(url, "/api/v1/categories") == 0) {
+        return send_json(conn, 200, groups_to_json());
+    }
+    if (strcmp(url, "/api/v1/license") == 0 || strcmp(url, "/api/v1/system/license") == 0) {
+        return send_json(conn, 200, license_to_json());
     }
 
     /* Full System Configuration */
@@ -477,6 +489,34 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         return send_json_ok(conn, "CAS settings saved");
     }
 
+    if (strcmp(url, "/api/v1/modules/general") == 0 || strcmp(url, "/api/v1/settings/general") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        general_from_json(payload);
+        web_state_save_json(NULL);
+        json_decref(payload);
+        return send_json_ok(conn, "General settings saved");
+    }
+
+    if (strcmp(url, "/api/v1/modules/groups") == 0 || strcmp(url, "/api/v1/categories") == 0) {
+        if (!payload || !json_is_array(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON array body for groups/categories");
+        }
+        groups_from_json(payload);
+        web_state_save_json(NULL);
+        json_decref(payload);
+        return send_json_ok(conn, "Categories & groups saved");
+    }
+
+    if (strcmp(url, "/api/v1/system/restart") == 0) {
+        if (payload) json_decref(payload);
+        web_state_log("WARN", "System daemon restart initiated from Web UI");
+        return send_json_ok(conn, "System daemon restarting...");
+    }
+
     /* ===================================================================== */
     /*  CONFIGURATION API                                                    */
     /* ===================================================================== */
@@ -614,6 +654,9 @@ bool web_server_start(int port, const char *host) {
     http_auth_init();
     hls_init();
     epg_init();
+    general_init();
+    license_init();
+    groups_init();
 
     (void)host;
     g_mhd_daemon = MHD_start_daemon(
