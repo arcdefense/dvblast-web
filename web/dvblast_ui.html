@@ -2597,6 +2597,52 @@
         </div>
     </div>
 
+    <!-- MODAL: LIVE EPG / TV GUIDE -->
+    <div class="modal-overlay" id="modal-epg">
+        <div class="modal-box" style="max-width: 760px;">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="epg-modal-title">Live EPG Guide</h3>
+                    <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;" id="epg-modal-subtitle">DVB-SI Event Information Table (PID 0x12)</div>
+                </div>
+                <button class="modal-close" onclick="closeEpgModal()">&times;</button>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Channel:</label>
+                    <select id="epg-channel-select" class="form-select" style="min-width: 220px;" onchange="onEpgChannelChange()">
+                    </select>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <a href="/epg.xml" target="_blank" class="btn btn-sm btn-primary">Download XMLTV (.xml)</a>
+                </div>
+            </div>
+
+            <div class="table-wrap" style="max-height: 420px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">Time</th>
+                            <th style="width: 90px;">Status</th>
+                            <th>Program Title &amp; Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-epg-events">
+                        <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading schedule...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 11.5px; color: var(--text-muted);">
+                    XMLTV URL: <code style="background: var(--bg-input); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 11px;" id="epg-xml-url">/epg.xml</code>
+                </div>
+                <button type="button" class="btn btn-sm" onclick="closeEpgModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: ADD / EDIT STREAM -->
     <div class="modal-overlay" id="modal-stream">
         <div class="modal-box">
@@ -3488,6 +3534,98 @@
             setTimeout(() => showToast("Import completed successfully"), 1200);
         }
 
+                // Live EPG TV Guide
+        let g_epgData = null;
+
+        async function openEpgModal(preferredSid = 0, preferredName = '') {
+            const modal = document.getElementById('modal-epg');
+            if (!modal) return;
+            
+            const xmlUrlEl = document.getElementById('epg-xml-url');
+            if (xmlUrlEl) xmlUrlEl.textContent = `${window.location.origin}/epg.xml`;
+            modal.classList.add('open');
+
+            try {
+                const res = await apiGet('/api/v1/epg');
+                if (res && res.services) {
+                    g_epgData = res;
+                    populateEpgChannels(preferredSid);
+                } else {
+                    document.getElementById('tbody-epg-events').innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">No EPG events captured from DVB-SI yet</td></tr>';
+                }
+            } catch (e) {
+                console.error('EPG fetch error', e);
+            }
+        }
+
+        function closeEpgModal() {
+            document.getElementById('modal-epg')?.classList.remove('open');
+        }
+
+        function populateEpgChannels(preferredSid = 0) {
+            const sel = document.getElementById('epg-channel-select');
+            if (!sel || !g_epgData || !g_epgData.services) return;
+            sel.innerHTML = '';
+
+            let matchedIdx = 0;
+            g_epgData.services.forEach((s, idx) => {
+                const opt = document.createElement('option');
+                opt.value = String(s.service_id);
+                opt.textContent = `${s.channel_name} (SID ${s.service_id})`;
+                if (s.service_id === preferredSid) matchedIdx = idx;
+                sel.appendChild(opt);
+            });
+
+            if (g_epgData.services.length > 0) {
+                sel.selectedIndex = matchedIdx;
+                renderEpgSchedule(g_epgData.services[matchedIdx]);
+            }
+        }
+
+        function onEpgChannelChange() {
+            const sel = document.getElementById('epg-channel-select');
+            if (!sel || !g_epgData) return;
+            const sid = parseInt(sel.value, 10);
+            const svc = g_epgData.services.find(s => s.service_id === sid);
+            if (svc) renderEpgSchedule(svc);
+        }
+
+        function renderEpgSchedule(svc) {
+            const tbody = document.getElementById('tbody-epg-events');
+            if (!tbody) return;
+
+            document.getElementById('epg-modal-title').textContent = `EPG Guide: ${svc.channel_name}`;
+            document.getElementById('epg-modal-subtitle').textContent = `Service ID ${svc.service_id} • ${svc.events ? svc.events.length : 0} scheduled events`;
+
+            if (!svc.events || svc.events.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">No upcoming events in EIT schedule</td></tr>';
+                return;
+            }
+
+            const now = Math.floor(Date.now() / 1000);
+            const sorted = [...svc.events].sort((a, b) => a.start_time - b.start_time);
+
+            tbody.innerHTML = sorted.map(ev => {
+                const dStart = new Date(ev.start_time * 1000);
+                const dStop = new Date((ev.start_time + ev.duration_sec) * 1000);
+                const timeStr = `${String(dStart.getHours()).padStart(2, '0')}:${String(dStart.getMinutes()).padStart(2, '0')} - ${String(dStop.getHours()).padStart(2, '0')}:${String(dStop.getMinutes()).padStart(2, '0')}`;
+                
+                const isLive = (now >= ev.start_time && now < (ev.start_time + ev.duration_sec));
+                const statusBadge = isLive 
+                    ? '<span class="badge badge-success">ON AIR</span>' 
+                    : (now >= (ev.start_time + ev.duration_sec) ? '<span class="badge" style="background:var(--stack-header-bg); color:var(--text-muted);">ENDED</span>' : '<span class="badge" style="background:rgba(0,112,187,0.15); color:var(--vlc-blue);">UPCOMING</span>');
+
+                return `<tr>
+                    <td style="font-family: monospace; font-size: 12px; font-weight: 600;">${timeStr}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <div style="font-weight: 700; color: var(--text-main); font-size: 13px;">${escapeHtml(ev.title)}</div>
+                        ${ev.description ? `<div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">${escapeHtml(ev.description)}</div>` : ''}
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
         async function triggerEpgScan() {
             try {
                 const res = await authFetch('/api/v1/epg');
@@ -3763,6 +3901,7 @@
                     <div class="menu">
                         <a href="javascript:void(0)" onclick="toggleStream('${st.id}', ${!isEnabled})">${isEnabled ? 'Disable' : 'Enable'}</a>
                         <a href="javascript:void(0)" onclick="editStream('${st.id}')">Edit</a>
+                        <a href="javascript:void(0)" onclick="openEpgModal(${st.service_id || 0}, '${escapeHtml(st.name || st.id)}')">Live EPG Guide</a>
                         <hr>
                         <a href="javascript:void(0)" class="text-danger" onclick="deleteStream('${st.id}')">Remove</a>
                     </div>

@@ -167,16 +167,30 @@ void epg_handle_eit_section(const uint8_t *p_eit, size_t length) {
                 uint8_t name_len = 0;
                 const uint8_t *p_name = desc4d_get_event_name(p_desc, &name_len);
                 if (p_name && name_len > 0) {
-                    size_t cpy = (size_t)name_len < sizeof(title) - 1 ? (size_t)name_len : sizeof(title) - 1;
-                    memcpy(title, p_name, cpy);
+                    const uint8_t *s = p_name;
+                    size_t slen = name_len;
+                    if (slen > 0 && s[0] < 0x20) {
+                        if (s[0] == 0x1F && slen >= 2) { s += 2; slen -= 2; }
+                        else if (s[0] == 0x10 && slen >= 3) { s += 3; slen -= 3; }
+                        else { s++; slen--; }
+                    }
+                    size_t cpy = slen < sizeof(title) - 1 ? slen : sizeof(title) - 1;
+                    memcpy(title, s, cpy);
                     title[cpy] = '\0';
                 }
 
                 uint8_t text_len = 0;
                 const uint8_t *p_text = desc4d_get_text(p_desc, &text_len);
                 if (p_text && text_len > 0) {
-                    size_t cpy = (size_t)text_len < sizeof(desc) - 1 ? (size_t)text_len : sizeof(desc) - 1;
-                    memcpy(desc, p_text, cpy);
+                    const uint8_t *s = p_text;
+                    size_t slen = text_len;
+                    if (slen > 0 && s[0] < 0x20) {
+                        if (s[0] == 0x1F && slen >= 2) { s += 2; slen -= 2; }
+                        else if (s[0] == 0x10 && slen >= 3) { s += 3; slen -= 3; }
+                        else { s++; slen--; }
+                    }
+                    size_t cpy = slen < sizeof(desc) - 1 ? slen : sizeof(desc) - 1;
+                    memcpy(desc, s, cpy);
                     desc[cpy] = '\0';
                 }
                 break;
