@@ -3,7 +3,26 @@
   "server_name": "DVBlast Web Gateway",
   "http_port": 8088,
   "http_host": "0.0.0.0",
-  "adapters": [],
+  "adapters": [
+    {
+      "id": "adapter_0",
+      "name": "EMTEK Jakarta",
+      "enabled": true,
+      "adapter_idx": 0,
+      "frontend_idx": 0,
+      "delsys": "DVBT2",
+      "frequency": 498000000,
+      "symbol_rate": 0,
+      "bandwidth": 8,
+      "polarization": "H",
+      "voltage": 18,
+      "tone": 0,
+      "diseqc": 0,
+      "lnb_type": "",
+      "modulation": "16QAM",
+      "multistream_id": 0
+    }
+  ],
   "streams": [],
   "descramble": []
 }

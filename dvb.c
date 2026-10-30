@@ -883,27 +883,24 @@ static fe_code_rate_t GetFEC(fe_caps_t fe_caps, int i_fec_value)
 
 static fe_modulation_t GetModulation(void)
 {
-#define GET_MODULATION( mod )                                               \
-    if ( !strcasecmp( psz_modulation, #mod ) )                              \
-        return mod;
+    if ( !psz_modulation || !*psz_modulation || !strcasecmp(psz_modulation, "auto") || !strcasecmp(psz_modulation, "qam_auto") )
+        return QAM_AUTO;
 
-    GET_MODULATION(QPSK);
-    GET_MODULATION(QAM_16);
-    GET_MODULATION(QAM_32);
-    GET_MODULATION(QAM_64);
-    GET_MODULATION(QAM_128);
-    GET_MODULATION(QAM_256);
-    GET_MODULATION(QAM_AUTO);
-    GET_MODULATION(VSB_8);
-    GET_MODULATION(VSB_16);
-    GET_MODULATION(PSK_8);
-    GET_MODULATION(APSK_16);
-    GET_MODULATION(APSK_32);
-    GET_MODULATION(DQPSK);
+    if ( !strcasecmp(psz_modulation, "qpsk") ) return QPSK;
+    if ( !strcasecmp(psz_modulation, "qam_16") || !strcasecmp(psz_modulation, "16qam") || !strcasecmp(psz_modulation, "qam16") ) return QAM_16;
+    if ( !strcasecmp(psz_modulation, "qam_32") || !strcasecmp(psz_modulation, "32qam") || !strcasecmp(psz_modulation, "qam32") ) return QAM_32;
+    if ( !strcasecmp(psz_modulation, "qam_64") || !strcasecmp(psz_modulation, "64qam") || !strcasecmp(psz_modulation, "qam64") ) return QAM_64;
+    if ( !strcasecmp(psz_modulation, "qam_128") || !strcasecmp(psz_modulation, "128qam") || !strcasecmp(psz_modulation, "qam128") ) return QAM_128;
+    if ( !strcasecmp(psz_modulation, "qam_256") || !strcasecmp(psz_modulation, "256qam") || !strcasecmp(psz_modulation, "qam256") ) return QAM_256;
+    if ( !strcasecmp(psz_modulation, "vsb_8") || !strcasecmp(psz_modulation, "8vsb") || !strcasecmp(psz_modulation, "vsb8") ) return VSB_8;
+    if ( !strcasecmp(psz_modulation, "vsb_16") || !strcasecmp(psz_modulation, "16vsb") || !strcasecmp(psz_modulation, "vsb16") ) return VSB_16;
+    if ( !strcasecmp(psz_modulation, "psk_8") || !strcasecmp(psz_modulation, "8psk") || !strcasecmp(psz_modulation, "psk8") ) return PSK_8;
+    if ( !strcasecmp(psz_modulation, "apsk_16") || !strcasecmp(psz_modulation, "16apsk") || !strcasecmp(psz_modulation, "apsk16") ) return APSK_16;
+    if ( !strcasecmp(psz_modulation, "apsk_32") || !strcasecmp(psz_modulation, "32apsk") || !strcasecmp(psz_modulation, "apsk32") ) return APSK_32;
+    if ( !strcasecmp(psz_modulation, "dqpsk") ) return DQPSK;
 
-#undef GET_MODULATION
-    msg_Err( NULL, "invalid modulation %s", psz_modulation );
-    exit(1);
+    msg_Warn( NULL, "unrecognized modulation '%s', falling back to QAM_AUTO", psz_modulation );
+    return QAM_AUTO;
 }
 
 static fe_pilot_t GetPilot(void)
@@ -1299,16 +1296,22 @@ FrontendGuessSystem( fe_delivery_system_t *p_systems, int i_systems )
 #endif
         if ( !strcasecmp( psz_delsys, "DVBC_ANNEX_B" ) )
             return SYS_DVBC_ANNEX_B;
-        if ( !strcasecmp( psz_delsys, "DVBT" ) )
-            return SYS_DVBT;
-        if ( !strcasecmp( psz_delsys, "DVBT2" ) )
+        if ( !strcasecmp( psz_delsys, "DVBT2" ) || !strcasecmp( psz_delsys, "T2" ) )
            return SYS_DVBT2;
+        if ( !strcasecmp( psz_delsys, "DVBT" ) || !strcasecmp( psz_delsys, "T" ) )
+           return SYS_DVBT;
+        if ( !strcasecmp( psz_delsys, "DVBS2" ) || !strcasecmp( psz_delsys, "S2" ) )
+           return SYS_DVBS2;
+        if ( !strcasecmp( psz_delsys, "DVBS" ) || !strcasecmp( psz_delsys, "S" ) )
+           return SYS_DVBS;
+        if ( !strcasecmp( psz_delsys, "DVBC" ) || !strcasecmp( psz_delsys, "C" ) || !strcasecmp( psz_delsys, "C/A" ) )
+           return SYS_DVBC_ANNEX_A;
         if ( !strcasecmp( psz_delsys, "ATSC" ) )
             return SYS_ATSC;
         if ( !strcasecmp( psz_delsys, "ISDBT" ) )
             return SYS_ISDBT;
-        msg_Err( NULL, "unknown delivery system %s", psz_delsys );
-        exit(1);
+        msg_Warn( NULL, "unknown delivery system '%s', falling back to SYS_DVBT2", psz_delsys );
+        return SYS_DVBT2;
     }
 
     if ( i_systems == 1 )
@@ -1401,7 +1404,7 @@ static void FrontendSet( bool b_init )
             break;
         default:
             msg_Err( NULL, "unknown frontend type %d", info.type );
-            exit(1);
+            return;
         }
 #if DVBAPI_VERSION >= 505
     }
@@ -1411,13 +1414,13 @@ static void FrontendSet( bool b_init )
         if ( ioctl( i_frontend, FE_GET_PROPERTY, &enum_cmdseq ) < 0 )
         {
             msg_Err( NULL, "unable to query frontend" );
-            exit(1);
+            return;
         }
         i_systems = enum_cmdargs[0].u.buffer.len;
         if ( i_systems < 1 )
         {
             msg_Err( NULL, "no available delivery system" );
-            exit(1);
+            return;
         }
 
         int i;
@@ -1586,7 +1589,7 @@ static void FrontendSet( bool b_init )
 
     default:
         msg_Err( NULL, "unknown frontend type %d", info.type );
-        exit(1);
+        return;
     }
 
     /* Empty the event queue */
@@ -1684,7 +1687,7 @@ static void FrontendSet( bool b_init )
 
     default:
         msg_Err( NULL, "unknown frontend type %d", info.type );
-        exit(1);
+        return;
     }
 
     /* Empty the event queue */
