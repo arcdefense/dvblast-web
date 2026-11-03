@@ -727,12 +727,16 @@
             color: var(--text-dim);
         }
 
-        /* Native HTML5 Dropdown in Top-Right */
+        /* Dropdown in Top-Right */
         details.dropdown {
             position: absolute;
             top: 4px;
             right: 4px;
-            z-index: 20;
+            z-index: 30;
+        }
+
+        .card.card-dropdown-active {
+            z-index: 100 !important;
         }
 
         details.dropdown > summary {
@@ -749,25 +753,22 @@
             align-items: center;
             justify-content: center;
             user-select: none;
+            transition: background 0.15s, color 0.15s;
         }
 
         details.dropdown > summary::-webkit-details-marker {
             display: none;
         }
 
-        details.dropdown > summary:hover {
-            background: rgba(0,0,0,0.06);
+        details.dropdown > summary:hover,
+        details.dropdown[open] > summary {
+            background: rgba(0,0,0,0.08);
             color: var(--text-main);
         }
 
+        /* Eliminate the fixed blanket hack that swallowed all clicks */
         details.dropdown[open] > summary::before {
-            position: fixed;
-            content: " ";
-            top: 0; right: 0; bottom: 0; left: 0;
-            z-index: 50;
-            display: block;
-            cursor: default;
-            background: transparent;
+            display: none;
         }
 
         details.dropdown > .menu {
@@ -776,14 +777,14 @@
             flex-direction: column;
             top: 100%;
             right: 0;
-            z-index: 100;
-            width: 170px;
+            z-index: 200;
+            width: 175px;
             padding: 4px 0;
             margin-top: 3px;
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
 
         details.dropdown > .menu > a {
@@ -4028,8 +4029,8 @@
                     <span class="card-title-text">${escapeHtml(ad.name)}</span>
                 </div>
                 <details class="dropdown card-action" onclick="event.stopPropagation()">
-                    <summary title="Actions"><span class="btn-more">⋮</span></summary>
-                    <div class="menu">
+                    <summary title="Actions" onclick="onDropdownSummaryClick(event)"><span class="btn-more">⋮</span></summary>
+                    <div class="menu" onclick="closeAllCardDropdowns()">
                         <a href="javascript:void(0)" onclick="restartAdapter('${ad.id}')">Restart</a>
                         <a href="javascript:void(0)" onclick="toggleAdapter('${ad.id}', ${!isEnabled})">${isEnabled ? 'Disable' : 'Enable'}</a>
                         <a href="javascript:void(0)" onclick="openScanModal('${ad.id}')">Scan Channels (${chCount})</a>
@@ -4087,8 +4088,8 @@
                     <span class="card-title-text">${escapeHtml(st.name || st.id)}</span>
                 </div>
                 <details class="dropdown card-action" onclick="event.stopPropagation()">
-                    <summary title="Actions"><span class="btn-more">⋮</span></summary>
-                    <div class="menu">
+                    <summary title="Actions" onclick="onDropdownSummaryClick(event)"><span class="btn-more">⋮</span></summary>
+                    <div class="menu" onclick="closeAllCardDropdowns()">
                         <a href="javascript:void(0)" onclick="toggleStream('${st.id}', ${!isEnabled})">${isEnabled ? 'Disable' : 'Enable'}</a>
                         <a href="javascript:void(0)" onclick="editStream('${st.id}')">Edit</a>
                         <a href="javascript:void(0)" onclick="openEpgModal(${st.service_id || 0}, '${escapeHtml(st.name || st.id)}')">Live EPG Guide</a>
@@ -4123,7 +4124,8 @@
             const sig = isEnabled ? (ad.signal_percent || 0) : 0;
             const br = isEnabled ? (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2) : "0.00";
 
-            cardEl.className = `card card-adapter ${isLocked ? 'card-true-2' : (isEnabled ? 'card-true-0' : 'card-false-0')}`;
+            const hasDropdownOpen = cardEl.querySelector('details.dropdown[open]') !== null;
+            cardEl.className = `card card-adapter ${isLocked ? 'card-true-2' : (isEnabled ? 'card-true-0' : 'card-false-0')}${hasDropdownOpen ? ' card-dropdown-active' : ''}`;
 
             const dot = cardEl.querySelector('.status-dot');
             if (dot) dot.className = `status-dot ${isLocked ? 'dot-locked' : (isEnabled ? 'dot-unlocked' : 'dot-disabled')}`;
@@ -4150,7 +4152,8 @@
             const pkts = (st.packets_sent || 0).toLocaleString();
             const sidLabel = st.service_id > 0 ? `SID ${st.service_id}` : 'MPTS';
 
-            cardEl.className = `card card-stream ${isOnAir ? 'card-true-2' : (isEnabled ? 'card-true-0' : 'card-false-0')}`;
+            const hasDropdownOpen = cardEl.querySelector('details.dropdown[open]') !== null;
+            cardEl.className = `card card-stream ${isOnAir ? 'card-true-2' : (isEnabled ? 'card-true-0' : 'card-false-0')}${hasDropdownOpen ? ' card-dropdown-active' : ''}`;
 
             const dot = cardEl.querySelector('.status-dot');
             if (dot) dot.className = `status-dot ${isOnAir ? 'dot-locked' : (isEnabled ? 'dot-unlocked' : 'dot-disabled')}`;
@@ -4168,6 +4171,44 @@
         // Backward compatibility helpers
         function renderAdapters() { renderDashboardCards(); }
         function renderStreams() { renderDashboardCards(); }
+
+        // Dropdown Menu Controller
+        function closeAllCardDropdowns() {
+            document.querySelectorAll('details.dropdown[open]').forEach(d => d.removeAttribute('open'));
+            document.querySelectorAll('.card.card-dropdown-active').forEach(c => c.classList.remove('card-dropdown-active'));
+        }
+
+        function onDropdownSummaryClick(e) {
+            e.stopPropagation();
+            const details = e.currentTarget.closest('details');
+            if (!details) return;
+            const wasOpen = details.hasAttribute('open');
+
+            // Single active dropdown: close any other open dropdowns first
+            document.querySelectorAll('details.dropdown[open]').forEach(d => {
+                if (d !== details) {
+                    d.removeAttribute('open');
+                    const c = d.closest('.card');
+                    if (c) c.classList.remove('card-dropdown-active');
+                }
+            });
+
+            const card = details.closest('.card');
+            if (card) {
+                if (!wasOpen) {
+                    card.classList.add('card-dropdown-active');
+                } else {
+                    card.classList.remove('card-dropdown-active');
+                }
+            }
+        }
+
+        // Global outside click: closes dropdowns smoothly without blocking clicks to other elements
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('details.dropdown')) {
+                closeAllCardDropdowns();
+            }
+        });
 
         // SoftCAM Key Management
         async function loadSoftcamKeys() {
