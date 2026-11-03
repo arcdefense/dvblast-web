@@ -23,6 +23,13 @@
 typedef struct {
     uint64_t input_bytes;
     uint64_t input_packets;
+    uint32_t locked;
+    uint32_t sig_pct;
+    float    snr_db;
+    float    sig_dbm;
+    uint32_t ber;
+    uint32_t ucb;
+    uint64_t last_update_sec;
 } dvb_shm_adapter_t;
 
 typedef struct {
@@ -38,6 +45,7 @@ typedef struct {
 
 static dvb_shm_stats_t *g_shm_stats = NULL;
 
+extern int i_adapter;
 typedef int64_t mtime_t;
 mtime_t mdate(void);
 
@@ -517,6 +525,19 @@ void web_state_update_input_stats(int adapter_idx, uint64_t bytes, uint64_t pack
     }
 }
 
+void web_state_update_shm_telemetry(int adapter_idx, bool locked, uint16_t sig_pct,
+                                    float snr_db, float sig_dbm, uint32_t ber, uint32_t ucb) {
+    if (g_shm_stats && adapter_idx >= 0 && adapter_idx < MAX_WEB_ADAPTERS) {
+        g_shm_stats->adapters[adapter_idx].locked = locked ? 1 : 0;
+        g_shm_stats->adapters[adapter_idx].sig_pct = sig_pct;
+        g_shm_stats->adapters[adapter_idx].snr_db = snr_db;
+        g_shm_stats->adapters[adapter_idx].sig_dbm = sig_dbm;
+        g_shm_stats->adapters[adapter_idx].ber = ber;
+        g_shm_stats->adapters[adapter_idx].ucb = ucb;
+        g_shm_stats->adapters[adapter_idx].last_update_sec = (uint64_t)time(NULL);
+    }
+}
+
 void web_state_update_output_stats(uint64_t bytes, uint64_t packets) {
     (void)bytes;
     (void)packets;
@@ -558,6 +579,19 @@ void web_state_calc_bitrates(void) {
             if (a_idx >= 0 && a_idx < MAX_WEB_ADAPTERS) {
                 g_gateway.adapters[i].total_bytes = g_shm_stats->adapters[a_idx].input_bytes;
                 g_gateway.adapters[i].total_packets = g_shm_stats->adapters[a_idx].input_packets;
+                if (a_idx != i_adapter && g_shm_stats->adapters[a_idx].last_update_sec > 0) {
+                    time_t now = time(NULL);
+                    if (now - g_shm_stats->adapters[a_idx].last_update_sec <= 4) {
+                        g_gateway.adapters[i].locked = (g_shm_stats->adapters[a_idx].locked != 0);
+                        g_gateway.adapters[i].signal_percent = g_shm_stats->adapters[a_idx].sig_pct;
+                        g_gateway.adapters[i].snr_db = g_shm_stats->adapters[a_idx].snr_db;
+                        g_gateway.adapters[i].signal_dbm = g_shm_stats->adapters[a_idx].sig_dbm;
+                        g_gateway.adapters[i].ber = g_shm_stats->adapters[a_idx].ber;
+                        g_gateway.adapters[i].ucb = g_shm_stats->adapters[a_idx].ucb;
+                    } else {
+                        g_gateway.adapters[i].locked = false;
+                    }
+                }
                 if (g_gateway.adapters[i].enabled) {
                     cur_in += g_gateway.adapters[i].total_bytes;
                     cur_in_pkts += g_gateway.adapters[i].total_packets;
@@ -571,12 +605,15 @@ void web_state_calc_bitrates(void) {
             web_stream_config_t *ws = &g_gateway.streams[i];
             char dest_str[128];
             snprintf(dest_str, sizeof(dest_str), "%s:%d", ws->ip, ws->port);
+            size_t dlen = strlen(dest_str);
 
             for (int s = 0; s < MAX_WEB_STREAMS; s++) {
                 if (g_shm_stats->streams[s].id[0] == '\0') break;
                 if (strcmp(g_shm_stats->streams[s].id, ws->id) == 0 ||
                     (ws->name[0] && strcmp(g_shm_stats->streams[s].id, ws->name) == 0) ||
-                    strcmp(g_shm_stats->streams[s].id, dest_str) == 0) {
+                    strcmp(g_shm_stats->streams[s].id, dest_str) == 0 ||
+                    (strncmp(g_shm_stats->streams[s].id, dest_str, dlen) == 0 &&
+                     (g_shm_stats->streams[s].id[dlen] == '/' || g_shm_stats->streams[s].id[dlen] == '\0'))) {
                     ws->bytes_sent = g_shm_stats->streams[s].bytes_sent;
                     ws->packets_sent = g_shm_stats->streams[s].packets_sent;
                     break;
@@ -728,7 +765,7 @@ bool web_state_save_json(const char *path) {
     json_object_set_new(root, "http_play", http_play_to_json());
     json_object_set_new(root, "http_auth", http_auth_to_json());
     json_object_set_new(root, "hls", hls_to_json());
-    json_object_set_new(root, "epg", epg_to_json());
+    json_object_set_new(root, "epg", epg_config_to_json());
     json_object_set_new(root, "cas", cas_to_json());
 
     char tmp_path[300];
@@ -1179,7 +1216,7 @@ json_t *web_state_config_to_json(void) {
     json_object_set_new(root, "http_play", http_play_to_json());
     json_object_set_new(root, "http_auth", http_auth_to_json());
     json_object_set_new(root, "hls", hls_to_json());
-    json_object_set_new(root, "epg", epg_to_json());
+    json_object_set_new(root, "epg", epg_config_to_json());
     json_object_set_new(root, "cas", cas_to_json());
 
     pthread_mutex_unlock(&g_gateway.lock);

@@ -352,6 +352,17 @@ int epg_handle_request(struct MHD_Connection *conn, const char *url) {
     return MHD_NO;
 }
 
+json_t *epg_config_to_json(void) {
+    pthread_mutex_lock(&g_epg_mutex);
+    json_t *root = json_object();
+    json_object_set_new(root, "enabled", g_epg.enabled ? json_true() : json_false());
+    json_object_set_new(root, "interval_sec", json_integer(g_epg.interval_sec));
+    json_object_set_new(root, "retention_hours", json_integer(g_epg.retention_hours));
+    json_object_set_new(root, "preferred_lang", json_string(g_epg.preferred_lang));
+    pthread_mutex_unlock(&g_epg_mutex);
+    return root;
+}
+
 json_t *epg_to_json(void) {
     pthread_mutex_lock(&g_epg_mutex);
     json_t *root = json_object();

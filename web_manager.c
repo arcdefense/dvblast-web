@@ -54,16 +54,31 @@ static web_action_queue_t g_async_action = {
 
 static void web_manager_stop_worker_internal(int adapter_idx) {
     for (int i = 0; i < MAX_WEB_ADAPTERS; i++) {
-        if (g_workers[i].adapter_idx == adapter_idx && g_workers[i].running) {
-            if (g_workers[i].pid > 0) {
-                web_state_log("INFO", "Stopping worker PID %d for adapter %d", g_workers[i].pid, adapter_idx);
-                kill(g_workers[i].pid, SIGTERM);
-                int status = 0;
-                waitpid(g_workers[i].pid, &status, WNOHANG);
+        if (g_workers[i].adapter_idx == adapter_idx) {
+            pid_t pid = g_workers[i].pid;
+            if (pid > 0 && g_workers[i].running) {
+                web_state_log("INFO", "Stopping worker PID %d for adapter %d", pid, adapter_idx);
+                kill(pid, SIGTERM);
+                /* Wait gracefully up to 1.5s for worker to release DVB hardware */
+                bool exited = false;
+                for (int wait_ms = 0; wait_ms < 1500; wait_ms += 50) {
+                    int status = 0;
+                    pid_t res = waitpid(pid, &status, WNOHANG);
+                    if (res > 0 || (res < 0 && errno == ECHILD)) {
+                        exited = true;
+                        break;
+                    }
+                    usleep(50000);
+                }
+                if (!exited) {
+                    web_state_log("WARN", "Worker PID %d did not exit on SIGTERM, sending SIGKILL", pid);
+                    kill(pid, SIGKILL);
+                    int status = 0;
+                    waitpid(pid, &status, 0);
+                }
             }
             g_workers[i].running = false;
             g_workers[i].pid = 0;
-            break;
         }
     }
     char conf_path[64], sock_path[64];
@@ -73,86 +88,31 @@ static void web_manager_stop_worker_internal(int adapter_idx) {
     unlink(sock_path);
 }
 
-static bool web_manager_read_frontend_telemetry(int fd, bool *out_locked, uint16_t *out_sig_pct,
-                                               float *out_snr_db, float *out_sig_dbm, uint32_t *out_ber) {
-    if (fd < 0) return false;
-
-    fe_status_t status = 0;
-    ioctl(fd, FE_READ_STATUS, &status);
-
-    int sig_percent = 0;
-    int snr_percent = 0;
-    float sig_dbm = -100.0f;
-    float snr_db = 0.0f;
-    int signal_read = 0;
-
-    struct dtv_property props[2];
-    memset(props, 0, sizeof(props));
-    props[0].cmd = DTV_STAT_SIGNAL_STRENGTH;
-    props[1].cmd = DTV_STAT_CNR;
-    struct dtv_properties cmdseq = { .num = 2, .props = props };
-
-    if (ioctl(fd, FE_GET_PROPERTY, &cmdseq) == 0) {
-        for (int i = 0; i < (int)cmdseq.num; i++) {
-            struct dtv_property *p = &props[i];
-            if (p->result != 0) continue;
-            for (int l = 0; l < (int)p->u.st.len && l < MAX_DTV_STATS; l++) {
-                int64_t sval = p->u.st.stat[l].svalue;
-                uint32_t uval = p->u.st.stat[l].uvalue;
-                int scale = p->u.st.stat[l].scale;
-                if (scale == FE_SCALE_NOT_AVAILABLE) continue;
-
-                if (p->cmd == DTV_STAT_SIGNAL_STRENGTH) {
-                    if (scale == FE_SCALE_DECIBEL) {
-                        sig_dbm = (float)sval / 1000.0f;
-                        int dbm_int = (int)sig_dbm;
-                        sig_percent = dbm_int < -100 ? 0 : (dbm_int < 0 ? (dbm_int + 100) : 99);
-                    } else if (scale == FE_SCALE_RELATIVE) {
-                        sig_percent = (int)(uval * 99 / 65535);
-                        sig_dbm = -100.0f + (float)sig_percent;
-                    }
-                    if (sig_percent > 0) signal_read = 1;
-                } else if (p->cmd == DTV_STAT_CNR) {
-                    if (scale == FE_SCALE_DECIBEL) {
-                        snr_db = (float)sval / 1000.0f;
-                        snr_percent = (int)(snr_db * 100.0f / 35.0f);
-                        if (snr_percent < 0) snr_percent = 0;
-                        if (snr_percent > 99) snr_percent = 99;
-                    } else if (scale == FE_SCALE_RELATIVE) {
-                        snr_percent = (int)(uval * 99 / 65535);
-                        snr_db = (float)snr_percent * 0.35f;
-                    }
-                }
+static bool write_worker_config(int adapter_idx, const web_stream_config_t *streams, int active_streams) {
+    char conf_path[64];
+    snprintf(conf_path, sizeof(conf_path), "/tmp/dvblast_ad%d.conf", adapter_idx);
+    FILE *fp = fopen(conf_path, "w");
+    if (!fp) {
+        web_state_log("ERROR", "Failed to write worker config file %s", conf_path);
+        return false;
+    }
+    if (active_streams == 0) {
+        fprintf(fp, "# idle\n");
+    } else {
+        for (int i = 0; i < active_streams; i++) {
+            const char *proto = streams[i].is_rtp ? "" : "/udp";
+            char ttl_str[32] = "";
+            if (streams[i].ttl > 0) {
+                snprintf(ttl_str, sizeof(ttl_str), "/ttl=%d", streams[i].ttl);
+            }
+            if (streams[i].service_id > 0) {
+                fprintf(fp, "%s:%d%s%s/dvb/epg 1 %d\n", streams[i].ip, streams[i].port, proto, ttl_str, streams[i].service_id);
+            } else {
+                fprintf(fp, "%s:%d%s%s 1 *\n", streams[i].ip, streams[i].port, proto, ttl_str);
             }
         }
     }
-
-    if (!signal_read) {
-        uint16_t leg_sig = 0, leg_snr = 0;
-        if (ioctl(fd, FE_READ_SIGNAL_STRENGTH, &leg_sig) == 0 && leg_sig > 0) {
-            sig_percent = (int)(leg_sig * 99 / 65535);
-            sig_dbm = -100.0f + (float)sig_percent;
-            signal_read = 1;
-        }
-        if (ioctl(fd, FE_READ_SNR, &leg_snr) == 0 && leg_snr > 0) {
-            snr_percent = (int)(leg_snr * 99 / 65535);
-            snr_db = (float)snr_percent * 0.35f;
-        }
-    }
-
-    uint32_t ber = 0;
-    ioctl(fd, FE_READ_BER, &ber);
-
-    /* Si2168 demodulator quirk: status may return 0 even when locked with RF signal */
-    if ((status & FE_HAS_LOCK) == 0 && signal_read && sig_percent > 10) {
-        status |= (FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK);
-    }
-
-    *out_locked = (status & FE_HAS_LOCK) != 0;
-    *out_sig_pct = (uint16_t)sig_percent;
-    *out_snr_db = snr_db;
-    *out_sig_dbm = sig_dbm;
-    *out_ber = ber;
+    fclose(fp);
     return true;
 }
 
@@ -178,32 +138,12 @@ void web_manager_sync_worker(int adapter_idx) {
     }
     pthread_mutex_unlock(&g_gateway.lock);
 
-    /* Write worker configuration file (idle comment if no streams configured yet) */
+    const char *target_delsys = (ad->delsys[0] ? ad->delsys : "DVBT2");
+    int target_bw = (ad->bandwidth > 0 ? ad->bandwidth : 8);
+
     char conf_path[64], sock_path[64];
     snprintf(conf_path, sizeof(conf_path), "/tmp/dvblast_ad%d.conf", adapter_idx);
     snprintf(sock_path, sizeof(sock_path), "/tmp/dvblast_ad%d.sock", adapter_idx);
-
-    FILE *fp = fopen(conf_path, "w");
-    if (!fp) {
-        web_state_log("ERROR", "Failed to write worker config file %s", conf_path);
-        return;
-    }
-    if (active_streams == 0) {
-        fprintf(fp, "# idle\n");
-    } else {
-        for (int i = 0; i < active_streams; i++) {
-            const char *proto = streams_for_ad[i].is_rtp ? "" : "/udp";
-            if (streams_for_ad[i].service_id > 0) {
-                fprintf(fp, "%s:%d%s 1 %d/dvb/epg\n", streams_for_ad[i].ip, streams_for_ad[i].port, proto, streams_for_ad[i].service_id);
-            } else {
-                fprintf(fp, "%s:%d%s 1 0\n", streams_for_ad[i].ip, streams_for_ad[i].port, proto);
-            }
-        }
-    }
-    fclose(fp);
-
-    const char *target_delsys = (ad->delsys[0] ? ad->delsys : "DVBT2");
-    int target_bw = (ad->bandwidth > 0 ? ad->bandwidth : 8);
 
     /* Check if worker is already running with matching RF parameters */
     dvb_worker_proc_t *existing_worker = NULL;
@@ -219,7 +159,8 @@ void web_manager_sync_worker(int adapter_idx) {
             existing_worker->frequency == ad->frequency &&
             existing_worker->bandwidth == target_bw &&
             strcmp(existing_worker->delsys, target_delsys) == 0) {
-            /* Same RF tuning: reload outputs via SIGHUP without dropping lock */
+            /* Same RF tuning: write config and reload outputs via SIGHUP without dropping lock */
+            write_worker_config(adapter_idx, streams_for_ad, active_streams);
             kill(existing_worker->pid, SIGHUP);
             web_state_log("INFO", "Sent SIGHUP reload to worker PID %d (Adapter %s, %d streams)",
                           existing_worker->pid, ad->id, active_streams);
@@ -229,33 +170,68 @@ void web_manager_sync_worker(int adapter_idx) {
         web_manager_stop_worker_internal(adapter_idx);
     }
 
+    /* Write fresh worker configuration file */
+    write_worker_config(adapter_idx, streams_for_ad, active_streams);
+
+    char exe_path[1024];
+    ssize_t exelen = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (exelen > 0) {
+        exe_path[exelen] = '\0';
+    } else {
+        snprintf(exe_path, sizeof(exe_path), "./dvblast");
+    }
+
     pid_t pid = fork();
     if (pid == 0) {
-        char sz_ad[16], sz_fe[16], sz_freq[32], sz_bw[16];
+        /* Close all inherited descriptors except stdio */
+        int max_fd = sysconf(_SC_OPEN_MAX);
+        if (max_fd < 0 || max_fd > 4096) max_fd = 1024;
+        for (int fd = 3; fd < max_fd; fd++) {
+            close(fd);
+        }
+
+        char sz_ad[16], sz_fe[16], sz_freq[32], sz_bw[16], sz_srate[32], sz_vol[16], sz_diseqc[16];
         snprintf(sz_ad, sizeof(sz_ad), "%d", ad->adapter_idx);
         snprintf(sz_fe, sizeof(sz_fe), "%d", ad->frontend_idx);
         snprintf(sz_freq, sizeof(sz_freq), "%llu", (unsigned long long)ad->frequency);
         snprintf(sz_bw, sizeof(sz_bw), "%d", target_bw);
+        snprintf(sz_srate, sizeof(sz_srate), "%u", ad->symbol_rate);
+        snprintf(sz_vol, sizeof(sz_vol), "%d", ad->voltage);
+        snprintf(sz_diseqc, sizeof(sz_diseqc), "%d", ad->diseqc);
 
-        char *argv[] = {
-            "./dvblast",
-            "--disable-web",
-            "-a", sz_ad,
-            "-n", sz_fe,
-            "-f", sz_freq,
-            "-b", sz_bw,
-            "-5", (char *)target_delsys,
-            "-C",
-            "-e",
-            "-u",
-            "-U",
-            "-c", conf_path,
-            "-r", sock_path,
-            "-q",
-            NULL
-        };
+        char *argv[36];
+        int argc = 0;
+        argv[argc++] = exe_path;
+        argv[argc++] = "--disable-web";
+        argv[argc++] = "-a"; argv[argc++] = sz_ad;
+        argv[argc++] = "-n"; argv[argc++] = sz_fe;
+        argv[argc++] = "-f"; argv[argc++] = sz_freq;
+        argv[argc++] = "-5"; argv[argc++] = (char *)target_delsys;
+        if (strcasecmp(target_delsys, "DVBT") == 0 || strcasecmp(target_delsys, "DVBT2") == 0 || strcasecmp(target_delsys, "ISDBT") == 0) {
+            argv[argc++] = "-b"; argv[argc++] = sz_bw;
+        }
+        if (ad->symbol_rate > 0) {
+            argv[argc++] = "-s"; argv[argc++] = sz_srate;
+        }
+        if (ad->voltage > 0) {
+            argv[argc++] = "-v"; argv[argc++] = sz_vol;
+        }
+        if (ad->diseqc > 0) {
+            argv[argc++] = "-S"; argv[argc++] = sz_diseqc;
+        }
+        if (ad->modulation[0]) {
+            argv[argc++] = "-m"; argv[argc++] = ad->modulation;
+        }
+        argv[argc++] = "-C";
+        argv[argc++] = "-e";
+        argv[argc++] = "-u";
+        argv[argc++] = "-w";
+        argv[argc++] = "-c"; argv[argc++] = conf_path;
+        argv[argc++] = "-r"; argv[argc++] = sock_path;
+        argv[argc++] = "-q";
+        argv[argc] = NULL;
 
-        execv("./dvblast", argv);
+        execv(exe_path, argv);
         _exit(127);
     } else if (pid > 0) {
         for (int i = 0; i < MAX_WEB_ADAPTERS; i++) {
@@ -306,48 +282,98 @@ void web_manager_poll_secondary_telemetry(void) {
             }
         }
     }
-
-    pthread_mutex_lock(&g_gateway.lock);
-    int ad_count = g_gateway.num_adapters;
-    web_adapter_t adapters[MAX_WEB_ADAPTERS];
-    memcpy(adapters, g_gateway.adapters, ad_count * sizeof(web_adapter_t));
-    pthread_mutex_unlock(&g_gateway.lock);
-
-    for (int i = 0; i < ad_count; i++) {
-        if (!adapters[i].enabled || adapters[i].adapter_idx == i_adapter) {
-            continue;
-        }
-
-        char dev_path[64];
-        snprintf(dev_path, sizeof(dev_path), "/dev/dvb/adapter%d/frontend%d",
-                 adapters[i].adapter_idx, adapters[i].frontend_idx);
-
-        int fd = open(dev_path, O_RDONLY | O_NONBLOCK);
-        if (fd < 0) {
-            continue;
-        }
-
-        bool locked = false;
-        uint16_t sig_pct = 0;
-        float snr_db = 0.0f;
-        float sig_dbm = -100.0f;
-        uint32_t ber = 0;
-
-        web_manager_read_frontend_telemetry(fd, &locked, &sig_pct, &snr_db, &sig_dbm, &ber);
-        close(fd);
-
-        web_state_update_adapter_signal_ext(adapters[i].adapter_idx, locked, sig_pct,
-                                            snr_db, sig_dbm, ber, 0);
-    }
 }
 
 void web_manager_cleanup(void) {
     for (int i = 0; i < MAX_WEB_ADAPTERS; i++) {
         if (g_workers[i].running && g_workers[i].pid > 0) {
-            kill(g_workers[i].pid, SIGTERM);
-            int status = 0;
-            waitpid(g_workers[i].pid, &status, WNOHANG);
-            g_workers[i].running = false;
+            web_manager_stop_worker_internal(g_workers[i].adapter_idx);
+        }
+    }
+}
+
+static void parse_scan_line(int adapter_idx, const char *line, int *p_current_sid, int *p_current_pmt_sid) {
+    /* SDT Service */
+    char *p_sid = strstr(line, "service sid=");
+    if (p_sid) {
+        *p_current_sid = atoi(p_sid + 12);
+    }
+    char *p_desc = strstr(line, "desc 48 service");
+    if (p_desc && *p_current_sid > 0) {
+        char name[64] = {0};
+        char provider[64] = {0};
+        char *p_prov = strstr(p_desc, "provider=\"");
+        if (p_prov) {
+            p_prov += 10;
+            char *end = strchr(p_prov, '"');
+            if (end) {
+                size_t plen = end - p_prov;
+                if (plen >= sizeof(provider)) plen = sizeof(provider) - 1;
+                strncpy(provider, p_prov, plen);
+                provider[plen] = '\0';
+            }
+        }
+        char *p_svc = strstr(p_desc, "service=\"");
+        if (p_svc) {
+            p_svc += 9;
+            char *end = strchr(p_svc, '"');
+            if (end) {
+                size_t slen = end - p_svc;
+                if (slen >= sizeof(name)) slen = sizeof(name) - 1;
+                strncpy(name, p_svc, slen);
+                name[slen] = '\0';
+            }
+        }
+        if (name[0]) {
+            channel_info_t ch;
+            memset(&ch, 0, sizeof(ch));
+            ch.service_id = (uint16_t)*p_current_sid;
+            snprintf(ch.name, sizeof(ch.name), "%s", name);
+            snprintf(ch.provider, sizeof(ch.provider), "%s", provider);
+            web_state_add_adapter_channel(adapter_idx, &ch);
+            *p_current_sid = 0;
+        }
+    }
+
+    /* PAT Program to PMT PID */
+    char *p_prog = strstr(line, "* program number=");
+    if (p_prog) {
+        int sid = 0, pmt = 0;
+        if (sscanf(p_prog, "* program number=%d pid=%d", &sid, &pmt) == 2 && sid > 0) {
+            channel_info_t ch;
+            memset(&ch, 0, sizeof(ch));
+            ch.service_id = (uint16_t)sid;
+            ch.pmt_pid = (uint16_t)pmt;
+            web_state_add_adapter_channel(adapter_idx, &ch);
+        }
+    }
+
+    /* PMT Program */
+    char *p_pmt = strstr(line, "new PMT program=");
+    if (p_pmt) {
+        *p_current_pmt_sid = atoi(p_pmt + 16);
+    }
+    if (*p_current_pmt_sid > 0) {
+        char *p_es = strstr(line, "* ES pid=");
+        if (p_es) {
+            int es_pid = 0, stype = 0;
+            if (sscanf(p_es, "* ES pid=%d streamtype=0x%x", &es_pid, &stype) == 2 && es_pid > 0) {
+                channel_info_t ch;
+                memset(&ch, 0, sizeof(ch));
+                ch.service_id = (uint16_t)*p_current_pmt_sid;
+                if (stype == 0x01 || stype == 0x02 || stype == 0x1B || stype == 0x24) {
+                    ch.video_pid = (uint16_t)es_pid;
+                    ch.video_type = (uint8_t)stype;
+                } else if (stype == 0x03 || stype == 0x04 || stype == 0x0F || stype == 0x11 || stype == 0x06 || stype == 0x81) {
+                    ch.audio_pids[0] = (uint16_t)es_pid;
+                    ch.audio_types[0] = (uint8_t)stype;
+                    ch.num_audio_pids = 1;
+                }
+                web_state_add_adapter_channel(adapter_idx, &ch);
+            }
+        }
+        if (strstr(line, "end PMT")) {
+            *p_current_pmt_sid = 0;
         }
     }
 }
@@ -357,18 +383,113 @@ static void *scan_secondary_adapter_thread(void *arg) {
     web_adapter_t *ad = web_state_find_adapter_by_idx(adapter_idx);
     if (!ad || ad->frequency <= 0) return NULL;
 
-    web_state_log("INFO", "Starting isolated background scan for Adapter %s (/dev/dvb/adapter%d, freq=%llu Hz)",
+    web_state_log("INFO", "Starting background scan for Adapter %s (/dev/dvb/adapter%d, freq=%llu Hz)",
                   ad->id, ad->adapter_idx, (unsigned long long)ad->frequency);
 
-    /* Stop worker temporarily to free frontend/dvr */
+    char sock_path[64];
+    snprintf(sock_path, sizeof(sock_path), "/tmp/dvblast_ad%d.sock", adapter_idx);
+
+    bool worker_running = false;
+    for (int i = 0; i < MAX_WEB_ADAPTERS; i++) {
+        if (g_workers[i].adapter_idx == adapter_idx && g_workers[i].running && g_workers[i].pid > 0) {
+            if (kill(g_workers[i].pid, 0) == 0 && access(sock_path, F_OK) == 0) {
+                worker_running = true;
+            }
+            break;
+        }
+    }
+
+    char exe_path[1024];
+    ssize_t exelen = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (exelen > 0) exe_path[exelen] = '\0';
+    else snprintf(exe_path, sizeof(exe_path), "./dvblast");
+
+    char ctl_path[1024];
+    char *slash = strrchr(exe_path, '/');
+    if (slash) {
+        size_t dirlen = slash - exe_path;
+        snprintf(ctl_path, sizeof(ctl_path), "%.*s/dvblastctl", (int)dirlen, exe_path);
+    } else {
+        snprintf(ctl_path, sizeof(ctl_path), "./dvblastctl");
+    }
+
+    if (worker_running && access(ctl_path, X_OK) == 0) {
+        web_state_log("INFO", "Scanning Adapter %d via active worker socket %s (non-disruptive)", adapter_idx, sock_path);
+        pthread_mutex_lock(&g_gateway.lock);
+        ad->num_channels = 0;
+        memset(ad->channels, 0, sizeof(ad->channels));
+        pthread_mutex_unlock(&g_gateway.lock);
+
+        char ctl_cmd[2048];
+        char line[512];
+        int cur_sid = 0, cur_pmt = 0;
+
+        /* Get SDT */
+        snprintf(ctl_cmd, sizeof(ctl_cmd), "%s -r %s get_sdt 2>&1", ctl_path, sock_path);
+        FILE *fp = popen(ctl_cmd, "r");
+        if (fp) {
+            while (fgets(line, sizeof(line), fp)) {
+                parse_scan_line(adapter_idx, line, &cur_sid, &cur_pmt);
+            }
+            pclose(fp);
+        }
+
+        /* Get PAT */
+        snprintf(ctl_cmd, sizeof(ctl_cmd), "%s -r %s get_pat 2>&1", ctl_path, sock_path);
+        fp = popen(ctl_cmd, "r");
+        if (fp) {
+            while (fgets(line, sizeof(line), fp)) {
+                parse_scan_line(adapter_idx, line, &cur_sid, &cur_pmt);
+            }
+            pclose(fp);
+        }
+
+        /* Get PMT for each discovered channel */
+        pthread_mutex_lock(&g_gateway.lock);
+        int ch_count = ad->num_channels;
+        uint16_t sids[MAX_DISCOVERED_CHANNELS];
+        for (int i = 0; i < ch_count; i++) {
+            sids[i] = ad->channels[i].service_id;
+        }
+        pthread_mutex_unlock(&g_gateway.lock);
+
+        for (int i = 0; i < ch_count; i++) {
+            snprintf(ctl_cmd, sizeof(ctl_cmd), "%s -r %s get_pmt %u 2>&1", ctl_path, sock_path, sids[i]);
+            fp = popen(ctl_cmd, "r");
+            if (fp) {
+                while (fgets(line, sizeof(line), fp)) {
+                    parse_scan_line(adapter_idx, line, &cur_sid, &cur_pmt);
+                }
+                pclose(fp);
+            }
+        }
+
+        web_state_save_json(NULL);
+        web_state_log("INFO", "Scan complete for Adapter %d, discovered %d services via worker socket",
+                      adapter_idx, ad->num_channels);
+        return NULL;
+    }
+
+    /* Fallback: worker not running or no socket. Stop worker gracefully to free frontend/dvr */
     web_manager_stop_worker_internal(adapter_idx);
 
-    char cmd[512];
-    snprintf(cmd, sizeof(cmd),
-             "./dvblast --disable-web -a %d -n %d -f %llu -b %d -5 %s -u -q -x text -Q 3500 2>&1",
-             ad->adapter_idx, ad->frontend_idx, (unsigned long long)ad->frequency,
-             ad->bandwidth > 0 ? ad->bandwidth : 8,
-             (ad->delsys[0] ? ad->delsys : "DVBT2"));
+    char cmd[1024];
+    int target_bw = ad->bandwidth > 0 ? ad->bandwidth : 8;
+    const char *target_delsys = ad->delsys[0] ? ad->delsys : "DVBT2";
+
+    int off = snprintf(cmd, sizeof(cmd),
+             "%s --disable-web -a %d -n %d -f %llu -5 %s -u -w -q -x text -Q 6000",
+             exe_path, ad->adapter_idx, ad->frontend_idx,
+             (unsigned long long)ad->frequency, target_delsys);
+
+    if (strcasecmp(target_delsys, "DVBT") == 0 || strcasecmp(target_delsys, "DVBT2") == 0 || strcasecmp(target_delsys, "ISDBT") == 0) {
+        off += snprintf(cmd + off, sizeof(cmd) - off, " -b %d", target_bw);
+    }
+    if (ad->symbol_rate > 0) off += snprintf(cmd + off, sizeof(cmd) - off, " -s %u", ad->symbol_rate);
+    if (ad->voltage > 0) off += snprintf(cmd + off, sizeof(cmd) - off, " -v %d", ad->voltage);
+    if (ad->diseqc > 0) off += snprintf(cmd + off, sizeof(cmd) - off, " -S %d", ad->diseqc);
+    if (ad->modulation[0]) off += snprintf(cmd + off, sizeof(cmd) - off, " -m %s", ad->modulation);
+    snprintf(cmd + off, sizeof(cmd) - off, " 2>&1");
 
     FILE *fp = popen(cmd, "r");
     if (!fp) {
@@ -377,30 +498,16 @@ static void *scan_secondary_adapter_thread(void *arg) {
         return NULL;
     }
 
-    char line[256];
-    int current_sid = 0;
+    pthread_mutex_lock(&g_gateway.lock);
     ad->num_channels = 0;
     memset(ad->channels, 0, sizeof(ad->channels));
+    pthread_mutex_unlock(&g_gateway.lock);
+
+    char line[512];
+    int current_sid = 0, current_pmt = 0;
 
     while (fgets(line, sizeof(line), fp)) {
-        char *p_sid = strstr(line, "service sid=");
-        if (p_sid) {
-            current_sid = atoi(p_sid + 12);
-        }
-        char *p_svc = strstr(line, "service=\"");
-        if (p_svc && current_sid > 0) {
-            p_svc += 9;
-            char *end = strchr(p_svc, '"');
-            if (end) {
-                *end = '\0';
-                channel_info_t ch;
-                memset(&ch, 0, sizeof(ch));
-                ch.service_id = (uint16_t)current_sid;
-                snprintf(ch.name, sizeof(ch.name), "%s", p_svc);
-                web_state_add_adapter_channel(adapter_idx, &ch);
-                current_sid = 0;
-            }
-        }
+        parse_scan_line(adapter_idx, line, &current_sid, &current_pmt);
     }
     pclose(fp);
 
@@ -439,22 +546,13 @@ static bool web_manager_tune_adapter_internal(const char *adapter_id, int adapte
     web_state_log("INFO", "Tuning Primary Adapter %d (%s, id=%s): Freq=%llu Hz, BW=%d MHz, Delsys=%s",
                   ad->adapter_idx, ad->name, ad->id, (unsigned long long)ad->frequency, ad->bandwidth, ad->delsys);
 
-    i_adapter = ad->adapter_idx;
-    i_fenum = ad->frontend_idx;
-    i_frequency = (int)ad->frequency;
-    i_bandwidth = ad->bandwidth;
-    if (ad->symbol_rate > 0) i_srate = (int)ad->symbol_rate;
-    if (ad->delsys[0]) {
-        free(psz_delsys);
-        psz_delsys = strdup(ad->delsys);
-    }
-    if (ad->voltage > 0) i_voltage = ad->voltage;
-    i_satnum = ad->diseqc;
-    b_tone = ad->tone;
+    /* Reset demux tables when tuning a new frequency */
+    demux_ResetTables();
 
-    /* Reset channels when tuning transponder */
+    pthread_mutex_lock(&g_gateway.lock);
     ad->num_channels = 0;
     memset(ad->channels, 0, sizeof(ad->channels));
+    pthread_mutex_unlock(&g_gateway.lock);
 
     bool ok = dvb_TuneFrontend(ad->adapter_idx, ad->frontend_idx, ad->frequency,
                                ad->bandwidth, ad->delsys, ad->multistream_id,
@@ -702,7 +800,7 @@ void web_manager_trigger_scan(int adapter_idx) {
 /*  STREAM MANAGEMENT                                                        */
 /* ========================================================================= */
 
-bool web_manager_add_stream(const web_stream_config_t *stream) {
+static bool web_manager_add_stream_internal(const web_stream_config_t *stream, bool save_json) {
     if (!stream || !stream->ip[0] || stream->port <= 0) return false;
 
     /* Register SoftCAM BISS key if provided */
@@ -751,9 +849,8 @@ bool web_manager_add_stream(const web_stream_config_t *stream) {
                 p_output->config.psz_displayname = strdup(stream->name[0] ? stream->name : stream->id);
                 p_output->b_pacing = stream->pacing;
                 snprintf(p_output->sz_stream_id, sizeof(p_output->sz_stream_id), "%s", stream->id);
-                p_output->config.i_sid = stream->service_id;
-                output_Change(p_output, &config);
                 demux_Change(p_output, &config);
+                output_Change(p_output, &config);
             }
         } else {
             if (p_output) {
@@ -770,14 +867,18 @@ bool web_manager_add_stream(const web_stream_config_t *stream) {
     } else {
         /* Secondary adapter: sync worker */
         web_state_add_or_update_stream(stream);
-        web_state_save_json(NULL);
+        if (save_json) web_state_save_json(NULL);
         web_manager_sync_worker(stream->adapter_idx);
         return true;
     }
 
     web_state_add_or_update_stream(stream);
-    web_state_save_json(NULL);
+    if (save_json) web_state_save_json(NULL);
     return true;
+}
+
+bool web_manager_add_stream(const web_stream_config_t *stream) {
+    return web_manager_add_stream_internal(stream, true);
 }
 
 bool web_manager_delete_stream(const char *id) {
@@ -851,7 +952,7 @@ void web_manager_sync_outputs(void) {
     /* Start active streams on primary adapter */
     for (int i = 0; i < count; i++) {
         if (streams_copy[i].enabled && streams_copy[i].adapter_idx == i_adapter) {
-            web_manager_add_stream(&streams_copy[i]);
+            web_manager_add_stream_internal(&streams_copy[i], false);
         }
     }
 
