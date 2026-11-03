@@ -165,6 +165,7 @@ web_stream_config_t *web_state_find_stream_by_dest(const char *ip, int port);
 /* Stats & System */
 void web_state_init_shm(bool is_master);
 void web_state_update_input_stats(int adapter_idx, uint64_t bytes, uint64_t packets);
+void web_state_update_shm_telemetry(int adapter_idx, bool locked, uint16_t sig_pct, float snr_db, float sig_dbm, uint32_t ber, uint32_t ucb);
 void web_state_update_output_stats(uint64_t bytes, uint64_t packets);
 void web_state_record_output(const char *stream_id_or_name, uint64_t bytes, uint64_t packets);
 void web_state_calc_bitrates(void);

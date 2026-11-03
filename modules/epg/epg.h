@@ -58,6 +58,7 @@ int  epg_handle_request(struct MHD_Connection *conn, const char *url);
 char *epg_generate_xmltv(void);
 
 json_t *epg_to_json(void);
+json_t *epg_config_to_json(void);
 bool    epg_from_json(json_t *root);
 
 #ifdef __cplusplus

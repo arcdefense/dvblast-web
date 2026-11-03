@@ -75,7 +75,7 @@ int i_adapter = 0;
 static int i_web_port = 8088;
 static char *psz_web_host = NULL;
 static char *psz_json_config = NULL;
-static bool b_web_enabled = true;
+bool b_web_enabled = true;
 static struct ev_timer web_telemetry_watcher;
 static struct ev_async web_async_watcher;
 pthread_t g_main_thread_id;
@@ -107,6 +107,9 @@ static void web_telemetry_cb(struct ev_loop *loop, struct ev_timer *w, int reven
             web_state_update_adapter_signal_ext(i_adapter, locked, sig_pct,
                                                 dvb_live_snr_db, dvb_live_signal_dbm,
                                                 st.i_ber, 0);
+            web_state_update_shm_telemetry(i_adapter, locked, sig_pct,
+                                           dvb_live_snr_db, dvb_live_signal_dbm,
+                                           st.i_ber, 0);
         }
     }
     web_manager_poll_secondary_telemetry();
@@ -586,8 +589,8 @@ void config_ReadFile(void)
             p_output->config.psz_displayname = strdup( config.psz_displayname );
 
             config.i_config |= OUTPUT_VALID | OUTPUT_STILL_PRESENT;
-            output_Change( p_output, &config );
             demux_Change( p_output, &config );
+            output_Change( p_output, &config );
         }
 
         config_Free( &config );
@@ -1345,6 +1348,7 @@ int main( int i_argc, char **pp_argv )
     {
         b_dvb_global = true;
         b_epg_global = true;
+        b_select_pmts = 1;
     }
 
     if ( b_epg_global && !b_dvb_global )

@@ -251,13 +251,15 @@ static void relay_subscribe(uint16_t sid, const char *ip, int port) {
         }
     }
 
-    struct ip_mreq mreq;
-    mreq.imr_multiaddr.s_addr = inet_addr(ip);
-    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-    if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
-        close(fd);
-        pthread_mutex_unlock(&g_relay_mutex);
-        return;
+    if (IN_MULTICAST(ntohl(inet_addr(ip)))) {
+        struct ip_mreq mreq;
+        mreq.imr_multiaddr.s_addr = inet_addr(ip);
+        mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+        if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
+            close(fd);
+            pthread_mutex_unlock(&g_relay_mutex);
+            return;
+        }
     }
 
     struct timeval tv = { .tv_sec = 0, .tv_usec = 500000 };

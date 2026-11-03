@@ -2975,6 +2975,9 @@ static void HandlePMT( uint16_t i_pid, uint8_t *p_pmt, mtime_t i_dts )
             fprintf(print_fh, "\n");
     }
 
+    /* Update discovered channel video/audio/pmt PIDs as soon as PMT is resolved */
+    demux_ExtractDiscoveredChannels();
+
 out_pmt:
     SendPMT( p_sid, i_dts );
 }
@@ -3926,41 +3929,44 @@ void demux_ExtractDiscoveredChannels( void )
 
             /* Lookup PMT */
             sid_t *p_sid = FindSID( i_sid );
-            if ( p_sid && p_sid->p_current_pmt && pmt_validate( p_sid->p_current_pmt ) )
+            if ( p_sid )
             {
-                resolved_pmts++;
                 ch.pmt_pid = p_sid->i_pmt_pid;
-                uint8_t *p_es;
-                int es_idx = 0;
-                while ( (p_es = pmt_get_es( p_sid->p_current_pmt, es_idx++ )) != NULL )
+                if ( p_sid->p_current_pmt && pmt_validate( p_sid->p_current_pmt ) )
                 {
-                    uint16_t pid = pmtn_get_pid( p_es );
-                    uint8_t stype = pmtn_get_streamtype( p_es );
-                    if ( stype == 0x01 || stype == 0x02 || stype == 0x1B || stype == 0x24 )
+                    resolved_pmts++;
+                    uint8_t *p_es;
+                    int es_idx = 0;
+                    while ( (p_es = pmt_get_es( p_sid->p_current_pmt, es_idx++ )) != NULL )
                     {
-                        if ( ch.video_pid == 0 ) {
-                            ch.video_pid = pid;
-                            ch.video_type = stype;
+                        uint16_t pid = pmtn_get_pid( p_es );
+                        uint8_t stype = pmtn_get_streamtype( p_es );
+                        if ( stype == 0x01 || stype == 0x02 || stype == 0x1B || stype == 0x24 )
+                        {
+                            if ( ch.video_pid == 0 ) {
+                                ch.video_pid = pid;
+                                ch.video_type = stype;
+                            }
+                        }
+                        else if ( stype == 0x03 || stype == 0x04 || stype == 0x0F || stype == 0x11 || stype == 0x06 || stype == 0x81 )
+                        {
+                            if ( ch.num_audio_pids < MAX_AUDIO_PIDS ) {
+                                ch.audio_pids[ch.num_audio_pids] = pid;
+                                ch.audio_types[ch.num_audio_pids] = stype;
+                                ch.num_audio_pids++;
+                            }
                         }
                     }
-                    else if ( stype == 0x03 || stype == 0x04 || stype == 0x0F || stype == 0x11 || stype == 0x06 || stype == 0x81 )
-                    {
-                        if ( ch.num_audio_pids < MAX_AUDIO_PIDS ) {
-                            ch.audio_pids[ch.num_audio_pids] = pid;
-                            ch.audio_types[ch.num_audio_pids] = stype;
-                            ch.num_audio_pids++;
-                        }
-                    }
+                    ch.scrambled = PMTNeedsDescrambling( p_sid->p_current_pmt );
                 }
-                ch.scrambled = PMTNeedsDescrambling( p_sid->p_current_pmt );
             }
 
             web_state_add_channel( &ch );
         }
     }
 
-    /* Once SDT services are extracted and PMTs are resolved, mark scan complete (run only 1 time) */
-    if ( total_services > 0 && resolved_pmts > 0 )
+    /* Once SDT services are extracted and PMTs are resolved, mark scan complete */
+    if ( total_services > 0 && resolved_pmts >= total_services )
     {
         b_scan_completed = true;
     }

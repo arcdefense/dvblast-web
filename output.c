@@ -270,7 +270,6 @@ int output_Init( output_t *p_output, const output_config_t *p_config )
 
     /* Init socket-related fields */
     p_output->config.i_family = p_config->i_family;
-    p_output->config.i_sid = p_config->i_sid;
     memcpy( &p_output->config.connect_addr, &p_config->connect_addr,
             sizeof(struct sockaddr_storage) );
     memcpy( &p_output->config.bind_addr, &p_config->bind_addr,
@@ -654,7 +653,6 @@ void output_Change( output_t *p_output, const output_config_t *p_config )
     memcpy( p_output->config.pi_ssrc, p_config->pi_ssrc, 4 * sizeof(uint8_t) );
     p_output->config.i_output_latency = p_config->i_output_latency;
     p_output->config.i_max_retention = p_config->i_max_retention;
-    p_output->config.i_sid = p_config->i_sid;
 
     if ( p_output->config.i_ttl != p_config->i_ttl )
     {

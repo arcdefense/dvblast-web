@@ -79,7 +79,8 @@ float dvb_live_snr_db = 0.0f;
 static int i_demux_wildcard_fd = -1;
 static int i_dvr = -1, i_sec = -1;
 static struct ev_io frontend_watcher, dvr_watcher;
-static struct ev_timer lock_watcher, mute_watcher, print_watcher;
+static struct ev_timer lock_watcher, mute_watcher, print_watcher, worker_telemetry_watcher;
+extern bool b_web_enabled;
 static fe_status_t i_last_status;
 static block_t *p_freelist = NULL;
 
@@ -148,8 +149,25 @@ void dvb_OpenSec( void )
 /*****************************************************************************
  * dvb_CloseDevices
  *****************************************************************************/
+static void WorkerTelemetryCb(struct ev_loop *loop, struct ev_timer *w, int revents)
+{
+    (void)loop; (void)w; (void)revents;
+    if (i_frontend < 0) return;
+
+    struct ret_frontend_status st;
+    ssize_t sz = sizeof(st);
+    if (dvb_FrontendStatus((uint8_t *)&st, &sz) == RET_FRONTEND_STATUS) {
+        bool locked = (st.i_status & FE_HAS_LOCK) != 0;
+        uint16_t sig_pct = (uint16_t)(st.i_strength * 99 / 65535);
+        web_state_update_shm_telemetry(i_adapter, locked, sig_pct,
+                                       dvb_live_snr_db, dvb_live_signal_dbm,
+                                       st.i_ber, 0);
+    }
+}
+
 void dvb_CloseDevices( void )
 {
+    ev_timer_stop(event_loop, &worker_telemetry_watcher);
     if ( i_dvr >= 0 )
     {
         ev_io_stop(event_loop, &dvr_watcher);
@@ -168,6 +186,7 @@ void dvb_CloseDevices( void )
 
 void dvb_ReleaseAll( void )
 {
+    ev_timer_stop(event_loop, &worker_telemetry_watcher);
     dvb_CloseDevices();
     if ( i_frontend >= 0 )
     {
@@ -286,6 +305,11 @@ bool dvb_TuneFrontend(int adapter, int frontend, uint64_t freq_hz, int bw_mhz,
     if (i_frontend_timeout_duration)
         ev_timer_again(event_loop, &lock_watcher);
     ev_timer_again(event_loop, &mute_watcher);
+
+    if (!b_web_enabled) {
+        ev_timer_init(&worker_telemetry_watcher, WorkerTelemetryCb, 1.0, 1.0);
+        ev_timer_start(event_loop, &worker_telemetry_watcher);
+    }
 
     return true;
 }
@@ -1837,12 +1861,6 @@ uint8_t dvb_FrontendStatus( uint8_t *p_answer, ssize_t *pi_size )
 
     uint32_t ber = 0;
     if ( ioctl( i_frontend, FE_READ_BER, &ber ) == 0 ) p_ret->i_ber = ber;
-
-    /* Si2168 demodulator quirk: status may return 0 even when locked with RF signal */
-    if ( (status & FE_HAS_LOCK) == 0 && signal_read && sig_percent > 10 )
-    {
-        status |= (FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK);
-    }
 
     dvb_live_signal_dbm = sig_dbm;
     dvb_live_snr_db = snr_db;
