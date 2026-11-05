@@ -1145,7 +1145,7 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        /* Authentication Overlay (AIA.HTML Architecture) */
+        /* Authentication Overlay */
         .auth-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -1307,7 +1307,7 @@
 </head>
 <body>
 
-    <!-- Authentication Overlay (Modeled after aia.html) -->
+    <!-- Authentication Overlay -->
     <div id="auth-overlay" class="auth-overlay">
         <div class="auth-card">
             <div class="auth-header">
@@ -1425,7 +1425,7 @@
 
         </div>
 
-                <!-- SETTINGS TAB (MODULAR CONFIGURATION MATCHING AIA.HTML) -->
+                <!-- SETTINGS TAB (MODULAR CONFIGURATION) -->
         <div id="tab-settings" class="tab-pane">
             <div class="settings-layout">
                 <!-- Settings Sidebar Submenu (Strict Typography - No Icons) -->
@@ -2415,7 +2415,7 @@
 
     <!-- MODAL: ADD / EDIT ADAPTER -->
     <div class="modal-overlay" id="modal-adapter">
-        <div class="modal-box" style="max-width: 580px;">
+        <div class="modal-box" style="max-width: 620px;">
             <div class="modal-header">
                 <h3 class="modal-title" id="modal-adapter-title">Adapter</h3>
                 <button class="modal-close" onclick="closeAdapterModal()">&times;</button>
@@ -2423,120 +2423,306 @@
 
             <div class="modal-tabs">
                 <button type="button" class="modal-tab-btn active" id="btn-tab-ad-gen" onclick="switchAdModalTab('general')">General</button>
+                <button type="button" class="modal-tab-btn" id="btn-tab-ad-lnb" style="display: none;" onclick="switchAdModalTab('lnb')">LNB</button>
                 <button type="button" class="modal-tab-btn" id="btn-tab-ad-adv" onclick="switchAdModalTab('advanced')">Advanced</button>
             </div>
 
             <form id="form-adapter" onsubmit="handleAdapterSubmit(event)">
                 <input type="hidden" id="ad-edit-mode" value="false">
 
-                <!-- GENERAL TAB -->
+                <!-- 1. GENERAL TAB -->
                 <div id="tab-ad-general">
                     <div style="margin-bottom: 12px;">
                         <label class="checkbox-label">
                             <input type="checkbox" id="ad-enable" checked>
-                            <span>Enable Tuner</span>
+                            <span>Enable</span>
                         </label>
                     </div>
 
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="form-label">Name</label>
-                            <input type="text" class="form-input" id="ad-name" required placeholder="e.g. Multiplex 1">
+                            <input type="text" class="form-input" id="ad-name" required placeholder="Adapter Name">
                         </div>
                         <div class="form-group">
                             <label class="form-label">ID</label>
-                            <input type="text" class="form-input" id="ad-id" required placeholder="e.g. adapter_0">
+                            <input type="text" class="form-input" id="ad-id" required placeholder="adapter_0">
                         </div>
                     </div>
 
                     <div class="form-grid">
                         <div class="form-group">
+                            <label class="form-label">Virtual</label>
+                            <select class="form-select" id="ad-virtual" onchange="onVirtualChange()">
+                                <option value="" selected>Physical Hardware</option>
+                                <option value="satip">SAT&gt;IP</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="group-hw-device">
                             <label class="form-label">Adapter</label>
                             <select class="form-select" id="ad-device">
                                 <option value="0">0.0 : Loading tuners...</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Delivery System</label>
-                            <select class="form-select" id="ad-delsys" onchange="onDelsysChange()">
-                                <optgroup label="Terrestrial">
-                                    <option value="DVBT2" selected>DVB-T2</option>
-                                    <option value="DVBT">DVB-T</option>
-                                </optgroup>
-                                <optgroup label="Satellite">
-                                    <option value="DVBS2">DVB-S2</option>
-                                    <option value="DVBS">DVB-S</option>
-                                </optgroup>
-                                <optgroup label="Cable">
-                                    <option value="DVBC">DVB-C</option>
-                                </optgroup>
-                            </select>
+                        <div class="form-group" id="group-satip-opts" style="display: none;">
+                            <label class="form-label">SAT&gt;IP Server</label>
+                            <input type="text" class="form-input" id="ad-satip-url" placeholder="http://host:port or rtsp://host:port">
                         </div>
                     </div>
 
-                    <div class="form-section-header">Transponder Tuning</div>
-
-                    <div class="form-grid">
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label class="form-label" id="lbl-ad-freq">Frequency (MHz)</label>
-                            <input type="number" step="any" class="form-input" id="ad-freq" required placeholder="e.g. 498">
-                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display: block;" id="hint-ad-freq">Frequency in MHz (e.g. 498 for 498 MHz)</span>
-                        </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="form-label">Type</label>
+                        <select class="form-select" id="ad-delsys" onchange="onDelsysChange()">
+                            <optgroup label="Satellite">
+                                <option value="DVBS">DVB-S</option>
+                                <option value="DVBS2">DVB-S2</option>
+                            </optgroup>
+                            <optgroup label="Terrestrial">
+                                <option value="DVBT2" selected>DVB-T2</option>
+                                <option value="DVBT">DVB-T</option>
+                                <option value="ATSC">ATSC</option>
+                                <option value="ISDBT">ISDB-T</option>
+                            </optgroup>
+                            <optgroup label="Cable">
+                                <option value="DVBC">DVB-C</option>
+                                <option value="DVBC_ANNEX_A">DVB-C (Annex A)</option>
+                                <option value="DVBC_ANNEX_B">DVB-C (Annex B)</option>
+                                <option value="DVBC_ANNEX_C">DVB-C (Annex C)</option>
+                            </optgroup>
+                        </select>
                     </div>
 
-                    <div class="form-grid" id="group-sat-opts" style="display: none;">
-                        <div class="form-group">
-                            <label class="form-label">Polarization</label>
-                            <select class="form-select" id="ad-pol">
-                                <option value="H">Horizontal (18V)</option>
-                                <option value="V">Vertical (13V)</option>
-                            </select>
+                    <div id="group-transponder-tuning">
+                        <div class="form-section-header">Transponder</div>
+
+                        <div class="form-grid">
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label class="form-label" id="lbl-ad-freq">Frequency</label>
+                                <input type="number" step="any" class="form-input" id="ad-freq" placeholder="1..1000 MHz">
+                                <span style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display: block;" id="hint-ad-freq">Frequency in MHz (e.g. 498 for 498 MHz)</span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Symbolrate (Kbaud)</label>
-                            <input type="number" class="form-input" id="ad-srate" value="27500" placeholder="1000..50000 Kbaud">
+
+                        <!-- Satellite Transponder Fields -->
+                        <div class="form-grid" id="group-sat-opts" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label">Polarization</label>
+                                <select class="form-select" id="ad-pol">
+                                    <option value="H">Horizontal (18V)</option>
+                                    <option value="V">Vertical (13V)</option>
+                                    <option value="L">Left Circular</option>
+                                    <option value="R">Right Circular</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Symbolrate</label>
+                                <input type="number" class="form-input" id="ad-srate" value="27500" placeholder="1000..50000 Kbaud">
+                            </div>
+                        </div>
+
+                        <!-- Cable Transponder Fields -->
+                        <div class="form-grid" id="group-cable-opts" style="display: none;">
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label class="form-label">Symbolrate</label>
+                                <input type="number" class="form-input" id="ad-cable-srate" value="6900" placeholder="1000..10000 Kbaud">
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ADVANCED TAB -->
-                <div id="tab-ad-advanced" style="display: none;">
-                    <div class="form-grid" id="group-terr-opts">
+                <!-- 2. LNB TAB (Dedicated tab for Satellite DVB-S/S2) -->
+                <div id="tab-ad-lnb" style="display: none;">
+                    <div class="form-grid">
                         <div class="form-group">
-                            <label class="form-label">PLP / Multistream ID</label>
-                            <input type="number" class="form-input" id="ad-plp" placeholder="Multistream filtering (Auto: -1)" value="">
+                            <label class="form-label">LOF1</label>
+                            <input type="number" class="form-input" id="ad-lof1" value="9750" placeholder="Low sub-band. Default: 9750 MHz">
                         </div>
-                        <div class="form-group" id="group-bandwidth">
+                        <div class="form-group">
+                            <label class="form-label">LOF2</label>
+                            <input type="number" class="form-input" id="ad-lof2" value="10600" placeholder="High sub-band. Default: 10600 MHz">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="form-label">SLOF</label>
+                        <input type="number" class="form-input" id="ad-slof" value="11700" placeholder="Sub-band range switch. Default: 11700 MHz">
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="ad-tone">
+                            <span>Force Tone</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="form-label">LNB Mode</label>
+                        <select class="form-select" id="ad-lnb-mode" onchange="onLnbModeChange()">
+                            <option value="universal" selected>Auto (Default)</option>
+                            <option value="lnb_sharing">LNB Sharing</option>
+                            <option value="diseqc_10">DiSEqC 1.0</option>
+                            <option value="diseqc_11">DiSEqC 1.1</option>
+                            <option value="diseqc_cmd">DiSEqC Command</option>
+                            <option value="toneburst">Tone Burst</option>
+                            <option value="unicable_10">Unicable I (EN50494)</option>
+                            <option value="unicable_20">Unicable II (EN50607)</option>
+                        </select>
+                    </div>
+
+                    <!-- DiSEqC 1.0 -->
+                    <div class="form-group" id="wrap-diseqc-10" style="display: none; margin-bottom: 12px;">
+                        <label class="form-label">DiSEqC 1.0</label>
+                        <select class="form-select" id="ad-diseqc-port">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+
+                    <!-- DiSEqC 1.1 -->
+                    <div class="form-group" id="wrap-diseqc-11" style="display: none; margin-bottom: 12px;">
+                        <label class="form-label">DiSEqC 1.1</label>
+                        <select class="form-select" id="ad-diseqc-uncommitted">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12">12</option>
+                            <option value="13">13</option>
+                            <option value="14">14</option>
+                            <option value="15">15</option>
+                            <option value="16">16</option>
+                        </select>
+                    </div>
+
+                    <!-- Tone Burst -->
+                    <div class="form-group" id="wrap-toneburst" style="display: none; margin-bottom: 12px;">
+                        <label class="form-label">Tone Burst</label>
+                        <select class="form-select" id="ad-toneburst">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                        </select>
+                    </div>
+
+                    <!-- DiSEqC Command (Hex) -->
+                    <div class="form-group" id="wrap-diseqc-cmd" style="display: none; margin-bottom: 12px;">
+                        <label class="form-label">DiSEqC Command</label>
+                        <input type="text" class="form-input" id="ad-diseqc-cmd" placeholder="e.g. E0 10 38 F0">
+                    </div>
+
+                    <!-- Unicable I & II Form -->
+                    <div id="wrap-unicable" style="display: none;">
+                        <div class="form-grid" style="margin-bottom: 12px;">
+                            <div class="form-group">
+                                <label class="form-label">Unicable Slot</label>
+                                <select class="form-select" id="ad-uni-scr">
+                                    <!-- Populated dynamically: 1..8 or 1..32 -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Slot Position</label>
+                                <select class="form-select" id="ad-uni-pos">
+                                    <option value="A">Default: A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label class="form-label">Slot Frequency</label>
+                            <input type="number" class="form-input" id="ad-uni-freq" placeholder="950..2150 MHz">
+                            <span style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display: block;">User band IF slot frequency (e.g. 1210 MHz)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. ADVANCED TAB -->
+                <div id="tab-ad-advanced" style="display: none;">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="form-label">Modulation</label>
+                        <select class="form-select" id="ad-mod">
+                            <option value="">Default: Auto</option>
+                            <option value="QPSK">QPSK</option>
+                            <option value="QAM16">16-QAM</option>
+                            <option value="QAM32">32-QAM</option>
+                            <option value="QAM64">64-QAM</option>
+                            <option value="QAM128">128-QAM</option>
+                            <option value="QAM256">256-QAM</option>
+                            <option value="PSK8">8PSK</option>
+                            <option value="APSK16">16APSK</option>
+                            <option value="APSK32">32APSK</option>
+                        </select>
+                    </div>
+
+                    <!-- Satellite Advanced: FEC & Roll-off & Stream ID -->
+                    <div class="form-grid" id="group-sat-adv" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">FEC</label>
+                            <select class="form-select" id="ad-fec">
+                                <option value="999">Default: Auto</option>
+                                <option value="0">NONE</option>
+                                <option value="12">1/2</option>
+                                <option value="23">2/3</option>
+                                <option value="34">3/4</option>
+                                <option value="45">4/5</option>
+                                <option value="56">5/6</option>
+                                <option value="67">6/7</option>
+                                <option value="78">7/8</option>
+                                <option value="89">8/9</option>
+                                <option value="35">3/5</option>
+                                <option value="910">9/10</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Roll-off</label>
+                            <select class="form-select" id="ad-rolloff">
+                                <option value="35">Default: 35</option>
+                                <option value="25">25</option>
+                                <option value="20">20</option>
+                                <option value="0">AUTO</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label class="form-label">Stream ID</label>
+                            <input type="number" class="form-input" id="ad-plp-sat" placeholder="Multistream filtering (Auto: -1)">
+                        </div>
+                    </div>
+
+                    <!-- Terrestrial Advanced: PLP ID & Bandwidth -->
+                    <div class="form-grid" id="group-terr-adv">
+                        <div class="form-group">
+                            <label class="form-label">PLP ID</label>
+                            <input type="number" class="form-input" id="ad-plp-terr" placeholder="Multistream filtering (Auto: -1)">
+                        </div>
+                        <div class="form-group">
                             <label class="form-label">Bandwidth</label>
                             <select class="form-select" id="ad-bandwidth">
-                                <option value="8">8 MHz (Default)</option>
+                                <option value="8">8 MHz</option>
                                 <option value="7">7 MHz</option>
                                 <option value="6">6 MHz</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="form-group" id="group-sat-diseqc" style="display: none;">
-                        <label class="form-label">DiSEqC Switch Position</label>
-                        <select class="form-select" id="ad-diseqc">
-                            <option value="0">None / Direct</option>
-                            <option value="1">Port 1 (A)</option>
-                            <option value="2">Port 2 (B)</option>
-                            <option value="3">Port 3 (C)</option>
-                            <option value="4">Port 4 (D)</option>
-                        </select>
+                    <!-- Common Advanced: Buffer Size -->
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="form-label">Buffer Size</label>
+                        <input type="number" class="form-input" id="ad-bufsize" value="64" placeholder="Receiving buffer size in Mb. Default: 64">
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Constellation / Modulation</label>
-                        <select class="form-select" id="ad-mod">
-                            <option value="">Auto Detect (Default)</option>
-                            <option value="QPSK">QPSK</option>
-                            <option value="16QAM">16QAM</option>
-                            <option value="64QAM">64QAM</option>
-                            <option value="256QAM">256QAM</option>
-                            <option value="8PSK">8PSK (DVB-S2)</option>
-                        </select>
+                    <!-- SAT>IP Advanced: PIDs filter -->
+                    <div class="form-group" id="group-satip-pids-wrap" style="display: none; margin-bottom: 12px;">
+                        <label class="form-label">SAT&gt;IP Pids</label>
+                        <input type="text" class="form-input" id="ad-satip-pids" value="all" placeholder="Default: all">
                     </div>
                 </div>
 
@@ -2544,12 +2730,12 @@
                     <div id="ad-remove-wrap" style="display: none;">
                         <label class="checkbox-label" style="color: var(--vlc-red);">
                             <input type="checkbox" id="ad-remove" onchange="onAdRemoveToggle(this.checked)">
-                            <span>Delete Adapter</span>
+                            <span>Remove</span>
                         </label>
                     </div>
                     <div style="display: flex; gap: 8px; margin-left: auto;">
                         <button type="button" class="btn" onclick="closeAdapterModal()">Cancel</button>
-                        <button type="button" class="btn" onclick="handleAdapterSaveAndScan()">Save & Scan</button>
+                        <button type="button" class="btn" onclick="handleAdapterSaveAndScan()">Scan</button>
                         <button type="submit" class="btn btn-primary" id="btn-ad-apply">Apply</button>
                     </div>
                 </div>
@@ -2885,7 +3071,7 @@
         let g_hardware = [];
         let g_logs = [];
 
-        // Authentication & Session Management (Matching aia.html)
+        // Authentication & Session Management
         let g_authToken = localStorage.getItem('dvblast_token') || sessionStorage.getItem('dvblast_token') || '';
         let g_currentUser = null;
         let g_currentRole = 'admin';
@@ -2932,7 +3118,7 @@
 
             // Role permissions applied
 
-            // Role-based restrictions (matching aia.html observer behavior)
+            // Role-based restrictions
             const isObserver = (g_currentRole === 'viewer');
             const settingsNavTab = document.querySelector('.nav-tab[data-tab="tab-settings"]');
             if (settingsNavTab) {
@@ -3966,7 +4152,16 @@
                     const adapterStreams = g_streams.filter(st => st.adapter_idx === ad.adapter_idx);
                     const fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
                     const inBr = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
-                    const headerText = `${ad.name} • ${ad.delsys || 'DVB-T2'} @ ${fMhz} MHz • Ingest: ${inBr} Mbps (${adapterStreams.length} stream${adapterStreams.length !== 1 ? 's' : ''})`;
+                    const isSatIp = (ad.delsys === 'SATIP');
+                    let subInfo = `${ad.delsys || 'DVB-T2'} @ ${fMhz} MHz`;
+                    if (isSatIp) {
+                        subInfo = `SAT&gt;IP (${escapeHtml(ad.satip_url || 'Network')})`;
+                    } else if (ad.lnb_mode === 'unicable_10') {
+                        subInfo = `${ad.delsys} @ ${fMhz} MHz (Unicable I UB${ad.uni_scr || 1} ${ad.uni_frequency || 1210}MHz)`;
+                    } else if (ad.lnb_mode === 'unicable_20') {
+                        subInfo = `${ad.delsys} @ ${fMhz} MHz (Unicable II UB${ad.uni_scr || 1} ${ad.uni_frequency || 1210}MHz)`;
+                    }
+                    const headerText = `${ad.name} • ${subInfo} • Ingest: ${inBr} Mbps (${adapterStreams.length} stream${adapterStreams.length !== 1 ? 's' : ''})`;
 
                     const streamCardsHtml = adapterStreams.map(st => renderStreamCardHtml(st)).join('');
                     html += `
@@ -3998,7 +4193,16 @@
                         const adapterStreams = g_streams.filter(st => st.adapter_idx === ad.adapter_idx);
                         const fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
                         const inBr = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
-                        stack.setAttribute('data-header', `${ad.name} • ${ad.delsys || 'DVB-T2'} @ ${fMhz} MHz • Ingest: ${inBr} Mbps (${adapterStreams.length} stream${adapterStreams.length !== 1 ? 's' : ''})`);
+                        const isSatIp = (ad.delsys === 'SATIP');
+                        let subInfo = `${ad.delsys || 'DVB-T2'} @ ${fMhz} MHz`;
+                        if (isSatIp) {
+                            subInfo = `SAT&gt;IP (${escapeHtml(ad.satip_url || 'Network')})`;
+                        } else if (ad.lnb_mode === 'unicable_10') {
+                            subInfo = `${ad.delsys} @ ${fMhz} MHz (Unicable I UB${ad.uni_scr || 1} ${ad.uni_frequency || 1210}MHz)`;
+                        } else if (ad.lnb_mode === 'unicable_20') {
+                            subInfo = `${ad.delsys} @ ${fMhz} MHz (Unicable II UB${ad.uni_scr || 1} ${ad.uni_frequency || 1210}MHz)`;
+                        }
+                        stack.setAttribute('data-header', `${ad.name} • ${subInfo} • Ingest: ${inBr} Mbps (${adapterStreams.length} stream${adapterStreams.length !== 1 ? 's' : ''})`);
                     }
                 });
                 g_streams.forEach(st => {
@@ -4011,6 +4215,7 @@
         function renderAdapterCardHtml(ad) {
             const isEnabled = ad.enabled !== false;
             const isLocked = isEnabled && ad.locked;
+            const isSatIp = (ad.delsys === 'SATIP');
             const snrVal = isEnabled ? (ad.snr_db !== undefined ? ad.snr_db : (ad.snr_raw ? ad.snr_raw / 10 : 0)) : 0;
             const snr = snrVal.toFixed(1);
             const snrPct = Math.min(100, Math.round((parseFloat(snr) / 35.0) * 100));
@@ -4022,11 +4227,21 @@
             const cardClass = isLocked ? 'card-true-2' : (isEnabled ? 'card-true-0' : 'card-false-0');
             const dotClass = isLocked ? 'dot-locked' : (isEnabled ? 'dot-unlocked' : 'dot-disabled');
 
+            let extraBadge = '';
+            if (isSatIp) {
+                extraBadge = `<span style="font-size: 10px; background: rgba(0,112,187,0.15); color: var(--vlc-blue); padding: 1px 5px; border-radius: 3px; font-weight: 600; margin-left: 6px;">SAT&gt;IP</span>`;
+            } else if (ad.lnb_mode === 'unicable_10') {
+                extraBadge = `<span style="font-size: 10px; background: rgba(57,181,73,0.15); color: var(--vlc-green); padding: 1px 5px; border-radius: 3px; font-weight: 600; margin-left: 6px;">Unicable I (UB${ad.uni_scr || 1})</span>`;
+            } else if (ad.lnb_mode === 'unicable_20') {
+                extraBadge = `<span style="font-size: 10px; background: rgba(244,139,0,0.15); color: var(--vlc-orange); padding: 1px 5px; border-radius: 3px; font-weight: 600; margin-left: 6px;">Unicable II (UB${ad.uni_scr || 1})</span>`;
+            }
+
             return `
             <div id="card-ad-${ad.id}" class="card card-adapter ${cardClass}" onclick="editAdapter('${ad.id}')">
-                <div class="card-name" title="${escapeHtml(ad.name)} (${ad.delsys} @ ${fMhz} MHz)">
+                <div class="card-name" title="${escapeHtml(ad.name)} (${ad.delsys}${!isSatIp ? ` @ ${fMhz} MHz` : ''})">
                     <span class="status-dot ${dotClass}"></span>
                     <span class="card-title-text">${escapeHtml(ad.name)}</span>
+                    ${extraBadge}
                 </div>
                 <details class="dropdown card-action" onclick="event.stopPropagation()">
                     <summary title="Actions" onclick="onDropdownSummaryClick(event)"><span class="btn-more">⋮</span></summary>
@@ -4041,28 +4256,28 @@
                 </details>
 
                 <!-- S (Signal Strength) Level Bar -->
-                <div class="dvb-status row monospace card-status" title="Signal Strength: ${sig}%">
-                    <div class="text">S</div>
+                <div class="dvb-status row monospace card-status" title="${isSatIp ? 'SAT&gt;IP Input' : `Signal Strength: ${sig}%`}">
+                    <div class="text">${isSatIp ? 'IP' : 'S'}</div>
                     <div class="progress signal-level col-expand">
-                        <div class="progress-level level-fill-s" style="width: ${sig}%;"></div>
+                        <div class="progress-level level-fill-s" style="width: ${isSatIp ? (isLocked ? 100 : 0) : sig}%;"></div>
                         <div class="progress-overlay"></div>
                     </div>
-                    <div class="text level-val-s">${sig}%</div>
+                    <div class="text level-val-s">${isSatIp ? (isLocked ? 'ACTIVE' : 'IDLE') : `${sig}%`}</div>
                 </div>
 
                 <!-- Q (Quality / SNR) Level Bar -->
-                <div class="dvb-status row monospace card-status" title="Signal SNR: ${snr} dB (${snrPct}%)">
-                    <div class="text">Q</div>
+                <div class="dvb-status row monospace card-status" title="${isSatIp ? (ad.satip_url || 'SAT&gt;IP') : `Signal SNR: ${snr} dB (${snrPct}%)`}">
+                    <div class="text">${isSatIp ? 'TS' : 'Q'}</div>
                     <div class="progress signal-level col-expand">
-                        <div class="progress-level level-fill-q" style="width: ${snrPct}%;"></div>
+                        <div class="progress-level level-fill-q" style="width: ${isSatIp ? (parseFloat(br) > 0 ? 100 : 0) : snrPct}%;"></div>
                         <div class="progress-overlay"></div>
                     </div>
-                    <div class="text level-val-q">${snrPct}%</div>
+                    <div class="text level-val-q">${isSatIp ? `${br} Mbps` : `${snrPct}%`}</div>
                 </div>
 
                 <!-- Footer Info Line -->
                 <div class="card-status monospace footer-line">
-                    <span class="text footer-ad-stat">ber:0 unc:0 • ${br} Mbps</span>
+                    <span class="text footer-ad-stat">${isSatIp ? (ad.satip_pids ? `pids:${escapeHtml(ad.satip_pids)}` : 'all pids') : `ber:0 unc:0 • ${br} Mbps`}</span>
                 </div>
             </div>
             `;
@@ -4130,18 +4345,31 @@
             const dot = cardEl.querySelector('.status-dot');
             if (dot) dot.className = `status-dot ${isLocked ? 'dot-locked' : (isEnabled ? 'dot-unlocked' : 'dot-disabled')}`;
 
+            const isSatIp = (ad.delsys === 'SATIP');
             const fillS = cardEl.querySelector('.level-fill-s');
-            if (fillS) fillS.style.width = `${sig}%`;
             const valS = cardEl.querySelector('.level-val-s');
-            if (valS) valS.textContent = `${sig}%`;
-
             const fillQ = cardEl.querySelector('.level-fill-q');
-            if (fillQ) fillQ.style.width = `${snrPct}%`;
             const valQ = cardEl.querySelector('.level-val-q');
-            if (valQ) valQ.textContent = `${snrPct}%`;
-
             const statEl = cardEl.querySelector('.footer-ad-stat');
-            if (statEl) statEl.textContent = `ber:0 unc:0 • ${br} Mbps`;
+
+            if (isSatIp) {
+                if (fillS) fillS.style.width = isLocked ? '100%' : '0%';
+                if (valS) valS.textContent = isLocked ? 'ACTIVE' : 'IDLE';
+
+                const tsPct = Math.min(100, Math.round((parseFloat(br) / 50.0) * 100));
+                if (fillQ) fillQ.style.width = parseFloat(br) > 0 ? `${tsPct}%` : '0%';
+                if (valQ) valQ.textContent = `${br} Mbps`;
+
+                if (statEl) statEl.textContent = ad.satip_pids ? `pids:${escapeHtml(ad.satip_pids)} • ${br} Mbps` : `all pids • ${br} Mbps`;
+            } else {
+                if (fillS) fillS.style.width = `${sig}%`;
+                if (valS) valS.textContent = `${sig}%`;
+
+                if (fillQ) fillQ.style.width = `${snrPct}%`;
+                if (valQ) valQ.textContent = `${snrPct}%`;
+
+                if (statEl) statEl.textContent = `ber:0 unc:0 • ${br} Mbps`;
+            }
         }
 
         function updateStreamCard(cardEl, st) {
@@ -4235,11 +4463,14 @@
 
         // Hardware Options
         function switchAdModalTab(tab) {
-            const isGen = (tab === 'general');
-            document.getElementById('tab-ad-general').style.display = isGen ? 'block' : 'none';
-            document.getElementById('tab-ad-advanced').style.display = isGen ? 'none' : 'block';
-            document.getElementById('btn-tab-ad-gen').classList.toggle('active', isGen);
-            document.getElementById('btn-tab-ad-adv').classList.toggle('active', !isGen);
+            document.getElementById('tab-ad-general').style.display = (tab === 'general') ? 'block' : 'none';
+            document.getElementById('tab-ad-lnb').style.display = (tab === 'lnb') ? 'block' : 'none';
+            document.getElementById('tab-ad-advanced').style.display = (tab === 'advanced') ? 'block' : 'none';
+
+            document.getElementById('btn-tab-ad-gen').classList.toggle('active', tab === 'general');
+            const btnLnb = document.getElementById('btn-tab-ad-lnb');
+            if (btnLnb) btnLnb.classList.toggle('active', tab === 'lnb');
+            document.getElementById('btn-tab-ad-adv').classList.toggle('active', tab === 'advanced');
         }
 
         function onAdRemoveToggle(checked) {
@@ -4303,6 +4534,21 @@
             }
         }
 
+        function onVirtualChange() {
+            const isSatIp = (document.getElementById('ad-virtual').value === 'satip');
+            const grpHw = document.getElementById('group-hw-device');
+            const grpSatIp = document.getElementById('group-satip-opts');
+            const grpSatIpPids = document.getElementById('group-satip-pids-wrap');
+            const grpTuning = document.getElementById('group-transponder-tuning');
+
+            if (grpHw) grpHw.style.display = isSatIp ? 'none' : 'block';
+            if (grpSatIp) grpSatIp.style.display = isSatIp ? 'block' : 'none';
+            if (grpSatIpPids) grpSatIpPids.style.display = isSatIp ? 'block' : 'none';
+            if (grpTuning) grpTuning.style.display = isSatIp ? 'none' : 'block';
+
+            onDelsysChange();
+        }
+
         // Adapter Modal Actions
         async function openAdapterModal() {
             document.getElementById('modal-adapter-title').textContent = 'Adapter';
@@ -4315,9 +4561,37 @@
             document.getElementById('ad-id').value = `adapter_${nextNum}`;
             document.getElementById('ad-enable').checked = true;
             document.getElementById('ad-name').value = `MUX-${nextNum + 1}`;
+            document.getElementById('ad-virtual').value = '';
+            document.getElementById('ad-delsys').value = 'DVBT2';
             document.getElementById('ad-freq').value = '';
-            document.getElementById('ad-plp').value = '';
+            document.getElementById('ad-srate').value = '27500';
+            document.getElementById('ad-cable-srate').value = '6900';
+            document.getElementById('ad-pol').value = 'H';
+            document.getElementById('ad-satip-url').value = '';
+            document.getElementById('ad-satip-pids').value = 'all';
+
+            // LNB Tab
+            document.getElementById('ad-lof1').value = '9750';
+            document.getElementById('ad-lof2').value = '10600';
+            document.getElementById('ad-slof').value = '11700';
+            document.getElementById('ad-tone').checked = false;
+            document.getElementById('ad-lnb-mode').value = 'universal';
+            document.getElementById('ad-diseqc-port').value = '1';
+            document.getElementById('ad-diseqc-uncommitted').value = '1';
+            document.getElementById('ad-toneburst').value = 'A';
+            document.getElementById('ad-diseqc-cmd').value = '';
+            document.getElementById('ad-uni-scr').value = '1';
+            document.getElementById('ad-uni-pos').value = 'A';
+            document.getElementById('ad-uni-freq').value = '1210';
+
+            // Advanced Tab
             document.getElementById('ad-mod').value = '';
+            document.getElementById('ad-fec').value = '999';
+            document.getElementById('ad-rolloff').value = '35';
+            document.getElementById('ad-plp-sat').value = '';
+            document.getElementById('ad-plp-terr').value = '';
+            document.getElementById('ad-bandwidth').value = '8';
+            document.getElementById('ad-bufsize').value = '64';
 
             document.getElementById('ad-remove-wrap').style.display = 'none';
             document.getElementById('ad-remove').checked = false;
@@ -4325,7 +4599,7 @@
 
             switchAdModalTab('general');
             await refreshHardwareSelect();
-            onDelsysChange();
+            onVirtualChange();
             document.getElementById('modal-adapter').classList.add('open');
         }
 
@@ -4337,18 +4611,52 @@
             document.getElementById('ad-id').value = ad.id;
             document.getElementById('ad-enable').checked = (ad.enabled !== false);
             document.getElementById('ad-name').value = ad.name;
-            document.getElementById('ad-delsys').value = ad.delsys || 'DVBT2';
+            const isSatIp = (ad.delsys === 'SATIP' || (ad.satip_url && ad.satip_url.length > 0));
+            document.getElementById('ad-virtual').value = isSatIp ? 'satip' : '';
+            document.getElementById('ad-delsys').value = (!isSatIp && ad.delsys) ? ad.delsys : 'DVBT2';
 
             let f = ad.frequency_mhz ? ad.frequency_mhz : (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency));
             document.getElementById('ad-freq').value = f ? Math.round(f * 100) / 100 : '';
 
-            if (ad.bandwidth_mhz) document.getElementById('ad-bandwidth').value = ad.bandwidth_mhz;
-            if (ad.symbol_rate) document.getElementById('ad-srate').value = ad.symbol_rate;
+            if (ad.symbol_rate) {
+                document.getElementById('ad-srate').value = ad.symbol_rate;
+                document.getElementById('ad-cable-srate').value = ad.symbol_rate;
+            } else {
+                document.getElementById('ad-srate').value = '27500';
+                document.getElementById('ad-cable-srate').value = '6900';
+            }
             if (ad.polarization) document.getElementById('ad-pol').value = ad.polarization;
-            if (ad.diseqc !== undefined) document.getElementById('ad-diseqc').value = ad.diseqc;
-            if (ad.multistream_id !== undefined && ad.multistream_id >= 0) document.getElementById('ad-plp').value = ad.multistream_id;
-            else document.getElementById('ad-plp').value = '';
+
+            document.getElementById('ad-satip-url').value = ad.satip_url || '';
+            document.getElementById('ad-satip-pids').value = ad.satip_pids || 'all';
+
+            // LNB Tab
+            document.getElementById('ad-lof1').value = ad.lof1 || 9750;
+            document.getElementById('ad-lof2').value = ad.lof2 || 10600;
+            document.getElementById('ad-slof').value = ad.slof || 11700;
+            document.getElementById('ad-tone').checked = (ad.tone === 1 || ad.tone === true);
+            document.getElementById('ad-lnb-mode').value = ad.lnb_mode || 'universal';
+            if (ad.diseqc) document.getElementById('ad-diseqc-port').value = ad.diseqc;
+            if (ad.uncommitted) document.getElementById('ad-diseqc-uncommitted').value = ad.uncommitted;
+            if (ad.diseqc_cmd) document.getElementById('ad-diseqc-cmd').value = ad.diseqc_cmd;
+
+            onLnbModeChange();
+            if (ad.uni_scr) document.getElementById('ad-uni-scr').value = ad.uni_scr;
+            if (ad.uni_pos) document.getElementById('ad-uni-pos').value = ad.uni_pos;
+            if (ad.uni_frequency) document.getElementById('ad-uni-freq').value = ad.uni_frequency;
+
+            // Advanced Tab
             if (ad.modulation) document.getElementById('ad-mod').value = ad.modulation;
+            else document.getElementById('ad-mod').value = '';
+            document.getElementById('ad-fec').value = (ad.fec !== undefined && ad.fec !== null) ? ad.fec : '999';
+            document.getElementById('ad-rolloff').value = (ad.rolloff !== undefined && ad.rolloff !== null) ? ad.rolloff : '35';
+
+            const plp = (ad.multistream_id !== undefined && ad.multistream_id >= 0) ? ad.multistream_id : '';
+            document.getElementById('ad-plp-sat').value = plp;
+            document.getElementById('ad-plp-terr').value = plp;
+
+            if (ad.bandwidth_mhz) document.getElementById('ad-bandwidth').value = ad.bandwidth_mhz;
+            document.getElementById('ad-bufsize').value = ad.buffer_size || 64;
 
             document.getElementById('ad-remove-wrap').style.display = 'inline-flex';
             document.getElementById('ad-remove').checked = false;
@@ -4356,7 +4664,7 @@
 
             switchAdModalTab('general');
             await refreshHardwareSelect(ad.adapter_idx);
-            onDelsysChange();
+            onVirtualChange();
             document.getElementById('modal-adapter').classList.add('open');
         }
 
@@ -4364,25 +4672,104 @@
             document.getElementById('modal-adapter').classList.remove('open');
         }
 
-        function onDelsysChange() {
-            const delsys = document.getElementById('ad-delsys').value;
-            const isSat = delsys.includes('S');
-            document.getElementById('group-bandwidth').style.display = isSat ? 'none' : 'flex';
-            document.getElementById('group-terr-opts').style.display = isSat ? 'none' : 'grid';
-            document.getElementById('group-sat-opts').style.display = isSat ? 'grid' : 'none';
-            document.getElementById('group-sat-diseqc').style.display = isSat ? 'flex' : 'none';
+        function onLnbModeChange() {
+            const mode = document.getElementById('ad-lnb-mode').value;
+            const w10 = document.getElementById('wrap-diseqc-10');
+            const w11 = document.getElementById('wrap-diseqc-11');
+            const wTb = document.getElementById('wrap-toneburst');
+            const wCmd = document.getElementById('wrap-diseqc-cmd');
+            const wUni = document.getElementById('wrap-unicable');
 
+            if (w10) w10.style.display = (mode === 'diseqc_10') ? 'block' : 'none';
+            if (w11) w11.style.display = (mode === 'diseqc_11') ? 'block' : 'none';
+            if (wTb) wTb.style.display = (mode === 'toneburst') ? 'block' : 'none';
+            if (wCmd) wCmd.style.display = (mode === 'diseqc_cmd') ? 'block' : 'none';
+
+            const isUnicable = (mode === 'unicable_10' || mode === 'unicable_20');
+            if (wUni) wUni.style.display = isUnicable ? 'block' : 'none';
+
+            if (isUnicable) {
+                const scrSel = document.getElementById('ad-uni-scr');
+                const prevScr = scrSel.value;
+                scrSel.innerHTML = '';
+                const maxScr = (mode === 'unicable_20') ? 32 : 8;
+                for (let i = 1; i <= maxScr; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = `User Band ${i} (SCR ${i})`;
+                    scrSel.appendChild(opt);
+                }
+                if (prevScr && parseInt(prevScr) <= maxScr) {
+                    scrSel.value = prevScr;
+                }
+
+                const posSel = document.getElementById('ad-uni-pos');
+                const prevPos = posSel.value;
+                posSel.innerHTML = '';
+                const positions = (mode === 'unicable_20') ? ['A', 'B', 'C', 'D'] : ['A', 'B'];
+                positions.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    opt.textContent = `Position ${p}`;
+                    posSel.appendChild(opt);
+                });
+                if (prevPos && positions.includes(prevPos)) {
+                    posSel.value = prevPos;
+                }
+            }
+        }
+
+        function onDelsysChange() {
+            const isSatIp = (document.getElementById('ad-virtual').value === 'satip');
+            const delsys = document.getElementById('ad-delsys').value;
+            const isSat = !isSatIp && delsys.startsWith('DVBS');
+            const isCable = !isSatIp && delsys.startsWith('DVBC');
+            const isTerr = !isSatIp && !isSat && !isCable;
+
+            // Tab LNB: only visible for Satellite physical adapters
+            const btnLnb = document.getElementById('btn-tab-ad-lnb');
+            if (btnLnb) btnLnb.style.display = isSat ? 'inline-block' : 'none';
+
+            // If switching away from satellite while on LNB tab, switch back to general
+            const tabLnb = document.getElementById('tab-ad-lnb');
+            if (!isSat && tabLnb && tabLnb.style.display === 'block') {
+                switchAdModalTab('general');
+            }
+
+            // General tab Transponder sections
+            const grpSatOpts = document.getElementById('group-sat-opts');
+            const grpCableOpts = document.getElementById('group-cable-opts');
+            if (grpSatOpts) grpSatOpts.style.display = isSat ? 'grid' : 'none';
+            if (grpCableOpts) grpCableOpts.style.display = isCable ? 'grid' : 'none';
+
+            // Frequency label & hints
             const fInput = document.getElementById('ad-freq');
             const fLbl = document.getElementById('lbl-ad-freq');
             const fHint = document.getElementById('hint-ad-freq');
+            if (fLbl && fInput && fHint) {
+                if (isSat) {
+                    fLbl.textContent = 'Frequency (MHz)';
+                    fInput.placeholder = '950..40000 MHz (e.g. 11494)';
+                    fHint.textContent = 'Transponder downlink frequency in MHz (e.g. 11494 for 11.494 GHz Ku-band)';
+                } else if (isCable) {
+                    fLbl.textContent = 'Frequency (MHz)';
+                    fInput.placeholder = '50..860 MHz (e.g. 306)';
+                    fHint.textContent = 'Cable frequency in MHz (e.g. 306 for 306 MHz)';
+                } else {
+                    fLbl.textContent = 'Frequency (MHz)';
+                    fInput.placeholder = '1..1000 MHz (e.g. 498)';
+                    fHint.textContent = 'Frequency in MHz (e.g. 498 for 498 MHz)';
+                }
+            }
+
+            // Advanced tab sections
+            const grpSatAdv = document.getElementById('group-sat-adv');
+            const grpTerrAdv = document.getElementById('group-terr-adv');
+            if (grpSatAdv) grpSatAdv.style.display = isSat ? 'grid' : 'none';
+            if (grpTerrAdv) grpTerrAdv.style.display = isTerr ? 'grid' : 'none';
+
             if (isSat) {
-                fLbl.textContent = 'Frequency (MHz)';
-                fInput.placeholder = '950..40000 MHz';
-                fHint.textContent = 'Frequency in MHz (e.g. 3700 for 3.7 GHz)';
-            } else {
-                fLbl.textContent = 'Frequency (MHz)';
-                fInput.placeholder = '1..1000 MHz (e.g. 498)';
-                fHint.textContent = 'Frequency in MHz (e.g. 498 for 498 MHz)';
+                onLnbModeChange();
             }
         }
 
@@ -4405,38 +4792,119 @@
                 return;
             }
 
-            const delsys = document.getElementById('ad-delsys').value;
-            const isSat = delsys.includes('S');
+            const isSatIp = (document.getElementById('ad-virtual').value === 'satip');
+            const delsys = isSatIp ? 'SATIP' : document.getElementById('ad-delsys').value;
+            const isSat = !isSatIp && delsys.startsWith('DVBS');
+            const isCable = !isSatIp && delsys.startsWith('DVBC');
 
-            let freqRaw = document.getElementById('ad-freq').value.trim();
-            let freqNum = parseFloat(freqRaw);
-            if (isNaN(freqNum) || freqNum <= 0) {
-                showToast("Please enter a valid tuning frequency in MHz (e.g. 498)", true);
-                return;
-            }
-            if (freqNum < 1000) {
-                freqNum *= 1000000;
-            } else if (freqNum >= 1000 && freqNum < 1000000) {
-                freqNum *= 1000;
+            let targetAdapterIdx = 0;
+            if (isSatIp) {
+                const satUrl = document.getElementById('ad-satip-url').value.trim();
+                if (!satUrl) {
+                    showToast("Please enter SAT>IP server URL (e.g. udp://@239.1.2.4:1234)", true);
+                    return;
+                }
+                const existing = g_adapters.find(a => a.id === adId);
+                if (existing && existing.adapter_idx !== undefined && existing.adapter_idx >= 3) {
+                    targetAdapterIdx = existing.adapter_idx;
+                } else {
+                    let idx = 3;
+                    while (g_adapters.some(a => a.id !== adId && a.adapter_idx === idx) && idx < 15) {
+                        idx++;
+                    }
+                    targetAdapterIdx = idx;
+                }
+            } else {
+                targetAdapterIdx = parseInt(document.getElementById('ad-device').value || 0);
             }
 
-            const plpVal = document.getElementById('ad-plp').value.trim();
-            const plpId = plpVal !== '' ? parseInt(plpVal) : -1;
+            let freqNum = 0;
+            if (!isSatIp) {
+                let freqRaw = document.getElementById('ad-freq').value.trim();
+                freqNum = parseFloat(freqRaw);
+                if (isNaN(freqNum) || freqNum <= 0) {
+                    showToast("Please enter a valid tuning frequency in MHz (e.g. 498)", true);
+                    return;
+                }
+                if (freqNum < 1000) {
+                    freqNum *= 1000000;
+                } else if (freqNum >= 1000 && freqNum < 1000000) {
+                    freqNum *= 1000;
+                }
+            }
+
+            let srate = 0;
+            if (isSat) {
+                srate = parseInt(document.getElementById('ad-srate').value || 27500);
+            } else if (isCable) {
+                srate = parseInt(document.getElementById('ad-cable-srate').value || 6900);
+            }
+
+            const plpRaw = isSat ? document.getElementById('ad-plp-sat').value.trim() : document.getElementById('ad-plp-terr').value.trim();
+            const plpId = plpRaw !== '' ? parseInt(plpRaw) : -1;
+
+            const lnbMode = isSat ? document.getElementById('ad-lnb-mode').value : 'universal';
+            let diseqcPort = 0;
+            let uncommittedPort = 0;
+            let diseqcCmd = '';
+            let uniScr = 0;
+            let uniPos = 'A';
+            let uniFreq = 0;
+            let lof1 = 9750;
+            let lof2 = 10600;
+            let slof = 11700;
+            let tone = 0;
+
+            if (isSat) {
+                lof1 = parseInt(document.getElementById('ad-lof1').value || 9750);
+                lof2 = parseInt(document.getElementById('ad-lof2').value || 10600);
+                slof = parseInt(document.getElementById('ad-slof').value || 11700);
+                tone = document.getElementById('ad-tone').checked ? 1 : 0;
+
+                if (lnbMode === 'diseqc_10') {
+                    diseqcPort = parseInt(document.getElementById('ad-diseqc-port').value || 1);
+                } else if (lnbMode === 'diseqc_11') {
+                    uncommittedPort = parseInt(document.getElementById('ad-diseqc-uncommitted').value || 1);
+                } else if (lnbMode === 'toneburst') {
+                    diseqcPort = (document.getElementById('ad-toneburst').value === 'B' ? 2 : 1);
+                } else if (lnbMode === 'diseqc_cmd') {
+                    diseqcCmd = document.getElementById('ad-diseqc-cmd').value.trim();
+                } else if (lnbMode === 'unicable_10' || lnbMode === 'unicable_20') {
+                    uniScr = parseInt(document.getElementById('ad-uni-scr').value || 1);
+                    uniPos = document.getElementById('ad-uni-pos').value || 'A';
+                    uniFreq = parseInt(document.getElementById('ad-uni-freq').value || 1210);
+                }
+            }
 
             const payload = {
                 id: adId,
                 name: name,
                 enabled: document.getElementById('ad-enable').checked,
-                adapter_idx: parseInt(document.getElementById('ad-device').value),
+                adapter_idx: targetAdapterIdx,
                 frontend_idx: 0,
                 delsys: delsys,
                 frequency: Math.round(freqNum),
-                bandwidth: isSat ? 0 : parseInt(document.getElementById('ad-bandwidth').value || 8),
-                symbol_rate: isSat ? parseInt(document.getElementById('ad-srate').value || 27500) : 0,
+                bandwidth: (isSat || isSatIp) ? 0 : parseInt(document.getElementById('ad-bandwidth').value || 8),
+                symbol_rate: srate,
                 polarization: isSat ? document.getElementById('ad-pol').value : 'H',
-                diseqc: isSat ? parseInt(document.getElementById('ad-diseqc').value || 0) : 0,
+                tone: tone,
+                diseqc: diseqcPort,
+                uncommitted: uncommittedPort,
+                lnb_mode: lnbMode,
+                uni_scr: uniScr,
+                uni_pos: uniPos,
+                uni_frequency: uniFreq,
+                diseqc_cmd: diseqcCmd,
+                satip_url: isSatIp ? document.getElementById('ad-satip-url').value.trim() : '',
+                satip_pids: isSatIp ? (document.getElementById('ad-satip-pids').value.trim() || 'all') : '',
                 multistream_id: plpId,
-                modulation: document.getElementById('ad-mod').value
+                modulation: document.getElementById('ad-mod').value,
+                lof1: lof1,
+                lof2: lof2,
+                slof: slof,
+                fec: isSat ? parseInt(document.getElementById('ad-fec').value || 999) : 999,
+                rolloff: isSat ? parseInt(document.getElementById('ad-rolloff').value || 35) : 35,
+                buffer_size: parseInt(document.getElementById('ad-bufsize').value || 64)
             };
 
             const res = await apiPost('/api/v1/adapters', payload);
@@ -4771,12 +5239,22 @@
             const port = parseInt(document.getElementById('st-port').value) || 5000;
             const isRtp = document.getElementById('st-protocol').value === 'rtp';
 
+            const inputUrl = document.getElementById('st-input-url').value.trim();
+            let adapterIdx = 0;
+            const adMatch = inputUrl.match(/adapter=(\d+)/);
+            if (adMatch) {
+                adapterIdx = parseInt(adMatch[1]);
+            } else if (existingSt && existingSt.adapter_idx !== undefined) {
+                adapterIdx = existingSt.adapter_idx;
+            }
+
             const payload = {
                 id: stId,
                 name: document.getElementById('st-name').value.trim(),
                 enabled: isEnabled,
+                adapter_idx: adapterIdx,
                 type: sid === 0 ? 'mpts' : 'spts',
-                input_url: document.getElementById('st-input-url').value.trim(),
+                input_url: inputUrl,
                 output_url: `${isRtp ? 'rtp' : 'udp'}://${ip}:${port}`,
                 service_id: sid,
                 ip: ip,

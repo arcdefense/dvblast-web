@@ -164,6 +164,11 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         const char *del = json_string_value(json_object_get(payload, "delsys"));
         const char *pol = json_string_value(json_object_get(payload, "polarization"));
         const char *lnb = json_string_value(json_object_get(payload, "lnb_type"));
+        const char *lnb_mode = json_string_value(json_object_get(payload, "lnb_mode"));
+        const char *uni_pos = json_string_value(json_object_get(payload, "uni_pos"));
+        const char *dcmd = json_string_value(json_object_get(payload, "diseqc_cmd"));
+        const char *sat_url = json_string_value(json_object_get(payload, "satip_url"));
+        const char *sat_pids = json_string_value(json_object_get(payload, "satip_pids"));
         const char *mod = json_string_value(json_object_get(payload, "modulation"));
 
         if (!id || !*id) {
@@ -212,8 +217,26 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         ad.tone = (int)json_integer_value(json_object_get(payload, "tone"));
         ad.diseqc = (int)json_integer_value(json_object_get(payload, "diseqc"));
         if (lnb) snprintf(ad.lnb_type, sizeof(ad.lnb_type), "%s", lnb);
+        if (lnb_mode) snprintf(ad.lnb_mode, sizeof(ad.lnb_mode), "%s", lnb_mode);
+        ad.uni_scr = (int)json_integer_value(json_object_get(payload, "uni_scr"));
+        if (uni_pos) snprintf(ad.uni_pos, sizeof(ad.uni_pos), "%s", uni_pos);
+        ad.uni_frequency = (uint32_t)json_integer_value(json_object_get(payload, "uni_frequency"));
+        ad.uncommitted = (int)json_integer_value(json_object_get(payload, "uncommitted"));
+        if (dcmd) snprintf(ad.diseqc_cmd, sizeof(ad.diseqc_cmd), "%s", dcmd);
+        if (sat_url) snprintf(ad.satip_url, sizeof(ad.satip_url), "%s", sat_url);
+        if (sat_pids) snprintf(ad.satip_pids, sizeof(ad.satip_pids), "%s", sat_pids);
         if (mod) snprintf(ad.modulation, sizeof(ad.modulation), "%s", mod);
         ad.multistream_id = (int)json_integer_value(json_object_get(payload, "multistream_id"));
+        uint32_t l1 = (uint32_t)json_integer_value(json_object_get(payload, "lof1"));
+        uint32_t l2 = (uint32_t)json_integer_value(json_object_get(payload, "lof2"));
+        uint32_t sl = (uint32_t)json_integer_value(json_object_get(payload, "slof"));
+        ad.lof1 = l1 ? l1 : 9750;
+        ad.lof2 = l2 ? l2 : 10600;
+        ad.slof = sl ? sl : 11700;
+        ad.fec = (int)json_integer_value(json_object_get(payload, "fec"));
+        ad.rolloff = (int)json_integer_value(json_object_get(payload, "rolloff"));
+        uint32_t buf = (uint32_t)json_integer_value(json_object_get(payload, "buffer_size"));
+        ad.buffer_size = buf ? buf : 64;
 
         bool ok = web_manager_add_adapter(&ad);
         json_decref(payload);

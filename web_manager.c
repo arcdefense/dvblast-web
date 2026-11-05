@@ -191,6 +191,9 @@ void web_manager_sync_worker(int adapter_idx) {
         }
 
         char sz_ad[16], sz_fe[16], sz_freq[32], sz_bw[16], sz_srate[32], sz_vol[16], sz_diseqc[16];
+        char sz_uni_scr[16], sz_uni_freq[16], sz_uni_pos[16], sz_uncommitted[16];
+        char sz_fec[16], sz_rolloff[16], sz_bufsize[32];
+        char sz_lof1[16], sz_lof2[16], sz_slof[16];
         snprintf(sz_ad, sizeof(sz_ad), "%d", ad->adapter_idx);
         snprintf(sz_fe, sizeof(sz_fe), "%d", ad->frontend_idx);
         snprintf(sz_freq, sizeof(sz_freq), "%llu", (unsigned long long)ad->frequency);
@@ -198,29 +201,105 @@ void web_manager_sync_worker(int adapter_idx) {
         snprintf(sz_srate, sizeof(sz_srate), "%u", ad->symbol_rate);
         snprintf(sz_vol, sizeof(sz_vol), "%d", ad->voltage);
         snprintf(sz_diseqc, sizeof(sz_diseqc), "%d", ad->diseqc);
+        snprintf(sz_uni_scr, sizeof(sz_uni_scr), "%d", ad->uni_scr);
+        snprintf(sz_uni_freq, sizeof(sz_uni_freq), "%u", ad->uni_frequency);
+        snprintf(sz_uni_pos, sizeof(sz_uni_pos), "%s", ad->uni_pos[0] ? ad->uni_pos : "A");
+        snprintf(sz_uncommitted, sizeof(sz_uncommitted), "%d", ad->uncommitted);
+        snprintf(sz_fec, sizeof(sz_fec), "%d", ad->fec);
+        snprintf(sz_rolloff, sizeof(sz_rolloff), "%d", ad->rolloff);
+        snprintf(sz_bufsize, sizeof(sz_bufsize), "%llu", (unsigned long long)(ad->buffer_size > 0 ? (uint64_t)ad->buffer_size * 1048576ULL : 67108864ULL));
+        snprintf(sz_lof1, sizeof(sz_lof1), "%u", ad->lof1 ? ad->lof1 : 9750);
+        snprintf(sz_lof2, sizeof(sz_lof2), "%u", ad->lof2 ? ad->lof2 : 10600);
+        snprintf(sz_slof, sizeof(sz_slof), "%u", ad->slof ? ad->slof : 11700);
 
-        char *argv[36];
+        char *argv[64];
         int argc = 0;
         argv[argc++] = exe_path;
         argv[argc++] = "--disable-web";
         argv[argc++] = "-a"; argv[argc++] = sz_ad;
-        argv[argc++] = "-n"; argv[argc++] = sz_fe;
-        argv[argc++] = "-f"; argv[argc++] = sz_freq;
-        argv[argc++] = "-5"; argv[argc++] = (char *)target_delsys;
-        if (strcasecmp(target_delsys, "DVBT") == 0 || strcasecmp(target_delsys, "DVBT2") == 0 || strcasecmp(target_delsys, "ISDBT") == 0) {
-            argv[argc++] = "-b"; argv[argc++] = sz_bw;
-        }
-        if (ad->symbol_rate > 0) {
-            argv[argc++] = "-s"; argv[argc++] = sz_srate;
-        }
-        if (ad->voltage > 0) {
-            argv[argc++] = "-v"; argv[argc++] = sz_vol;
-        }
-        if (ad->diseqc > 0) {
-            argv[argc++] = "-S"; argv[argc++] = sz_diseqc;
-        }
-        if (ad->modulation[0]) {
-            argv[argc++] = "-m"; argv[argc++] = ad->modulation;
+
+        char sz_satip_src[512] = {0};
+        if (strcasecmp(target_delsys, "SATIP") == 0 || ad->satip_url[0]) {
+            /* SAT>IP or Network TS Ingestion */
+            if (ad->satip_url[0]) {
+                const char *src = ad->satip_url;
+                bool is_raw_udp = false;
+                if (strncmp(src, "udp://", 6) == 0) {
+                    src += 6;
+                    is_raw_udp = true;
+                } else if (strncmp(src, "rtp://", 6) == 0) {
+                    src += 6;
+                }
+                char temp[512];
+                if (*src != '@' && strchr(src, ':')) {
+                    snprintf(temp, sizeof(temp), "@%s", src);
+                } else {
+                    snprintf(temp, sizeof(temp), "%s", src);
+                }
+
+                if (is_raw_udp && !strstr(temp, "/udp")) {
+                    snprintf(sz_satip_src, sizeof(sz_satip_src), "%s/udp", temp);
+                } else {
+                    snprintf(sz_satip_src, sizeof(sz_satip_src), "%s", temp);
+                }
+                argv[argc++] = "-D"; argv[argc++] = sz_satip_src;
+            }
+        } else {
+            /* Physical DVB Frontend Tuning */
+            argv[argc++] = "-n"; argv[argc++] = sz_fe;
+            argv[argc++] = "-f"; argv[argc++] = sz_freq;
+            argv[argc++] = "-5"; argv[argc++] = (char *)target_delsys;
+            if (strcasecmp(target_delsys, "DVBT") == 0 || strcasecmp(target_delsys, "DVBT2") == 0 || strcasecmp(target_delsys, "ISDBT") == 0) {
+                argv[argc++] = "-b"; argv[argc++] = sz_bw;
+            }
+            if (ad->symbol_rate > 0) {
+                argv[argc++] = "-s"; argv[argc++] = sz_srate;
+            }
+            if (ad->voltage > 0) {
+                argv[argc++] = "-v"; argv[argc++] = sz_vol;
+            }
+            if (ad->diseqc > 0) {
+                argv[argc++] = "-S"; argv[argc++] = sz_diseqc;
+            }
+            if (ad->uncommitted > 0) {
+                argv[argc++] = "-k"; argv[argc++] = sz_uncommitted;
+            }
+            if (ad->lnb_mode[0]) {
+                argv[argc++] = "--lnb-mode"; argv[argc++] = ad->lnb_mode;
+            }
+            if (ad->uni_scr > 0) {
+                argv[argc++] = "--unicable-slot"; argv[argc++] = sz_uni_scr;
+            }
+            if (ad->uni_frequency > 0) {
+                argv[argc++] = "--unicable-freq"; argv[argc++] = sz_uni_freq;
+            }
+            if (ad->uni_pos[0]) {
+                argv[argc++] = "--unicable-pos"; argv[argc++] = sz_uni_pos;
+            }
+            if (ad->diseqc_cmd[0]) {
+                argv[argc++] = "--diseqc-cmd"; argv[argc++] = ad->diseqc_cmd;
+            }
+            if (ad->modulation[0]) {
+                argv[argc++] = "-m"; argv[argc++] = ad->modulation;
+            }
+            if (ad->fec > 0 && ad->fec != 999) {
+                argv[argc++] = "-F"; argv[argc++] = sz_fec;
+            }
+            if (ad->rolloff > 0) {
+                argv[argc++] = "-R"; argv[argc++] = sz_rolloff;
+            }
+            if (ad->lof1 > 0) {
+                argv[argc++] = "--lof1"; argv[argc++] = sz_lof1;
+            }
+            if (ad->lof2 > 0) {
+                argv[argc++] = "--lof2"; argv[argc++] = sz_lof2;
+            }
+            if (ad->slof > 0) {
+                argv[argc++] = "--slof"; argv[argc++] = sz_slof;
+            }
+            if (ad->buffer_size > 0) {
+                argv[argc++] = "-2"; argv[argc++] = sz_bufsize;
+            }
         }
         argv[argc++] = "-C";
         argv[argc++] = "-e";
@@ -381,7 +460,7 @@ static void parse_scan_line(int adapter_idx, const char *line, int *p_current_si
 static void *scan_secondary_adapter_thread(void *arg) {
     int adapter_idx = (int)(intptr_t)arg;
     web_adapter_t *ad = web_state_find_adapter_by_idx(adapter_idx);
-    if (!ad || ad->frequency <= 0) return NULL;
+    if (!ad || (strcasecmp(ad->delsys, "SATIP") != 0 && ad->frequency <= 0)) return NULL;
 
     web_state_log("INFO", "Starting background scan for Adapter %s (/dev/dvb/adapter%d, freq=%llu Hz)",
                   ad->id, ad->adapter_idx, (unsigned long long)ad->frequency);

@@ -54,8 +54,22 @@ typedef struct {
     int      tone;              /* 0, 1 */
     int      diseqc;            /* 0..4 */
     char     lnb_type[32];      /* "universal", etc. */
+    char     lnb_mode[32];      /* "universal", "unicable_10", "unicable_20", "diseqc_10", "diseqc_11", "diseqc_cmd", "toneburst" */
+    int      uni_scr;           /* 1..32 */
+    char     uni_pos[8];        /* "A", "B", "C", "D" */
+    uint32_t uni_frequency;     /* MHz (e.g. 1210) */
+    int      uncommitted;       /* 1..16 */
+    char     diseqc_cmd[64];    /* Custom hex string e.g. "e0 10 38 f0" */
+    char     satip_url[256];    /* SAT>IP server url (rtsp://... or http://...) */
+    char     satip_pids[128];   /* "all" or specific PIDs */
     char     modulation[16];    /* "qpsk", "psk_8", "16qam", etc. */
     int      multistream_id;    /* MIS ID */
+    uint32_t lof1;              /* MHz (default: 9750) */
+    uint32_t lof2;              /* MHz (default: 10600) */
+    uint32_t slof;              /* MHz (default: 11700) */
+    int      fec;               /* 999 (auto), 12, 23, 34, 35, 45, 56, 67, 78, 89, 910 */
+    int      rolloff;           /* 35, 25, 20, 0 (AUTO) */
+    uint32_t buffer_size;       /* MB (default: 64) */
 
     /* Live Telemetry */
     bool     locked;

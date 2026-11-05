@@ -198,8 +198,22 @@ bool web_state_add_or_update_adapter(const web_adapter_t *ad) {
     target->tone = copy.tone;
     target->diseqc = copy.diseqc;
     snprintf(target->lnb_type, sizeof(target->lnb_type), "%s", copy.lnb_type);
+    snprintf(target->lnb_mode, sizeof(target->lnb_mode), "%s", copy.lnb_mode[0] ? copy.lnb_mode : "universal");
+    target->uni_scr = copy.uni_scr;
+    snprintf(target->uni_pos, sizeof(target->uni_pos), "%s", copy.uni_pos[0] ? copy.uni_pos : "A");
+    target->uni_frequency = copy.uni_frequency;
+    target->uncommitted = copy.uncommitted;
+    snprintf(target->diseqc_cmd, sizeof(target->diseqc_cmd), "%s", copy.diseqc_cmd);
+    snprintf(target->satip_url, sizeof(target->satip_url), "%s", copy.satip_url);
+    snprintf(target->satip_pids, sizeof(target->satip_pids), "%s", copy.satip_pids[0] ? copy.satip_pids : "all");
     snprintf(target->modulation, sizeof(target->modulation), "%s", copy.modulation);
     target->multistream_id = copy.multistream_id;
+    target->lof1 = copy.lof1 ? copy.lof1 : 9750;
+    target->lof2 = copy.lof2 ? copy.lof2 : 10600;
+    target->slof = copy.slof ? copy.slof : 11700;
+    target->fec = copy.fec;
+    target->rolloff = copy.rolloff;
+    target->buffer_size = copy.buffer_size ? copy.buffer_size : 64;
 
     pthread_mutex_unlock(&g_gateway.lock);
     web_state_log("INFO", "Adapter %s (%s, Dev: /dev/dvb/adapter%d, Freq: %llu Hz) configured",
@@ -522,6 +536,7 @@ void web_state_update_input_stats(int adapter_idx, uint64_t bytes, uint64_t pack
     if (g_shm_stats && adapter_idx >= 0 && adapter_idx < MAX_WEB_ADAPTERS) {
         __sync_fetch_and_add(&g_shm_stats->adapters[adapter_idx].input_bytes, bytes);
         __sync_fetch_and_add(&g_shm_stats->adapters[adapter_idx].input_packets, packets);
+        g_shm_stats->adapters[adapter_idx].last_update_sec = (uint64_t)time(NULL);
     }
 }
 
@@ -726,8 +741,22 @@ bool web_state_save_json(const char *path) {
         json_object_set_new(a_obj, "tone", json_integer(ad->tone));
         json_object_set_new(a_obj, "diseqc", json_integer(ad->diseqc));
         json_object_set_new(a_obj, "lnb_type", json_string(ad->lnb_type));
+        json_object_set_new(a_obj, "lnb_mode", json_string(ad->lnb_mode));
+        json_object_set_new(a_obj, "uni_scr", json_integer(ad->uni_scr));
+        json_object_set_new(a_obj, "uni_pos", json_string(ad->uni_pos));
+        json_object_set_new(a_obj, "uni_frequency", json_integer(ad->uni_frequency));
+        json_object_set_new(a_obj, "uncommitted", json_integer(ad->uncommitted));
+        json_object_set_new(a_obj, "diseqc_cmd", json_string(ad->diseqc_cmd));
+        json_object_set_new(a_obj, "satip_url", json_string(ad->satip_url));
+        json_object_set_new(a_obj, "satip_pids", json_string(ad->satip_pids));
         json_object_set_new(a_obj, "modulation", json_string(ad->modulation));
         json_object_set_new(a_obj, "multistream_id", json_integer(ad->multistream_id));
+        json_object_set_new(a_obj, "lof1", json_integer(ad->lof1));
+        json_object_set_new(a_obj, "lof2", json_integer(ad->lof2));
+        json_object_set_new(a_obj, "slof", json_integer(ad->slof));
+        json_object_set_new(a_obj, "fec", json_integer(ad->fec));
+        json_object_set_new(a_obj, "rolloff", json_integer(ad->rolloff));
+        json_object_set_new(a_obj, "buffer_size", json_integer(ad->buffer_size));
         json_array_append_new(adapters_arr, a_obj);
     }
     json_object_set_new(root, "adapters", adapters_arr);
@@ -815,6 +844,11 @@ bool web_state_load_json(const char *path) {
             const char *del = json_string_value(json_object_get(val, "delsys"));
             const char *pol = json_string_value(json_object_get(val, "polarization"));
             const char *lnb = json_string_value(json_object_get(val, "lnb_type"));
+            const char *lnb_mode = json_string_value(json_object_get(val, "lnb_mode"));
+            const char *uni_pos = json_string_value(json_object_get(val, "uni_pos"));
+            const char *dcmd = json_string_value(json_object_get(val, "diseqc_cmd"));
+            const char *sat_url = json_string_value(json_object_get(val, "satip_url"));
+            const char *sat_pids = json_string_value(json_object_get(val, "satip_pids"));
             const char *mod = json_string_value(json_object_get(val, "modulation"));
 
             if (id) snprintf(ad->id, sizeof(ad->id), "%s", id);
@@ -822,6 +856,11 @@ bool web_state_load_json(const char *path) {
             if (del) snprintf(ad->delsys, sizeof(ad->delsys), "%s", del);
             if (pol) snprintf(ad->polarization, sizeof(ad->polarization), "%s", pol);
             if (lnb) snprintf(ad->lnb_type, sizeof(ad->lnb_type), "%s", lnb);
+            if (lnb_mode) snprintf(ad->lnb_mode, sizeof(ad->lnb_mode), "%s", lnb_mode);
+            if (uni_pos) snprintf(ad->uni_pos, sizeof(ad->uni_pos), "%s", uni_pos);
+            if (dcmd) snprintf(ad->diseqc_cmd, sizeof(ad->diseqc_cmd), "%s", dcmd);
+            if (sat_url) snprintf(ad->satip_url, sizeof(ad->satip_url), "%s", sat_url);
+            if (sat_pids) snprintf(ad->satip_pids, sizeof(ad->satip_pids), "%s", sat_pids);
             if (mod) snprintf(ad->modulation, sizeof(ad->modulation), "%s", mod);
 
             ad->enabled = !json_is_false(json_object_get(val, "enabled"));
@@ -833,7 +872,20 @@ bool web_state_load_json(const char *path) {
             ad->voltage = (int)json_integer_value(json_object_get(val, "voltage"));
             ad->tone = (int)json_integer_value(json_object_get(val, "tone"));
             ad->diseqc = (int)json_integer_value(json_object_get(val, "diseqc"));
+            ad->uni_scr = (int)json_integer_value(json_object_get(val, "uni_scr"));
+            ad->uni_frequency = (uint32_t)json_integer_value(json_object_get(val, "uni_frequency"));
+            ad->uncommitted = (int)json_integer_value(json_object_get(val, "uncommitted"));
             ad->multistream_id = (int)json_integer_value(json_object_get(val, "multistream_id"));
+            uint32_t l1 = (uint32_t)json_integer_value(json_object_get(val, "lof1"));
+            uint32_t l2 = (uint32_t)json_integer_value(json_object_get(val, "lof2"));
+            uint32_t sl = (uint32_t)json_integer_value(json_object_get(val, "slof"));
+            ad->lof1 = l1 ? l1 : 9750;
+            ad->lof2 = l2 ? l2 : 10600;
+            ad->slof = sl ? sl : 11700;
+            ad->fec = (int)json_integer_value(json_object_get(val, "fec"));
+            ad->rolloff = (int)json_integer_value(json_object_get(val, "rolloff"));
+            uint32_t buf = (uint32_t)json_integer_value(json_object_get(val, "buffer_size"));
+            ad->buffer_size = buf ? buf : 64;
         }
     }
 
@@ -978,8 +1030,22 @@ json_t *web_state_adapters_to_json(void) {
         json_object_set_new(obj, "tone", json_integer(ad->tone));
         json_object_set_new(obj, "diseqc", json_integer(ad->diseqc));
         json_object_set_new(obj, "lnb_type", json_string(ad->lnb_type));
+        json_object_set_new(obj, "lnb_mode", json_string(ad->lnb_mode));
+        json_object_set_new(obj, "uni_scr", json_integer(ad->uni_scr));
+        json_object_set_new(obj, "uni_pos", json_string(ad->uni_pos));
+        json_object_set_new(obj, "uni_frequency", json_integer(ad->uni_frequency));
+        json_object_set_new(obj, "uncommitted", json_integer(ad->uncommitted));
+        json_object_set_new(obj, "diseqc_cmd", json_string(ad->diseqc_cmd));
+        json_object_set_new(obj, "satip_url", json_string(ad->satip_url));
+        json_object_set_new(obj, "satip_pids", json_string(ad->satip_pids));
         json_object_set_new(obj, "modulation", json_string(ad->modulation));
         json_object_set_new(obj, "multistream_id", json_integer(ad->multistream_id));
+        json_object_set_new(obj, "lof1", json_integer(ad->lof1 ? ad->lof1 : 9750));
+        json_object_set_new(obj, "lof2", json_integer(ad->lof2 ? ad->lof2 : 10600));
+        json_object_set_new(obj, "slof", json_integer(ad->slof ? ad->slof : 11700));
+        json_object_set_new(obj, "fec", json_integer(ad->fec));
+        json_object_set_new(obj, "rolloff", json_integer(ad->rolloff));
+        json_object_set_new(obj, "buffer_size", json_integer(ad->buffer_size ? ad->buffer_size : 64));
 
         /* Telemetry */
         json_object_set_new(obj, "locked", json_boolean(ad->locked));
@@ -1182,8 +1248,22 @@ json_t *web_state_config_to_json(void) {
         json_object_set_new(ao, "tone", json_integer(ad->tone));
         json_object_set_new(ao, "diseqc", json_integer(ad->diseqc));
         json_object_set_new(ao, "lnb_type", json_string(ad->lnb_type));
+        json_object_set_new(ao, "lnb_mode", json_string(ad->lnb_mode));
+        json_object_set_new(ao, "uni_scr", json_integer(ad->uni_scr));
+        json_object_set_new(ao, "uni_pos", json_string(ad->uni_pos));
+        json_object_set_new(ao, "uni_frequency", json_integer(ad->uni_frequency));
+        json_object_set_new(ao, "uncommitted", json_integer(ad->uncommitted));
+        json_object_set_new(ao, "diseqc_cmd", json_string(ad->diseqc_cmd));
+        json_object_set_new(ao, "satip_url", json_string(ad->satip_url));
+        json_object_set_new(ao, "satip_pids", json_string(ad->satip_pids));
         json_object_set_new(ao, "modulation", json_string(ad->modulation));
         json_object_set_new(ao, "multistream_id", json_integer(ad->multistream_id));
+        json_object_set_new(ao, "lof1", json_integer(ad->lof1 ? ad->lof1 : 9750));
+        json_object_set_new(ao, "lof2", json_integer(ad->lof2 ? ad->lof2 : 10600));
+        json_object_set_new(ao, "slof", json_integer(ad->slof ? ad->slof : 11700));
+        json_object_set_new(ao, "fec", json_integer(ad->fec));
+        json_object_set_new(ao, "rolloff", json_integer(ad->rolloff));
+        json_object_set_new(ao, "buffer_size", json_integer(ad->buffer_size ? ad->buffer_size : 64));
         json_array_append_new(a_arr, ao);
     }
     json_object_set_new(root, "adapters", a_arr);

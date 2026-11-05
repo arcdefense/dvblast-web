@@ -712,9 +712,134 @@ static int FrontendDoDiseqc(void)
 
     fe_tone = b_tone ? SEC_TONE_ON : SEC_TONE_OFF;
 
+    /* Custom Raw DiSEqC Command execution */
+    if ( psz_diseqc_cmd && psz_diseqc_cmd[0] )
+    {
+        struct dvb_diseqc_master_cmd raw_cmd;
+        memset(&raw_cmd, 0, sizeof(raw_cmd));
+        const char *p = psz_diseqc_cmd;
+        char *endp;
+        while (*p && raw_cmd.msg_len < sizeof(raw_cmd.msg)) {
+            while (*p == ' ' || *p == ':' || *p == ',') p++;
+            if (!*p) break;
+            raw_cmd.msg[raw_cmd.msg_len++] = (uint8_t)strtoul(p, &endp, 16);
+            if (p == endp) break;
+            p = endp;
+        }
+        if ( raw_cmd.msg_len > 0 ) {
+            ioctl( i_frontend, FE_SET_TONE, SEC_TONE_OFF );
+            ioctl( i_frontend, FE_SET_VOLTAGE, fe_voltage );
+            msleep(15000);
+            if ( ioctl( i_frontend, FE_DISEQC_SEND_MASTER_CMD, &raw_cmd ) < 0 ) {
+                msg_Err( NULL, "ioctl FE_DISEQC_SEND_MASTER_CMD (raw) failed: %s", strerror(errno) );
+            }
+            msleep(25000);
+        }
+    }
+
+    /* Unicable I (EN50494) / Unicable II (EN50607 / JESS) Mode */
+    if ( (psz_lnb_mode && (strcmp(psz_lnb_mode, "unicable_10") == 0 || strcmp(psz_lnb_mode, "unicable_20") == 0))
+         || i_uni_scr > 0 )
+    {
+        int band = 0;
+        int intermediate_freq = 0;
+        int lof1 = (i_lof1 > 0) ? i_lof1 : 9750;
+        int lof2 = (i_lof2 > 0) ? i_lof2 : 10600;
+        int slof = (i_slof > 0) ? i_slof : 11700;
+
+        /* Calculate IF and band based on transponder frequency (i_frequency is in kHz) */
+        if ( i_frequency >= slof * 1000 ) {
+            intermediate_freq = (i_frequency - lof2 * 1000) / 1000; /* High band (MHz) */
+            band = 1;
+        } else if ( i_frequency >= 3400000 && i_frequency <= 4200000 ) {
+            intermediate_freq = (lof1 * 1000 - i_frequency) / 1000;  /* C-band (MHz) */
+            band = 0;
+        } else if ( i_frequency >= 950000 && i_frequency <= 2150000 ) {
+            intermediate_freq = i_frequency / 1000;              /* Direct IF */
+            band = 0;
+        } else {
+            intermediate_freq = (i_frequency - lof1 * 1000) / 1000;  /* Low band (MHz) */
+            band = 0;
+        }
+
+        int pol = (i_voltage == 18) ? 1 : 0; /* 1 = Horizontal, 0 = Vertical */
+        int scr = (i_uni_scr >= 1) ? (i_uni_scr - 1) : 0;
+        int pos = (i_uni_pos >= 0) ? i_uni_pos : 0;
+        int uni_freq = (i_uni_freq > 0) ? i_uni_freq : 1210;
+
+        struct dvb_diseqc_master_cmd cmd;
+        memset(&cmd, 0, sizeof(cmd));
+
+        if ( psz_lnb_mode && strcmp(psz_lnb_mode, "unicable_20") == 0 )
+        {
+            /* EN50607 (Unicable II / JESS) */
+            int T = intermediate_freq - 100;
+            if ( T < 0 ) T = 0;
+            if ( T > 2047 ) T = 2047;
+
+            cmd.msg[0] = 0x70; /* EN50607 ODU_channel_change */
+            cmd.msg[1] = ((scr & 0x1F) << 3) | ((pos & 0x03) << 1) | (pol & 0x01);
+            cmd.msg[2] = ((band & 0x01) << 7) | ((T >> 8) & 0x07);
+            cmd.msg[3] = T & 0xFF;
+            cmd.msg[4] = 0x00;
+            cmd.msg_len = 5;
+
+            msg_Info( NULL, "configuring Unicable II (EN50607): SCR=%d Pos=%d Pol=%s IF=%d MHz UB_Freq=%d MHz (T=%d)",
+                      scr + 1, pos, pol ? "H" : "V", intermediate_freq, uni_freq, T );
+        }
+        else
+        {
+            /* EN50494 (Unicable I) */
+            int T = (intermediate_freq + uni_freq + 2) / 4 - 350;
+            if ( T < 0 ) T = 0;
+            if ( T > 1023 ) T = 1023;
+
+            cmd.msg[0] = 0xE0; /* Framing: Master, no reply */
+            cmd.msg[1] = 0x10; /* Address: Switch / LNB */
+            cmd.msg[2] = 0x5A; /* Command: ODU_channel_change */
+            cmd.msg[3] = ((scr & 0x07) << 5) |
+                         ((pos & 0x01) << 4) |
+                         ((pol & 0x01) << 3) |
+                         ((band & 0x01) << 2) |
+                         ((T >> 8) & 0x03);
+            cmd.msg[4] = T & 0xFF;
+            cmd.msg_len = 5;
+
+            msg_Info( NULL, "configuring Unicable I (EN50494): SCR=%d Pos=%d Pol=%s IF=%d MHz UB_Freq=%d MHz (T=%d)",
+                      scr + 1, pos, pol ? "H" : "V", intermediate_freq, uni_freq, T );
+        }
+
+        /* Voltage sequence: turn off tone, 18V pulse to wake up switch, send DiSEqC, then 13V quiescent */
+        if ( ioctl( i_frontend, FE_SET_TONE, SEC_TONE_OFF ) < 0 ) {
+            msg_Warn( NULL, "FE_SET_TONE failed (%s)", strerror(errno) );
+        }
+        if ( ioctl( i_frontend, FE_SET_VOLTAGE, SEC_VOLTAGE_18 ) < 0 ) {
+            msg_Warn( NULL, "FE_SET_VOLTAGE 18V failed (%s)", strerror(errno) );
+        }
+        msleep(20000);
+
+        if ( ioctl( i_frontend, FE_DISEQC_SEND_MASTER_CMD, &cmd ) < 0 ) {
+            msg_Err( NULL, "ioctl FE_DISEQC_SEND_MASTER_CMD (Unicable) failed: %s", strerror(errno) );
+        }
+        msleep(25000);
+
+        if ( ioctl( i_frontend, FE_SET_VOLTAGE, SEC_VOLTAGE_13 ) < 0 ) {
+            msg_Warn( NULL, "FE_SET_VOLTAGE 13V failed (%s)", strerror(errno) );
+        }
+        msleep(15000);
+
+        /* Return User Band frequency in kHz for demodulator frontend */
+        bis_frequency = uni_freq * 1000;
+        return bis_frequency;
+    }
+
     if ( strcmp( psz_lnb_type, "universal" ) == 0 )
     {
-        /* Automatic mode. */
+        int lof1 = (i_lof1 > 0) ? i_lof1 : 9750;
+        int lof2 = (i_lof2 > 0) ? i_lof2 : 10600;
+        int slof = (i_slof > 0) ? i_slof : 11700;
+
+        /* Automatic mode with configurable LOF1/LOF2/SLOF */
         if ( i_frequency >= 950000 && i_frequency <= 2150000 )
         {
             msg_Dbg( NULL, "frequency %d is in IF-band", i_frequency );
@@ -725,34 +850,27 @@ static int FrontendDoDiseqc(void)
             msg_Dbg( NULL, "frequency %d is in S-band", i_frequency );
             bis_frequency = 3650000 - i_frequency;
         }
-        else if ( i_frequency >= 3400000 && i_frequency <= 4200000 )
+        else if ( i_frequency >= 3400000 && i_frequency <= 4800000 )
         {
-            msg_Dbg( NULL, "frequency %d is in C-band (lower)", i_frequency );
-            bis_frequency = 5150000 - i_frequency;
+            msg_Dbg( NULL, "frequency %d is in C-band", i_frequency );
+            bis_frequency = (lof1 * 1000) - i_frequency;
         }
-        else if ( i_frequency >= 4500000 && i_frequency <= 4800000 )
+        else if ( i_frequency >= slof * 1000 )
         {
-            msg_Dbg( NULL, "frequency %d is in C-band (higher)", i_frequency );
-            bis_frequency = 5950000 - i_frequency;
-        }
-        else if ( i_frequency >= 10700000 && i_frequency < 11700000 )
-        {
-            msg_Dbg( NULL, "frequency %d is in Ku-band (lower)",
-                     i_frequency );
-            bis_frequency = i_frequency - 9750000;
-        }
-        else if ( i_frequency >= 11700000 && i_frequency <= 13250000 )
-        {
-            msg_Dbg( NULL, "frequency %d is in Ku-band (higher)",
-                     i_frequency );
-            bis_frequency = i_frequency - 10600000;
+            msg_Dbg( NULL, "frequency %d is in Ku-band (high sub-band, LOF2=%d)",
+                     i_frequency, lof2 );
+            bis_frequency = i_frequency - (lof2 * 1000);
             fe_tone = SEC_TONE_ON;
+        }
+        else if ( i_frequency >= 10000000 && i_frequency < slof * 1000 )
+        {
+            msg_Dbg( NULL, "frequency %d is in Ku-band (low sub-band, LOF1=%d)",
+                     i_frequency, lof1 );
+            bis_frequency = i_frequency - (lof1 * 1000);
         }
         else
         {
-            msg_Err( NULL, "frequency %d is out of any known band",
-                     i_frequency );
-            exit(1);
+            bis_frequency = i_frequency - (lof1 * 1000);
         }
     }
     else if ( strcmp( psz_lnb_type, "old-sky" ) == 0 )
@@ -855,11 +973,12 @@ static int FrontendDoDiseqc(void)
         }
         msleep(100000); /* Again, should be 15 ms */
     }
-    else if ( i_satnum == 0xA || i_satnum == 0xB )
+    else if ( i_satnum == 0xA || i_satnum == 0xB || (psz_lnb_mode && strcmp(psz_lnb_mode, "toneburst") == 0) )
     {
         /* A or B simple diseqc ("diseqc-compatible") */
+        int burst_b = (i_satnum == 0xB || i_satnum == 2 || (psz_lnb_mode && strcmp(psz_lnb_mode, "toneburst") == 0 && i_satnum == 2));
         if( ioctl( i_frontend, FE_DISEQC_SEND_BURST,
-                   i_satnum == 0xB ? SEC_MINI_B : SEC_MINI_A ) < 0 )
+                   burst_b ? SEC_MINI_B : SEC_MINI_A ) < 0 )
         {
             msg_Err( NULL, "ioctl FE_SEND_BURST failed (%s)", strerror(errno) );
             exit(1);
