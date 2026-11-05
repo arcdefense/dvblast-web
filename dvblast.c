@@ -121,6 +121,14 @@ int i_secnum = -1;
 char *psz_delsys = NULL;
 int i_frequency = 0;
 char *psz_lnb_type = "universal";
+char *psz_lnb_mode = "universal";
+int i_uni_scr = 0;
+int i_uni_pos = 0;
+int i_uni_freq = 0;
+int i_lof1 = 9750;
+int i_lof2 = 10600;
+int i_slof = 11700;
+char *psz_diseqc_cmd = NULL;
 int dvb_plp_id = 0;
 int i_inversion = -1;
 int i_srate = 27500000;
@@ -874,6 +882,14 @@ int main( int i_argc, char **pp_argv )
         { "web-host",        required_argument, NULL, 0x100011 },
         { "json-config",     required_argument, NULL, 0x100012 },
         { "disable-web",     no_argument,       NULL, 0x100013 },
+        { "lnb-mode",        required_argument, NULL, 0x100020 },
+        { "unicable-slot",   required_argument, NULL, 0x100021 },
+        { "unicable-pos",    required_argument, NULL, 0x100022 },
+        { "unicable-freq",   required_argument, NULL, 0x100023 },
+        { "diseqc-cmd",      required_argument, NULL, 0x100024 },
+        { "lof1",            required_argument, NULL, 0x100025 },
+        { "lof2",            required_argument, NULL, 0x100026 },
+        { "slof",            required_argument, NULL, 0x100027 },
         { 0, 0, 0, 0 }
     };
 
@@ -1286,6 +1302,35 @@ int main( int i_argc, char **pp_argv )
             break;
         case 0x100013:
             b_web_enabled = false;
+            break;
+        case 0x100020:
+            psz_lnb_mode = optarg;
+            break;
+        case 0x100021:
+            i_uni_scr = strtol( optarg, NULL, 0 );
+            break;
+        case 0x100022:
+            if ( optarg[0] >= 'A' && optarg[0] <= 'D' )
+                i_uni_pos = optarg[0] - 'A';
+            else if ( optarg[0] >= 'a' && optarg[0] <= 'd' )
+                i_uni_pos = optarg[0] - 'a';
+            else
+                i_uni_pos = strtol( optarg, NULL, 0 );
+            break;
+        case 0x100023:
+            i_uni_freq = strtol( optarg, NULL, 0 );
+            break;
+        case 0x100024:
+            psz_diseqc_cmd = optarg;
+            break;
+        case 0x100025:
+            i_lof1 = strtol( optarg, NULL, 0 );
+            break;
+        case 0x100026:
+            i_lof2 = strtol( optarg, NULL, 0 );
+            break;
+        case 0x100027:
+            i_slof = strtol( optarg, NULL, 0 );
             break;
         case 'h':
         default:

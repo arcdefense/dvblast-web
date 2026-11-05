@@ -45,6 +45,7 @@
 
 #include "dvblast.h"
 #include "en50221.h"
+#include "web_state.h"
 
 /*****************************************************************************
  * Local declarations
@@ -407,7 +408,8 @@ static void udp_Read(struct ev_loop *loop, struct ev_io *w, int revents)
 
     i_len /= TS_SIZE;
 
-    if ( i_len )
+    int valid_pkts = (int)i_len;
+    if ( valid_pkts > 0 )
     {
         if ( !b_sync )
         {
@@ -424,7 +426,10 @@ static void udp_Read(struct ev_loop *loop, struct ev_io *w, int revents)
             }
 
             b_sync = true;
+            web_state_update_shm_telemetry(i_adapter, true, 100, 30.0f, -40.0f, 0, 0);
         }
+
+        web_state_update_input_stats(i_adapter, (uint64_t)valid_pkts * TS_SIZE, (uint32_t)valid_pkts);
 
         ev_timer_again(loop, &mute_watcher);
     }
@@ -462,6 +467,7 @@ static void udp_MuteCb(struct ev_loop *loop, struct ev_timer *w, int revents)
     }
 
     b_sync = false;
+    web_state_update_shm_telemetry(i_adapter, false, 0, 0.0f, -100.0f, 0, 0);
 }
 
 /* From now on these are just stubs */
