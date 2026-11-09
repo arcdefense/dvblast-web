@@ -7,7 +7,7 @@ deltacast_inc := $(shell sh -c 'test -f /usr/include/StreamMaster.h && echo -n Y
 
 CFLAGS ?= -O3 -fomit-frame-pointer -g
 CFLAGS += -Wall -Wformat-security -Wno-strict-aliasing
-CFLAGS += -I. -Idvbcsa -Imodules $(shell pkg-config --cflags libmicrohttpd jansson 2>/dev/null)
+CFLAGS += -I. -Imodules $(shell pkg-config --cflags libmicrohttpd jansson 2>/dev/null)
 CFLAGS += -DVERSION=\"$(VERSION_MAJOR).$(VERSION_MINOR)\"
 CFLAGS += -DVERSION_MAJOR=$(VERSION_MAJOR)
 CFLAGS += -DVERSION_MINOR=$(VERSION_MINOR)
@@ -29,9 +29,20 @@ CFLAGS += -DHAVE_ASI_DELTACAST_SUPPORT
 LDLIBS += -lstreammaster
 endif
 
-LDLIBS_DVBLAST += -lpthread -lev -lm $(shell pkg-config --libs libmicrohttpd jansson 2>/dev/null)
-
+# DVB-CSA Support: Check for system libdvbcsa first; fallback to internal implementation
+HAVE_LIBDVBCSA := $(shell pkg-config --exists libdvbcsa 2>/dev/null && echo Y)
+ifeq ($(HAVE_LIBDVBCSA),Y)
+CFLAGS += -DHAVE_LIBDVBCSA $(shell pkg-config --cflags libdvbcsa 2>/dev/null)
+LDLIBS_DVBCSA = $(shell pkg-config --libs libdvbcsa 2>/dev/null)
+OBJ_DVBCSA =
+else
+CFLAGS += -Idvbcsa
+LDLIBS_DVBCSA =
 OBJ_DVBCSA = dvbcsa/dvbcsa_algo.o dvbcsa/dvbcsa_block.o dvbcsa/dvbcsa_key.o dvbcsa/dvbcsa_stream.o
+endif
+
+LDLIBS_DVBLAST += -lpthread -lev -lm $(shell pkg-config --libs libmicrohttpd jansson 2>/dev/null) $(LDLIBS_DVBCSA)
+
 OBJ_MODULES = modules/softcam/softcam.o modules/cas/cas.o modules/http_play/http_play.o modules/http_auth/http_auth.o modules/hls/hls.o modules/epg/epg.o modules/general/general.o modules/groups/groups.o
 OBJ_WEB = web_state.o web_manager.o web_server.o web_ui_embed.o $(OBJ_MODULES)
 
@@ -42,7 +53,7 @@ ifndef V
 Q = @
 endif
 
-CLEAN_OBJS = dvblast dvblastctl $(OBJ_DVBLAST) $(OBJ_DVBLASTCTL)
+CLEAN_OBJS = dvblast dvblastctl $(OBJ_DVBLAST) $(OBJ_DVBLASTCTL) dvbcsa/*.o
 INSTALL_BIN = dvblast dvblastctl dvblast_mmi.sh
 INSTALL_MAN = dvblast.1
 

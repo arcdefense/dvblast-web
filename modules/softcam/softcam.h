@@ -4,7 +4,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <jansson.h>
+#if defined(HAVE_LIBDVBCSA)
+#include <dvbcsa/dvbcsa.h>
+#else
 #include "dvbcsa/dvbcsa.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
