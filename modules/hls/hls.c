@@ -42,7 +42,14 @@ static hls_config_t g_hls = {
     .window_size = HLS_DEFAULT_WINDOW_SIZE,
     .storage_path = HLS_DEFAULT_STORAGE_PATH,
     .total_segments_created = 0,
-    .active_streams = 0
+    .active_streams = 0,
+    .naming = "asc",
+    .timeout_sec = 60,
+    .round_duration = false,
+    .expires_header = true,
+    .no_filter = false,
+    .ts_ext = "ts",
+    .ts_mime = "video/mp2t"
 };
 
 static hls_stream_ctx_t g_hls_streams[MAX_HLS_STREAMS];
@@ -339,6 +346,13 @@ json_t *hls_to_json(void) {
     json_object_set_new(root, "storage_path", json_string(g_hls.storage_path));
     json_object_set_new(root, "total_segments_created", json_integer(g_hls.total_segments_created));
     json_object_set_new(root, "active_streams", json_integer(g_hls.active_streams));
+    json_object_set_new(root, "naming", json_string(g_hls.naming));
+    json_object_set_new(root, "timeout_sec", json_integer(g_hls.timeout_sec));
+    json_object_set_new(root, "round_duration", g_hls.round_duration ? json_true() : json_false());
+    json_object_set_new(root, "expires_header", g_hls.expires_header ? json_true() : json_false());
+    json_object_set_new(root, "no_filter", g_hls.no_filter ? json_true() : json_false());
+    json_object_set_new(root, "ts_ext", json_string(g_hls.ts_ext));
+    json_object_set_new(root, "ts_mime", json_string(g_hls.ts_mime));
     pthread_mutex_unlock(&g_hls_mutex);
     return root;
 }
@@ -358,6 +372,27 @@ bool hls_from_json(json_t *root) {
 
     const char *sp = json_string_value(json_object_get(root, "storage_path"));
     if (sp && *sp) snprintf(g_hls.storage_path, sizeof(g_hls.storage_path), "%s", sp);
+
+    const char *nm = json_string_value(json_object_get(root, "naming"));
+    if (nm && *nm) snprintf(g_hls.naming, sizeof(g_hls.naming), "%s", nm);
+
+    json_t *j_to = json_object_get(root, "timeout_sec");
+    if (j_to && json_integer_value(j_to) > 0) g_hls.timeout_sec = (int)json_integer_value(j_to);
+
+    json_t *j_rd = json_object_get(root, "round_duration");
+    if (j_rd) g_hls.round_duration = json_is_true(j_rd);
+
+    json_t *j_eh = json_object_get(root, "expires_header");
+    if (j_eh) g_hls.expires_header = !json_is_false(j_eh);
+
+    json_t *j_nf = json_object_get(root, "no_filter");
+    if (j_nf) g_hls.no_filter = json_is_true(j_nf);
+
+    const char *te = json_string_value(json_object_get(root, "ts_ext"));
+    if (te && *te) snprintf(g_hls.ts_ext, sizeof(g_hls.ts_ext), "%s", te);
+
+    const char *tm = json_string_value(json_object_get(root, "ts_mime"));
+    if (tm && *tm) snprintf(g_hls.ts_mime, sizeof(g_hls.ts_mime), "%s", tm);
 
     if (g_hls.enabled) ensure_dir(g_hls.storage_path);
     pthread_mutex_unlock(&g_hls_mutex);

@@ -22,6 +22,13 @@ typedef struct {
     char     storage_path[128];
     uint64_t total_segments_created;
     int      active_streams;
+    char     naming[32];
+    int      timeout_sec;
+    bool     round_duration;
+    bool     expires_header;
+    bool     no_filter;
+    char     ts_ext[16];
+    char     ts_mime[64];
 } hls_config_t;
 
 void hls_init(void);

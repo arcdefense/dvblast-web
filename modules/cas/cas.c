@@ -245,6 +245,26 @@ json_t *cas_to_json(void) {
     json_object_set_new(root, "cw_received", json_integer(g_cas.cw_received));
     json_object_set_new(root, "ecm_errors", json_integer(g_cas.ecm_errors));
     json_object_set_new(root, "last_ecm_ms", json_real(g_cas.last_ecm_ms));
+
+    json_t *prof_arr = json_array();
+    for (int i = 0; i < g_cas.num_profiles; i++) {
+        json_t *p = json_object();
+        json_object_set_new(p, "name", json_string(g_cas.profiles[i].name));
+        json_object_set_new(p, "super_id", json_string(g_cas.profiles[i].super_id));
+        json_object_set_new(p, "first_stream", g_cas.profiles[i].first_stream ? json_true() : json_false());
+        json_object_set_new(p, "ecmg_channel", json_integer(g_cas.profiles[i].ecmg_channel));
+        json_object_set_new(p, "ecmg_host", json_string(g_cas.profiles[i].ecmg_host));
+        json_object_set_new(p, "ecmg_port", json_integer(g_cas.profiles[i].ecmg_port));
+        json_object_set_new(p, "ecmg_cp", json_integer(g_cas.profiles[i].ecmg_cp));
+        json_object_set_new(p, "emmg_proto", json_string(g_cas.profiles[i].emmg_proto));
+        json_object_set_new(p, "emmg_port", json_integer(g_cas.profiles[i].emmg_port));
+        json_object_set_new(p, "emm_pid", json_integer(g_cas.profiles[i].emm_pid));
+        json_object_set_new(p, "emm_data", json_string(g_cas.profiles[i].emm_data));
+        json_object_set_new(p, "emm_clone", g_cas.profiles[i].emm_clone ? json_true() : json_false());
+        json_array_append_new(prof_arr, p);
+    }
+    json_object_set_new(root, "profiles", prof_arr);
+
     pthread_mutex_unlock(&g_cas_mutex);
     return root;
 }
@@ -270,6 +290,36 @@ bool cas_from_json(json_t *root) {
 
     const char *dk = json_string_value(json_object_get(root, "des_key"));
     if (dk && *dk) snprintf(g_cas.des_key, sizeof(g_cas.des_key), "%s", dk);
+
+    json_t *j_profs = json_object_get(root, "profiles");
+    if (j_profs && json_is_array(j_profs)) {
+        g_cas.num_profiles = 0;
+        size_t idx;
+        json_t *val;
+        json_array_foreach(j_profs, idx, val) {
+            if (g_cas.num_profiles >= MAX_CAS_PROFILES) break;
+            if (!json_is_object(val)) continue;
+            cas_profile_t *cp = &g_cas.profiles[g_cas.num_profiles++];
+            memset(cp, 0, sizeof(*cp));
+            const char *nm = json_string_value(json_object_get(val, "name"));
+            if (nm) snprintf(cp->name, sizeof(cp->name), "%s", nm);
+            const char *sid = json_string_value(json_object_get(val, "super_id"));
+            if (sid) snprintf(cp->super_id, sizeof(cp->super_id), "%s", sid);
+            cp->first_stream = json_is_true(json_object_get(val, "first_stream"));
+            cp->ecmg_channel = (int)json_integer_value(json_object_get(val, "ecmg_channel"));
+            const char *eh = json_string_value(json_object_get(val, "ecmg_host"));
+            if (eh) snprintf(cp->ecmg_host, sizeof(cp->ecmg_host), "%s", eh);
+            cp->ecmg_port = (int)json_integer_value(json_object_get(val, "ecmg_port"));
+            cp->ecmg_cp = (int)json_integer_value(json_object_get(val, "ecmg_cp"));
+            const char *ep = json_string_value(json_object_get(val, "emmg_proto"));
+            if (ep) snprintf(cp->emmg_proto, sizeof(cp->emmg_proto), "%s", ep);
+            cp->emmg_port = (int)json_integer_value(json_object_get(val, "emmg_port"));
+            cp->emm_pid = (int)json_integer_value(json_object_get(val, "emm_pid"));
+            const char *ed = json_string_value(json_object_get(val, "emm_data"));
+            if (ed) snprintf(cp->emm_data, sizeof(cp->emm_data), "%s", ed);
+            cp->emm_clone = json_is_true(json_object_get(val, "emm_clone"));
+        }
+    }
 
     pthread_mutex_unlock(&g_cas_mutex);
     return true;

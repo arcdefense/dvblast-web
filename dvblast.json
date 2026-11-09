@@ -461,6 +461,14 @@
   "http_auth": {
     "enabled": true,
     "expiry_hours": 24,
+    "backend_type": "",
+    "backend_url": "",
+    "promo_channel": "",
+    "securetoken": "",
+    "allow_real_ip": false,
+    "ip_allow": "",
+    "ip_deny": "",
+    "token_deny": "",
     "users": [
       {
         "username": "admin",
@@ -484,8 +492,15 @@
     "segment_sec": 3,
     "window_size": 5,
     "storage_path": "/dev/shm/hls",
-    "total_segments_created": 0,
-    "active_streams": 0
+    "total_segments_created": 2732,
+    "active_streams": 8,
+    "naming": "asc",
+    "timeout_sec": 60,
+    "round_duration": false,
+    "expires_header": true,
+    "no_filter": false,
+    "ts_ext": "ts",
+    "ts_mime": "video/mp2t"
   },
   "epg": {
     "enabled": true,
@@ -499,11 +514,14 @@
     "port": 10000,
     "user": "dvblast",
     "des_key": "0102030405060708091011121314",
-    "state": 0,
-    "status_msg": "CAS Disabled",
+    "state": 5,
+    "status_msg": "Connection failed or refused",
     "ecm_requests": 0,
     "cw_received": 0,
     "ecm_errors": 0,
-    "last_ecm_ms": 0.0
-  }
+    "last_ecm_ms": 0.0,
+    "profiles": []
+  },
+  "servers": [],
+  "softcam_profiles": []
 }

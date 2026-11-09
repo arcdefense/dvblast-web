@@ -19,6 +19,23 @@ typedef enum {
     CAS_STATE_ERROR = 5
 } cas_state_t;
 
+#define MAX_CAS_PROFILES 16
+
+typedef struct {
+    char name[64];
+    char super_id[16];
+    bool first_stream;
+    int  ecmg_channel;
+    char ecmg_host[128];
+    int  ecmg_port;
+    int  ecmg_cp;
+    char emmg_proto[16];
+    int  emmg_port;
+    int  emm_pid;
+    char emm_data[128];
+    bool emm_clone;
+} cas_profile_t;
+
 typedef struct {
     bool        enabled;
     char        host[128];
@@ -27,6 +44,10 @@ typedef struct {
     char        pass[64];
     char        des_key[32];    /* Hex representation of 14 bytes DES key */
     
+    /* CAS SimulCrypt Profiles */
+    cas_profile_t profiles[MAX_CAS_PROFILES];
+    int           num_profiles;
+
     /* Live Runtime Status */
     cas_state_t state;
     char        status_msg[128];

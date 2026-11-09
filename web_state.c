@@ -100,7 +100,11 @@ static void read_system_ram(uint64_t *out_total_kb, uint64_t *out_available_kb) 
 
 void web_state_init(int http_port, const char *http_host, const char *config_file) {
     memset(&g_gateway, 0, sizeof(g_gateway));
-    pthread_mutex_init(&g_gateway.lock, NULL);
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&g_gateway.lock, &attr);
+    pthread_mutexattr_destroy(&attr);
 
     snprintf(g_gateway.server_name, sizeof(g_gateway.server_name), "DVBlast Web Gateway");
     g_gateway.http_port = (http_port > 0) ? http_port : 8088;
@@ -796,6 +800,8 @@ bool web_state_save_json(const char *path) {
     json_object_set_new(root, "hls", hls_to_json());
     json_object_set_new(root, "epg", epg_config_to_json());
     json_object_set_new(root, "cas", cas_to_json());
+    json_object_set_new(root, "servers", web_state_servers_to_json());
+    json_object_set_new(root, "softcam_profiles", web_state_softcam_profiles_to_json());
 
     char tmp_path[300];
     snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", save_file);
@@ -955,6 +961,12 @@ bool web_state_load_json(const char *path) {
 
     json_t *j_cas = json_object_get(root, "cas");
     if (j_cas) cas_from_json(j_cas);
+
+    json_t *j_servers = json_object_get(root, "servers");
+    if (j_servers) web_state_servers_from_json(j_servers);
+
+    json_t *j_softcams = json_object_get(root, "softcam_profiles");
+    if (j_softcams) web_state_softcam_profiles_from_json(j_softcams);
 
     pthread_mutex_unlock(&g_gateway.lock);
     json_decref(root);
@@ -1220,6 +1232,130 @@ json_t *web_state_streams_to_json(void) {
     return arr;
 }
 
+json_t *web_state_servers_to_json(void) {
+    pthread_mutex_lock(&g_gateway.lock);
+    json_t *arr = json_array();
+    for (int i = 0; i < g_gateway.num_servers; i++) {
+        web_cluster_server_t *srv = &g_gateway.servers[i];
+        json_t *o = json_object();
+        json_object_set_new(o, "id", json_string(srv->id));
+        json_object_set_new(o, "name", json_string(srv->name));
+        json_object_set_new(o, "enabled", srv->enabled ? json_true() : json_false());
+        json_object_set_new(o, "host", json_string(srv->host));
+        json_object_set_new(o, "port", json_integer(srv->port));
+        json_object_set_new(o, "user", json_string(srv->user));
+        json_object_set_new(o, "password", json_string(srv->pass));
+        json_array_append_new(arr, o);
+    }
+    pthread_mutex_unlock(&g_gateway.lock);
+    return arr;
+}
+
+bool web_state_servers_from_json(json_t *root) {
+    if (!root || !json_is_array(root)) return false;
+    pthread_mutex_lock(&g_gateway.lock);
+    g_gateway.num_servers = 0;
+    size_t idx;
+    json_t *val;
+    json_array_foreach(root, idx, val) {
+        if (g_gateway.num_servers >= MAX_WEB_SERVERS) break;
+        if (!json_is_object(val)) continue;
+        web_cluster_server_t *s = &g_gateway.servers[g_gateway.num_servers++];
+        memset(s, 0, sizeof(*s));
+        const char *id = json_string_value(json_object_get(val, "id"));
+        if (id && *id) snprintf(s->id, sizeof(s->id), "%s", id);
+        else snprintf(s->id, sizeof(s->id), "srv_%d", (int)idx + 1);
+        const char *nm = json_string_value(json_object_get(val, "name"));
+        if (nm) snprintf(s->name, sizeof(s->name), "%s", nm);
+        s->enabled = !json_is_false(json_object_get(val, "enabled"));
+        const char *h = json_string_value(json_object_get(val, "host"));
+        if (h) snprintf(s->host, sizeof(s->host), "%s", h);
+        s->port = (int)json_integer_value(json_object_get(val, "port"));
+        if (s->port <= 0) s->port = 8088;
+        const char *u = json_string_value(json_object_get(val, "user"));
+        if (u) snprintf(s->user, sizeof(s->user), "%s", u);
+        const char *p = json_string_value(json_object_get(val, "password"));
+        if (p) snprintf(s->pass, sizeof(s->pass), "%s", p);
+    }
+    pthread_mutex_unlock(&g_gateway.lock);
+    return true;
+}
+
+json_t *web_state_softcam_profiles_to_json(void) {
+    pthread_mutex_lock(&g_gateway.lock);
+    json_t *arr = json_array();
+    for (int i = 0; i < g_gateway.num_softcam_profiles; i++) {
+        web_softcam_profile_t *p = &g_gateway.softcam_profiles[i];
+        json_t *o = json_object();
+        json_object_set_new(o, "id", json_string(p->id));
+        json_object_set_new(o, "name", json_string(p->name));
+        json_object_set_new(o, "enabled", p->enabled ? json_true() : json_false());
+        json_object_set_new(o, "type", json_string(p->type));
+        json_object_set_new(o, "host", json_string(p->host));
+        json_object_set_new(o, "port", json_integer(p->port));
+        json_object_set_new(o, "user", json_string(p->user));
+        json_object_set_new(o, "password", json_string(p->pass));
+        json_object_set_new(o, "des_key", json_string(p->des_key));
+        json_object_set_new(o, "caid", json_string(p->caid));
+        json_array_append_new(arr, o);
+    }
+    pthread_mutex_unlock(&g_gateway.lock);
+    return arr;
+}
+
+bool web_state_softcam_profiles_from_json(json_t *root) {
+    if (!root || !json_is_array(root)) return false;
+    pthread_mutex_lock(&g_gateway.lock);
+    g_gateway.num_softcam_profiles = 0;
+    size_t idx;
+    json_t *val;
+    json_array_foreach(root, idx, val) {
+        if (g_gateway.num_softcam_profiles >= MAX_WEB_SOFTCAM_PROFILES) break;
+        if (!json_is_object(val)) continue;
+        web_softcam_profile_t *sp = &g_gateway.softcam_profiles[g_gateway.num_softcam_profiles++];
+        memset(sp, 0, sizeof(*sp));
+        const char *id = json_string_value(json_object_get(val, "id"));
+        if (id && *id) snprintf(sp->id, sizeof(sp->id), "%s", id);
+        else snprintf(sp->id, sizeof(sp->id), "cam_%d", (int)idx + 1);
+        const char *nm = json_string_value(json_object_get(val, "name"));
+        if (nm) snprintf(sp->name, sizeof(sp->name), "%s", nm);
+        sp->enabled = !json_is_false(json_object_get(val, "enabled"));
+        const char *tp = json_string_value(json_object_get(val, "type"));
+        if (tp) snprintf(sp->type, sizeof(sp->type), "%s", tp);
+        else snprintf(sp->type, sizeof(sp->type), "newcamd");
+        const char *h = json_string_value(json_object_get(val, "host"));
+        if (h) snprintf(sp->host, sizeof(sp->host), "%s", h);
+        sp->port = (int)json_integer_value(json_object_get(val, "port"));
+        if (sp->port <= 0) sp->port = 10000;
+        const char *u = json_string_value(json_object_get(val, "user"));
+        if (u) snprintf(sp->user, sizeof(sp->user), "%s", u);
+        const char *p = json_string_value(json_object_get(val, "password"));
+        if (p) snprintf(sp->pass, sizeof(sp->pass), "%s", p);
+        const char *dk = json_string_value(json_object_get(val, "des_key"));
+        if (dk && *dk) snprintf(sp->des_key, sizeof(sp->des_key), "%s", dk);
+        else snprintf(sp->des_key, sizeof(sp->des_key), "0102030405060708091011121314");
+        const char *caid = json_string_value(json_object_get(val, "caid"));
+        if (caid) snprintf(sp->caid, sizeof(sp->caid), "%s", caid);
+    }
+
+    /* If there is an active newcamd profile, configure cas worker with it */
+    for (int i = 0; i < g_gateway.num_softcam_profiles; i++) {
+        if (g_gateway.softcam_profiles[i].enabled && strcmp(g_gateway.softcam_profiles[i].type, "newcamd") == 0) {
+            cas_config_t cc = cas_get_config();
+            cc.enabled = true;
+            snprintf(cc.host, sizeof(cc.host), "%s", g_gateway.softcam_profiles[i].host);
+            cc.port = g_gateway.softcam_profiles[i].port;
+            snprintf(cc.user, sizeof(cc.user), "%s", g_gateway.softcam_profiles[i].user);
+            snprintf(cc.pass, sizeof(cc.pass), "%s", g_gateway.softcam_profiles[i].pass);
+            snprintf(cc.des_key, sizeof(cc.des_key), "%s", g_gateway.softcam_profiles[i].des_key);
+            cas_configure(&cc);
+            break;
+        }
+    }
+    pthread_mutex_unlock(&g_gateway.lock);
+    return true;
+}
+
 json_t *web_state_config_to_json(void) {
     pthread_mutex_lock(&g_gateway.lock);
     json_t *root = json_object();
@@ -1298,6 +1434,8 @@ json_t *web_state_config_to_json(void) {
     json_object_set_new(root, "hls", hls_to_json());
     json_object_set_new(root, "epg", epg_config_to_json());
     json_object_set_new(root, "cas", cas_to_json());
+    json_object_set_new(root, "servers", web_state_servers_to_json());
+    json_object_set_new(root, "softcam_profiles", web_state_softcam_profiles_to_json());
 
     pthread_mutex_unlock(&g_gateway.lock);
     return root;

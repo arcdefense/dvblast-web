@@ -534,7 +534,7 @@ static enum MHD_Result check_arg_cb(void *cls, enum MHD_ValueKind kind, const ch
     return MHD_YES;
 }
 
-static int handle_playlist_m3u(struct MHD_Connection *conn, const char *host_header, bool is_m3u8) {
+static int handle_playlist_m3u(struct MHD_Connection *conn, const char *url, const char *host_header, bool is_m3u8) {
     char base_host[128];
     if (host_header && *host_header) {
         snprintf(base_host, sizeof(base_host), "%s", host_header);
@@ -547,18 +547,46 @@ static int handle_playlist_m3u(struct MHD_Connection *conn, const char *host_hea
     /* Check format query params: ?ts, ?hls, ?udp */
     bool flags[3] = {false, false, false};
     MHD_get_connection_values(conn, MHD_GET_ARGUMENT_KIND, check_arg_cb, flags);
+    const char *q = url ? strchr(url, '?') : NULL;
+    if (q) {
+        if (strstr(q, "ts")) flags[0] = true;
+        if (strstr(q, "hls")) flags[1] = true;
+        if (strstr(q, "udp")) flags[2] = true;
+    }
+    bool mode_ts = flags[0];
     bool mode_hls = flags[1];
     bool mode_udp = flags[2];
 
-    size_t alloc_sz = 16384;
+    /* Auto-format fallback matching aia / http_serve.c:
+     * If neither is specified in query parameters:
+     * 1. allow_hls -> HLS
+     * 2. else if allow_http -> HTTP MPEG-TS
+     * 3. else -> UDP multicast
+     */
+    if (!mode_ts && !mode_hls && !mode_udp) {
+        if (g_cfg.allow_hls) {
+            mode_hls = true;
+        } else if (g_cfg.allow_http) {
+            mode_ts = true;
+        } else {
+            mode_udp = true;
+        }
+    }
+
+    size_t alloc_sz = 32768;
     char *buf = malloc(alloc_sz);
     if (!buf) return MHD_NO;
 
-    int offset = snprintf(buf, alloc_sz,
-        "#EXTM3U url-tvg=\"http://%s/epg.xml\" x-tvg-url=\"http://%s/epg.xml\"%s%s\n#EXT-X-VERSION:3\n\n",
-        base_host, base_host,
-        g_cfg.m3u_header[0] ? " " : "",
-        g_cfg.m3u_header[0] ? g_cfg.m3u_header : "");
+    int offset = 0;
+    if (g_cfg.m3u_header[0]) {
+        offset = snprintf(buf, alloc_sz,
+            "#EXTM3U url-tvg=\"http://%s/epg.xml\" x-tvg-url=\"http://%s/epg.xml\" %s\n",
+            base_host, base_host, g_cfg.m3u_header);
+    } else {
+        offset = snprintf(buf, alloc_sz,
+            "#EXTM3U url-tvg=\"http://%s/epg.xml\" x-tvg-url=\"http://%s/epg.xml\"\n",
+            base_host, base_host);
+    }
 
     pthread_mutex_lock(&g_gateway.lock);
     for (int i = 0; i < g_gateway.num_streams; i++) {
@@ -574,15 +602,28 @@ static int handle_playlist_m3u(struct MHD_Connection *conn, const char *host_hea
         } else if (mode_hls) {
             snprintf(stream_url, sizeof(stream_url), "http://%s/hls/%s/index.m3u8", base_host, s->id);
         } else {
-            snprintf(stream_url, sizeof(stream_url), "http://%s/play/%s", base_host, s->id);
+            /* HTTP MPEG-TS with .ts extension for media players */
+            snprintf(stream_url, sizeof(stream_url), "http://%s/play/%s.ts", base_host, s->id);
+        }
+
+        char logo_attr[512] = {0};
+        if (g_cfg.tv_logos_path[0]) {
+            if (strncmp(g_cfg.tv_logos_path, "http://", 7) == 0 || strncmp(g_cfg.tv_logos_path, "https://", 8) == 0) {
+                snprintf(logo_attr, sizeof(logo_attr), " tvg-logo=\"%s/%s.png\"", g_cfg.tv_logos_path, s->id);
+            } else {
+                snprintf(logo_attr, sizeof(logo_attr), " tvg-logo=\"http://%s%s%s/%s.png\"",
+                         base_host,
+                         g_cfg.tv_logos_path[0] == '/' ? "" : "/",
+                         g_cfg.tv_logos_path, s->id);
+            }
         }
 
         char line[512];
         int n = snprintf(line, sizeof(line),
-            "#EXTINF:-1 tvg-id=\"%s\" tvg-name=\"%s\" tvg-chno=\"%u\" group-title=\"%s\",%s\n%s\n\n",
-            s->id, s->name, s->service_id, group, s->name, stream_url);
+            "#EXTINF:-1 tvg-id=\"%s\" tvg-name=\"%s\"%s tvg-chno=\"%u\" group-title=\"%s\",%s\n%s\n",
+            s->id, s->name, logo_attr, s->service_id, group, s->name, stream_url);
 
-        if (offset + n >= (int)alloc_sz - 128) {
+        if (offset + n >= (int)alloc_sz - 256) {
             alloc_sz *= 2;
             char *newbuf = realloc(buf, alloc_sz);
             if (!newbuf) break;
@@ -598,15 +639,19 @@ static int handle_playlist_m3u(struct MHD_Connection *conn, const char *host_hea
         free(buf);
         return MHD_NO;
     }
-    MHD_add_response_header(resp, "Content-Type", is_m3u8 ? "application/vnd.apple.mpegurl; charset=utf-8" : "application/x-mpegurl; charset=utf-8");
+    MHD_add_response_header(resp, "Content-Type", "application/x-mpegurl; charset=utf-8");
     MHD_add_response_header(resp, "Access-Control-Allow-Origin", "*");
-    MHD_add_response_header(resp, "Content-Disposition", is_m3u8 ? "inline; filename=\"playlist.m3u8\"" : "inline; filename=\"playlist.m3u\"");
+    MHD_add_response_header(resp, "Cache-Control", "no-cache");
+    const char *pl_name = (g_cfg.playlist_name[0]) ? g_cfg.playlist_name : "channels";
+    char cd_hdr[128];
+    snprintf(cd_hdr, sizeof(cd_hdr), "inline; filename=\"%s.%s\"", pl_name, is_m3u8 ? "m3u8" : "m3u");
+    MHD_add_response_header(resp, "Content-Disposition", cd_hdr);
     int ret = MHD_queue_response(conn, 200, resp);
     MHD_destroy_response(resp);
     return ret;
 }
 
-static int handle_playlist_xspf(struct MHD_Connection *conn, const char *host_header) {
+static int handle_playlist_xspf(struct MHD_Connection *conn, const char *url, const char *host_header) {
     char base_host[128];
     if (host_header && *host_header) {
         snprintf(base_host, sizeof(base_host), "%s", host_header);
@@ -616,7 +661,30 @@ static int handle_playlist_xspf(struct MHD_Connection *conn, const char *host_he
                  g_cfg.port > 0 ? g_cfg.port : (g_gateway.http_port ? g_gateway.http_port : 8088));
     }
 
-    size_t alloc_sz = 16384;
+    /* Check format query params: ?ts, ?hls, ?udp */
+    bool flags[3] = {false, false, false};
+    MHD_get_connection_values(conn, MHD_GET_ARGUMENT_KIND, check_arg_cb, flags);
+    const char *q = url ? strchr(url, '?') : NULL;
+    if (q) {
+        if (strstr(q, "ts")) flags[0] = true;
+        if (strstr(q, "hls")) flags[1] = true;
+        if (strstr(q, "udp")) flags[2] = true;
+    }
+    bool mode_ts = flags[0];
+    bool mode_hls = flags[1];
+    bool mode_udp = flags[2];
+
+    if (!mode_ts && !mode_hls && !mode_udp) {
+        if (g_cfg.allow_hls) {
+            mode_hls = true;
+        } else if (g_cfg.allow_http) {
+            mode_ts = true;
+        } else {
+            mode_udp = true;
+        }
+    }
+
+    size_t alloc_sz = 32768;
     char *buf = malloc(alloc_sz);
     if (!buf) return MHD_NO;
 
@@ -632,19 +700,41 @@ static int handle_playlist_xspf(struct MHD_Connection *conn, const char *host_he
         web_stream_config_t *s = &g_gateway.streams[i];
         if (!s->enabled) continue;
 
-        char track[512];
+        char loc[256];
+        if (mode_udp) {
+            snprintf(loc, sizeof(loc), "udp://@%s:%d", s->ip, s->port);
+        } else if (mode_hls) {
+            snprintf(loc, sizeof(loc), "http://%s/hls/%s/index.m3u8", base_host, s->id);
+        } else {
+            snprintf(loc, sizeof(loc), "http://%s/play/%s.ts", base_host, s->id);
+        }
+
+        char img_tag[512] = {0};
+        if (g_cfg.tv_logos_path[0]) {
+            if (strncmp(g_cfg.tv_logos_path, "http://", 7) == 0 || strncmp(g_cfg.tv_logos_path, "https://", 8) == 0) {
+                snprintf(img_tag, sizeof(img_tag), "      <image>%s/%s.png</image>\n", g_cfg.tv_logos_path, s->id);
+            } else {
+                snprintf(img_tag, sizeof(img_tag), "      <image>http://%s%s%s/%s.png</image>\n",
+                         base_host,
+                         g_cfg.tv_logos_path[0] == '/' ? "" : "/",
+                         g_cfg.tv_logos_path, s->id);
+            }
+        }
+
+        char track[600];
         int n = snprintf(track, sizeof(track),
             "    <track>\n"
             "      <title>%s</title>\n"
-            "      <location>http://%s/play/%s</location>\n"
+            "%s"
+            "      <location>%s</location>\n"
             "      <extension application=\"http://www.videolan.org/vlc/playlist/0\">\n"
             "        <vlc:id>%u</vlc:id>\n"
             "        <vlc:option>network-caching=1000</vlc:option>\n"
             "      </extension>\n"
             "    </track>\n",
-            s->name, base_host, s->id, s->service_id);
+            s->name, img_tag, loc, s->service_id);
 
-        if (offset + n >= (int)alloc_sz - 128) {
+        if (offset + n >= (int)alloc_sz - 256) {
             alloc_sz *= 2;
             char *newbuf = realloc(buf, alloc_sz);
             if (!newbuf) break;
@@ -665,7 +755,11 @@ static int handle_playlist_xspf(struct MHD_Connection *conn, const char *host_he
     }
     MHD_add_response_header(resp, "Content-Type", "application/xspf+xml; charset=utf-8");
     MHD_add_response_header(resp, "Access-Control-Allow-Origin", "*");
-    MHD_add_response_header(resp, "Content-Disposition", "inline; filename=\"playlist.xspf\"");
+    MHD_add_response_header(resp, "Cache-Control", "no-cache");
+    const char *pl_name = (g_cfg.playlist_name[0]) ? g_cfg.playlist_name : "channels";
+    char cd_hdr[128];
+    snprintf(cd_hdr, sizeof(cd_hdr), "inline; filename=\"%s.xspf\"", pl_name);
+    MHD_add_response_header(resp, "Content-Disposition", cd_hdr);
     int ret = MHD_queue_response(conn, 200, resp);
     MHD_destroy_response(resp);
     return ret;
@@ -675,6 +769,7 @@ static int handle_playlist_xspf(struct MHD_Connection *conn, const char *host_he
  * Main HTTP Play Request Router
  * -------------------------------------------------------------------------- */
 int http_play_handle_request(struct MHD_Connection *conn, const char *url, const char *host_header) {
+    if (strncmp(url, "/hls/", 5) == 0) return MHD_NO;
     if (!g_cfg.enabled) {
         struct MHD_Response *resp = MHD_create_response_from_buffer(23, "HTTP Play is disabled\n", MHD_RESPMEM_PERSISTENT);
         int ret = MHD_queue_response(conn, 503, resp);
@@ -683,33 +778,50 @@ int http_play_handle_request(struct MHD_Connection *conn, const char *url, const
     }
 
     /* 1. M3U / M3U8 Playlists */
-    if (strcmp(url, "/playlist.m3u") == 0 ||
+    if (strstr(url, ".m3u8") != NULL ||
+        strstr(url, ".m3u") != NULL ||
+        strcmp(url, "/playlist.m3u") == 0 ||
         strcmp(url, "/playlist.m3u8") == 0 ||
         strcmp(url, "/api/v1/http_play/playlist.m3u") == 0 ||
-        strcmp(url, "/api/v1/http_play/playlist.m3u8") == 0 ||
-        strstr(url, ".m3u8") != NULL ||
-        strstr(url, ".m3u") != NULL) {
+        strcmp(url, "/api/v1/http_play/playlist.m3u8") == 0) {
         bool is_m3u8 = (strstr(url, ".m3u8") != NULL);
-        return handle_playlist_m3u(conn, host_header, is_m3u8);
+        return handle_playlist_m3u(conn, url, host_header, is_m3u8);
     }
 
     /* 2. XSPF Playlist */
-    if (strcmp(url, "/playlist.xspf") == 0 ||
-        strcmp(url, "/api/v1/http_play/playlist.xspf") == 0 ||
-        strstr(url, ".xspf") != NULL) {
-        return handle_playlist_xspf(conn, host_header);
+    if (strstr(url, ".xspf") != NULL ||
+        strcmp(url, "/playlist.xspf") == 0 ||
+        strcmp(url, "/api/v1/http_play/playlist.xspf") == 0) {
+        return handle_playlist_xspf(conn, url, host_header);
     }
 
-    /* 3. Extract stream_id or service_id from /play/{id} or /live/{sid} */
+    /* 3. Extract stream_id or service_id from:
+     *    - /play/{id} or /play/{id}.ts
+     *    - /live/{sid} or /live/{sid}.ts
+     *    - /{playlist_name}/{id}.ts
+     */
     char stream_id[64] = {0};
     uint16_t service_id = 0;
 
+    const char *sid_ptr = NULL;
     if (strncmp(url, "/play/", 6) == 0 || strncmp(url, "/live/", 6) == 0) {
-        snprintf(stream_id, sizeof(stream_id), "%s", url + 6);
+        sid_ptr = url + 6;
+    } else {
+        const char *pl = g_cfg.playlist_name[0] ? g_cfg.playlist_name : "channels";
+        size_t pl_len = strlen(pl);
+        if (url[0] == '/' && strncmp(url + 1, pl, pl_len) == 0 && url[1 + pl_len] == '/') {
+            sid_ptr = url + 1 + pl_len + 1;
+        }
+    }
+
+    if (sid_ptr && *sid_ptr) {
+        snprintf(stream_id, sizeof(stream_id), "%s", sid_ptr);
         char *q = strchr(stream_id, '?');
         if (q) *q = '\0';
-        char *dot = strstr(stream_id, ".ts");
-        if (dot) *dot = '\0';
+        size_t slen = strlen(stream_id);
+        if (slen > 3 && strcmp(stream_id + slen - 3, ".ts") == 0) {
+            stream_id[slen - 3] = '\0';
+        }
 
         /* If numeric SID given (e.g. 30266) */
         int parsed_num = atoi(stream_id);
@@ -718,6 +830,14 @@ int http_play_handle_request(struct MHD_Connection *conn, const char *url, const
         }
     } else {
         return MHD_NO;
+    }
+
+    /* Check if HTTP streaming is enabled */
+    if (!g_cfg.allow_http) {
+        struct MHD_Response *resp = MHD_create_response_from_buffer(24, "HTTP streaming disabled\n", MHD_RESPMEM_PERSISTENT);
+        int ret = MHD_queue_response(conn, 403, resp);
+        MHD_destroy_response(resp);
+        return ret;
     }
 
     /* Verify stream exists in gateway */

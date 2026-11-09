@@ -1858,7 +1858,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Custom Playlist Name</label>
-                                        <input type="text" class="form-input" id="cfg-http-play-name" placeholder="playlist" oninput="updateHttpPlayLinks()">
+                                        <input type="text" class="form-input" id="cfg-http-play-name" placeholder="channels" oninput="updateHttpPlayLinks()">
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -1894,31 +1894,31 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">XSPF Playlist Title</label>
-                                    <input type="text" class="form-input" id="cfg-http-play-xspf-title" placeholder="AIA TV Gateway">
+                                    <input type="text" class="form-input" id="cfg-http-play-xspf-title" placeholder="DVBlast Master Live Streams">
                                 </div>
 
                                 <div class="settings-divider"></div>
                                 <div style="font-weight: 700; font-size: 13px; margin-bottom: 8px;">Live Playlist Links</div>
                                 <div id="http-play-links-box" style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                                        <a href="#" id="link-m3u-auto" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">playlist.m3u8 (auto format)</a>
-                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copyPlaylistUrl('link-m3u-auto')">COPY</button>
+                                        <a href="/channels.m3u8" id="link-m3u-auto" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">channels.m3u8 (auto format)</a>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px; min-width: 58px;" onclick="copyPlaylistUrl('link-m3u-auto', this)">COPY</button>
                                     </div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                                        <a href="#" id="link-m3u-ts" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">playlist.m3u8?ts (HTTP MPEG-TS)</a>
-                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copyPlaylistUrl('link-m3u-ts')">COPY</button>
+                                        <a href="/channels.m3u8?ts" id="link-m3u-ts" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">channels.m3u8?ts (HTTP MPEG-TS)</a>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px; min-width: 58px;" onclick="copyPlaylistUrl('link-m3u-ts', this)">COPY</button>
                                     </div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                                        <a href="#" id="link-m3u-hls" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">playlist.m3u8?hls (HLS)</a>
-                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copyPlaylistUrl('link-m3u-hls')">COPY</button>
+                                        <a href="/channels.m3u8?hls" id="link-m3u-hls" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">channels.m3u8?hls (HLS)</a>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px; min-width: 58px;" onclick="copyPlaylistUrl('link-m3u-hls', this)">COPY</button>
                                     </div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                                        <a href="#" id="link-m3u-udp" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">playlist.m3u8?udp (UDP)</a>
-                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copyPlaylistUrl('link-m3u-udp')">COPY</button>
+                                        <a href="/channels.m3u8?udp" id="link-m3u-udp" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">channels.m3u8?udp (UDP)</a>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px; min-width: 58px;" onclick="copyPlaylistUrl('link-m3u-udp', this)">COPY</button>
                                     </div>
                                     <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                                        <a href="#" id="link-xspf" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">playlist.xspf (XSPF)</a>
-                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copyPlaylistUrl('link-xspf')">COPY</button>
+                                        <a href="/channels.xspf" id="link-xspf" target="_blank" style="color: var(--vlc-orange); font-weight: 500;">channels.xspf (XSPF)</a>
+                                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px; min-width: 58px;" onclick="copyPlaylistUrl('link-xspf', this)">COPY</button>
                                     </div>
                                 </div>
                             </div>
@@ -3234,6 +3234,7 @@
 
         function startApplication() {
             pollState();
+            updateHttpPlayLinks();
             if (!g_pollTimer) g_pollTimer = setInterval(pollState, 1500);
             if (!g_logsTimer) {
                 g_logsTimer = setInterval(() => {
@@ -3307,37 +3308,108 @@
             loadModuleSettings(subTabId);
         }
 
-        // Live playlist preview links updater
-        function updateHttpPlayLinks() {
-            const host = window.location.hostname || '127.0.0.1';
-            const portInput = document.getElementById('cfg-http-play-port')?.value;
-            const port = portInput ? portInput : (window.location.port || '8088');
-            const name = document.getElementById('cfg-http-play-name')?.value || 'playlist';
-            const disableTls = document.getElementById('cfg-http-play-disable-tls')?.checked;
-            const proto = disableTls ? 'http:' : (window.location.protocol || 'http:');
-            const base = `${proto}//${host}:${port}/${name}`;
+        // Universal clipboard copy supporting non-secure contexts (plain HTTP / LAN IP)
+        function copyTextToClipboard(text) {
+            if (!text) return Promise.reject(new Error("No text to copy"));
 
-            const lAuto = document.getElementById('link-m3u-auto');
-            const lTs = document.getElementById('link-m3u-ts');
-            const lHls = document.getElementById('link-m3u-hls');
-            const lUdp = document.getElementById('link-m3u-udp');
-            const lXspf = document.getElementById('link-xspf');
-
-            if (lAuto) { lAuto.href = `${base}.m3u8`; lAuto.textContent = `${name}.m3u8 (auto format)`; }
-            if (lTs) { lTs.href = `${base}.m3u8?ts`; lTs.textContent = `${name}.m3u8?ts (HTTP MPEG-TS)`; }
-            if (lHls) { lHls.href = `${base}.m3u8?hls`; lHls.textContent = `${name}.m3u8?hls (HLS)`; }
-            if (lUdp) { lUdp.href = `${base}.m3u8?udp`; lUdp.textContent = `${name}.m3u8?udp (UDP)`; }
-            if (lXspf) { lXspf.href = `${base}.xspf`; lXspf.textContent = `${name}.xspf (XSPF)`; }
+            // Modern asynchronous Clipboard API if in secure context
+            if (navigator.clipboard && (window.isSecureContext || window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+                return navigator.clipboard.writeText(text).catch(() => copyUsingTextarea(text));
+            }
+            return copyUsingTextarea(text);
         }
 
-        function copyPlaylistUrl(elemId) {
-            const el = document.getElementById(elemId);
-            if (!el || !el.href) return;
-            navigator.clipboard.writeText(el.href).then(() => {
-                showToast("Playlist URL copied: " + el.href);
-            }).catch(() => {
-                showToast("Failed to copy URL", true);
+        function copyUsingTextarea(text) {
+            return new Promise((resolve, reject) => {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.setAttribute("readonly", "");
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                textArea.style.top = (window.pageYOffset || document.documentElement.scrollTop || 0) + "px";
+                textArea.style.opacity = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                textArea.setSelectionRange(0, textArea.value.length);
+                try {
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    if (successful) resolve();
+                    else reject(new Error('execCommand copy failed'));
+                } catch (err) {
+                    document.body.removeChild(textArea);
+                    reject(err);
+                }
             });
+        }
+
+        function copyPlaylistUrl(urlOrId, btn) {
+            let url = urlOrId;
+            if (url && (url.startsWith('link-') || document.getElementById(url))) {
+                const el = document.getElementById(url);
+                if (el && el.href) url = el.href;
+            }
+            if (!url || url.endsWith('#')) {
+                updateHttpPlayLinks();
+                return;
+            }
+
+            copyTextToClipboard(url).then(() => {
+                showToast("Playlist URL copied: " + url);
+                if (btn) {
+                    const orig = btn.textContent;
+                    btn.textContent = "COPIED!";
+                    btn.style.borderColor = "var(--color-success, #10b981)";
+                    btn.style.color = "var(--color-success, #10b981)";
+                    setTimeout(() => {
+                        btn.textContent = orig;
+                        btn.style.borderColor = "";
+                        btn.style.color = "";
+                    }, 1500);
+                }
+            }).catch(err => {
+                console.warn("Clipboard copy failed, using fallback prompt:", err);
+                window.prompt("Copy playlist link (Ctrl+C, Enter):", url);
+            });
+        }
+
+        // Live playlist preview links updater matching aia.html setLink()
+        function updateHttpPlayLinks() {
+            const proto = document.getElementById('cfg-http-play-disable-tls')?.checked ? 'http:' : (window.location.protocol || 'http:');
+            const portInput = document.getElementById('cfg-http-play-port')?.value;
+            const port = (portInput && portInput.trim()) ? portInput.trim() : (window.location.port || '');
+            const nameInput = document.getElementById('cfg-http-play-name')?.value;
+            const name = (nameInput && nameInput.trim()) ? nameInput.trim() : 'channels';
+            const host = window.location.hostname || '127.0.0.1';
+
+            let portStr = '';
+            if (port && port !== '80' && port !== '443') {
+                portStr = ':' + port;
+            } else if (!port && window.location.port && window.location.port !== '80' && window.location.port !== '443') {
+                portStr = ':' + window.location.port;
+            }
+
+            const base = `${proto}//${host}${portStr}/${name}`;
+
+            const items = [
+                { id: 'link-m3u-auto', ext: '.m3u8', label: `${name}.m3u8 (auto format)` },
+                { id: 'link-m3u-ts', ext: '.m3u8?ts', label: `${name}.m3u8?ts (HTTP MPEG-TS)` },
+                { id: 'link-m3u-hls', ext: '.m3u8?hls', label: `${name}.m3u8?hls (HLS)` },
+                { id: 'link-m3u-udp', ext: '.m3u8?udp', label: `${name}.m3u8?udp (UDP)` },
+                { id: 'link-xspf', ext: '.xspf', label: `${name}.xspf (XSPF)` }
+            ];
+
+            const box = document.getElementById('http-play-links-box');
+            if (box) {
+                box.innerHTML = items.map(it => {
+                    const fullUrl = `${base}${it.ext}`;
+                    return `<div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); gap: 10px;">
+                        <a href="${fullUrl}" id="${it.id}" target="_blank" style="color: var(--vlc-orange); font-weight: 500; text-decoration: none; word-break: break-all; flex: 1;">${it.label}</a>
+                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px; min-width: 58px; flex-shrink: 0;" onclick="copyPlaylistUrl('${fullUrl}', this)">COPY</button>
+                    </div>`;
+                }).join('');
+            }
         }
 
         function formatBytesHuman(bytes) {
@@ -3454,6 +3526,14 @@
                         const d = await res.json();
                         if (d.segment_sec) document.getElementById('cfg-hls-duration').value = d.segment_sec;
                         if (d.window_size) document.getElementById('cfg-hls-quantity').value = d.window_size;
+                        if (d.naming) document.getElementById('cfg-hls-naming').value = d.naming;
+                        if (d.timeout_sec) document.getElementById('cfg-hls-timeout').value = d.timeout_sec;
+                        if (d.storage_path !== undefined) document.getElementById('cfg-hls-path').value = d.storage_path;
+                        if (d.round_duration !== undefined) document.getElementById('cfg-hls-round-duration').checked = !!d.round_duration;
+                        if (d.expires_header !== undefined) document.getElementById('cfg-hls-expires-header').checked = !!d.expires_header;
+                        if (d.no_filter !== undefined) document.getElementById('cfg-hls-no-filter').checked = !!d.no_filter;
+                        if (d.ts_ext) document.getElementById('cfg-hls-ts-ext').value = d.ts_ext;
+                        if (d.ts_mime) document.getElementById('cfg-hls-ts-mime').value = d.ts_mime;
                     }
                 } else if (subTabId === 'http_play') {
                     const res = await authFetch('/api/v1/modules/http_play');
@@ -3496,21 +3576,30 @@
                         const d = await res.json();
                         const chk = document.getElementById('cfg-auth-enable');
                         if (chk) chk.checked = !!d.enabled;
+                        if (d.backend_type !== undefined) document.getElementById('cfg-auth-mw-type').value = d.backend_type;
+                        if (d.backend_url !== undefined) document.getElementById('cfg-auth-backend').value = d.backend_url;
+                        if (d.promo_channel !== undefined) document.getElementById('cfg-auth-promo').value = d.promo_channel;
+                        if (d.securetoken !== undefined) document.getElementById('cfg-auth-securetoken').value = d.securetoken;
+                        if (d.allow_real_ip !== undefined) document.getElementById('cfg-auth-real-ip').checked = !!d.allow_real_ip;
+                        if (d.ip_allow !== undefined) document.getElementById('cfg-auth-ip-allow').value = d.ip_allow;
+                        if (d.ip_deny !== undefined) document.getElementById('cfg-auth-ip-deny').value = d.ip_deny;
+                        if (d.token_deny !== undefined) document.getElementById('cfg-auth-token-deny').value = d.token_deny;
                         toggleAuthFields();
+                        onMwTypeChange();
                     }
                 } else if (subTabId === 'softcam') {
+                    loadSoftcamProfiles();
                     loadSoftcamKeys();
                 } else if (subTabId === 'users') {
                     loadUsers();
                 } else if (subTabId === 'cas') {
-                    const res = await authFetch('/api/v1/modules/cas');
-                    if (res.ok) {
-                        const d = await res.json();
-                        if (d.host) document.getElementById('cas-ecmg-host').value = d.host;
-                        if (d.port) document.getElementById('cas-ecmg-port').value = d.port;
-                    }
+                    loadCasProfiles();
                 } else if (subTabId === 'groups') {
                     loadCategories();
+                } else if (subTabId === 'servers') {
+                    loadServers();
+                } else if (subTabId === 'import') {
+                    populateImportAdapters();
                 } else if (subTabId === 'raw_config') {
                     loadConfigFile();
                 }
@@ -3600,8 +3689,16 @@
         async function saveHlsSettings() {
             const body = {
                 enabled: true,
-                segment_sec: parseInt(document.getElementById('cfg-hls-duration')?.value || "4", 10),
-                window_size: parseInt(document.getElementById('cfg-hls-quantity')?.value || "5", 10)
+                segment_sec: parseInt(document.getElementById('cfg-hls-duration')?.value || "3", 10),
+                window_size: parseInt(document.getElementById('cfg-hls-quantity')?.value || "4", 10),
+                naming: document.getElementById('cfg-hls-naming')?.value || "asc",
+                timeout_sec: parseInt(document.getElementById('cfg-hls-timeout')?.value || "60", 10),
+                storage_path: document.getElementById('cfg-hls-path')?.value || "",
+                round_duration: !!document.getElementById('cfg-hls-round-duration')?.checked,
+                expires_header: !!document.getElementById('cfg-hls-expires-header')?.checked,
+                no_filter: !!document.getElementById('cfg-hls-no-filter')?.checked,
+                ts_ext: document.getElementById('cfg-hls-ts-ext')?.value || "ts",
+                ts_mime: document.getElementById('cfg-hls-ts-mime')?.value || "video/mp2t"
             };
 
             try {
@@ -3618,6 +3715,49 @@
                 }
             } catch (err) {
                 showToast("Connection error saving HLS settings", true);
+            }
+        }
+
+        // Save HTTP Authentication Settings
+        async function saveAuthSettings() {
+            try {
+                let existingUsers = [];
+                let existingExp = 24;
+                try {
+                    const curRes = await authFetch('/api/v1/modules/http_auth');
+                    if (curRes.ok) {
+                        const cur = await curRes.json();
+                        if (cur.users) existingUsers = cur.users;
+                        if (cur.expiry_hours) existingExp = cur.expiry_hours;
+                    }
+                } catch (e) {}
+
+                const body = {
+                    enabled: !!document.getElementById('cfg-auth-enable')?.checked,
+                    expiry_hours: existingExp,
+                    users: existingUsers,
+                    backend_type: document.getElementById('cfg-auth-mw-type')?.value || "",
+                    backend_url: document.getElementById('cfg-auth-backend')?.value || "",
+                    promo_channel: document.getElementById('cfg-auth-promo')?.value || "",
+                    securetoken: document.getElementById('cfg-auth-securetoken')?.value || "",
+                    allow_real_ip: !!document.getElementById('cfg-auth-real-ip')?.checked,
+                    ip_allow: document.getElementById('cfg-auth-ip-allow')?.value || "",
+                    ip_deny: document.getElementById('cfg-auth-ip-deny')?.value || "",
+                    token_deny: document.getElementById('cfg-auth-token-deny')?.value || ""
+                };
+
+                const res = await authFetch('/api/v1/modules/http_auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    showToast("HTTP Authentication settings applied successfully");
+                } else {
+                    showToast("Failed to save Authentication settings", true);
+                }
+            } catch (err) {
+                showToast("Connection error saving Authentication settings", true);
             }
         }
 
@@ -3859,56 +3999,488 @@
             }
         }
 
-        // Softcam & CAS Profiles
-        function onSoftcamSelectChange() {}
-        function cloneSoftcam() { showToast("Softcam profile cloned"); }
-        async function saveSoftcamProfile() {
-            const body = {
-                enabled: document.getElementById('softcam-enable')?.checked ?? true,
-                host: document.getElementById('softcam-host')?.value || "",
-                port: parseInt(document.getElementById('softcam-port')?.value || "10000", 10),
-                user: document.getElementById('softcam-user')?.value || "",
-                password: document.getElementById('softcam-pass')?.value || "",
-                des_key: document.getElementById('softcam-des')?.value || ""
-            };
-            const res = await fetch('/api/v1/modules/cas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            if (res.ok) showToast("Softcam configuration applied");
-            else showToast("Failed to save Softcam", true);
+        // Softcam Profiles
+        let g_softcamProfiles = [];
+        async function loadSoftcamProfiles() {
+            try {
+                const res = await authFetch('/api/v1/modules/softcam_profiles');
+                if (res.ok) {
+                    g_softcamProfiles = await res.json();
+                    const sel = document.getElementById('softcam-select');
+                    if (sel) {
+                        sel.innerHTML = '<option value="-">New Profile</option>';
+                        g_softcamProfiles.forEach((p, idx) => {
+                            const opt = document.createElement('option');
+                            opt.value = String(idx);
+                            opt.textContent = `${p.name || 'Profile ' + (idx + 1)} (${p.type || 'newcamd'}${p.enabled ? ' - Active' : ''})`;
+                            sel.appendChild(opt);
+                        });
+                        if (g_softcamProfiles.length > 0 && sel.value === '-') {
+                            sel.value = '0';
+                            onSoftcamSelectChange();
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("loadSoftcamProfiles error", e);
+            }
         }
 
-        function onCasSelectChange() {}
-        function cloneCas() { showToast("CAS profile cloned"); }
-        async function saveCasProfile() {
-            const body = {
-                host: document.getElementById('cas-ecmg-host')?.value || "",
-                port: parseInt(document.getElementById('cas-ecmg-port')?.value || "10000", 10),
-                channel_id: parseInt(document.getElementById('cas-ecmg-channel')?.value || "1", 10),
-                cp_sec: parseInt(document.getElementById('cas-ecmg-cp')?.value || "10", 10)
+        function onSoftcamSelectChange() {
+            const sel = document.getElementById('softcam-select');
+            if (!sel) return;
+            if (sel.value === '-') {
+                document.getElementById('softcam-name').value = '';
+                document.getElementById('softcam-enable').checked = true;
+                document.getElementById('softcam-type').value = 'newcamd';
+                document.getElementById('softcam-host').value = '';
+                document.getElementById('softcam-port').value = 10000;
+                document.getElementById('softcam-user').value = '';
+                document.getElementById('softcam-pass').value = '';
+                document.getElementById('softcam-des').value = '0102030405060708091011121314';
+                document.getElementById('softcam-caid').value = '';
+            } else {
+                const idx = parseInt(sel.value, 10);
+                const p = g_softcamProfiles[idx];
+                if (p) {
+                    document.getElementById('softcam-name').value = p.name || '';
+                    document.getElementById('softcam-enable').checked = p.enabled !== false;
+                    document.getElementById('softcam-type').value = p.type || 'newcamd';
+                    document.getElementById('softcam-host').value = p.host || '';
+                    document.getElementById('softcam-port').value = p.port || 10000;
+                    document.getElementById('softcam-user').value = p.user || '';
+                    document.getElementById('softcam-pass').value = p.password || '';
+                    document.getElementById('softcam-des').value = p.des_key || '0102030405060708091011121314';
+                    document.getElementById('softcam-caid').value = p.caid || '';
+                }
+            }
+        }
+
+        function cloneSoftcam() {
+            const nameEl = document.getElementById('softcam-name');
+            const curName = nameEl?.value?.trim() || 'Softcam Profile';
+            nameEl.value = `${curName} (Copy)`;
+            document.getElementById('softcam-select').value = '-';
+            showToast("Softcam profile cloned as new entry");
+        }
+
+        async function saveSoftcamProfile() {
+            const sel = document.getElementById('softcam-select');
+            const name = document.getElementById('softcam-name')?.value?.trim();
+            if (!name) { showToast("Softcam profile name is required", true); return; }
+
+            const profile = {
+                id: (sel.value !== '-' && g_softcamProfiles[parseInt(sel.value, 10)]) ? g_softcamProfiles[parseInt(sel.value, 10)].id : `cam_${Date.now()}`,
+                name: name,
+                enabled: !!document.getElementById('softcam-enable')?.checked,
+                type: document.getElementById('softcam-type')?.value || "newcamd",
+                host: document.getElementById('softcam-host')?.value?.trim() || "",
+                port: parseInt(document.getElementById('softcam-port')?.value || "10000", 10),
+                user: document.getElementById('softcam-user')?.value?.trim() || "",
+                password: document.getElementById('softcam-pass')?.value || "",
+                des_key: document.getElementById('softcam-des')?.value?.trim() || "0102030405060708091011121314",
+                caid: document.getElementById('softcam-caid')?.value?.trim() || ""
             };
-            const res = await fetch('/api/v1/modules/cas', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            if (res.ok) showToast("CAS profile applied");
-            else showToast("Failed to save CAS", true);
+
+            if (sel.value === '-') {
+                g_softcamProfiles.push(profile);
+            } else {
+                g_softcamProfiles[parseInt(sel.value, 10)] = profile;
+            }
+
+            try {
+                const res = await authFetch('/api/v1/modules/softcam_profiles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(g_softcamProfiles)
+                });
+                if (res.ok) {
+                    showToast("Softcam configuration saved and applied");
+                    await loadSoftcamProfiles();
+                } else {
+                    showToast("Failed to save Softcam profile", true);
+                }
+            } catch (err) {
+                showToast("Connection error saving Softcam profile", true);
+            }
+        }
+
+        // CAS Simulcrypt Profiles
+        let g_casProfiles = [];
+        async function loadCasProfiles() {
+            try {
+                const res = await authFetch('/api/v1/modules/cas');
+                if (res.ok) {
+                    const d = await res.json();
+                    g_casProfiles = d.profiles || [];
+                    const sel = document.getElementById('cas-select');
+                    if (sel) {
+                        sel.innerHTML = '<option value="-">New Profile</option>';
+                        g_casProfiles.forEach((p, idx) => {
+                            const opt = document.createElement('option');
+                            opt.value = String(idx);
+                            opt.textContent = `${p.name || 'CAS Profile ' + (idx + 1)} (ECMG: ${p.ecmg_host || 'localhost'}:${p.ecmg_port || 10000})`;
+                            sel.appendChild(opt);
+                        });
+                        if (g_casProfiles.length > 0 && sel.value === '-') {
+                            sel.value = '0';
+                            onCasSelectChange();
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("loadCasProfiles error", e);
+            }
+        }
+
+        function onCasSelectChange() {
+            const sel = document.getElementById('cas-select');
+            if (!sel) return;
+            if (sel.value === '-') {
+                document.getElementById('cas-name').value = '';
+                document.getElementById('cas-super-id').value = '';
+                document.getElementById('cas-first-stream').checked = false;
+                document.getElementById('cas-ecmg-channel').value = '';
+                document.getElementById('cas-ecmg-host').value = '';
+                document.getElementById('cas-ecmg-port').value = 10000;
+                document.getElementById('cas-ecmg-cp').value = 10;
+                document.getElementById('cas-emmg-proto').value = '';
+                document.getElementById('cas-emmg-port').value = '';
+                document.getElementById('cas-emm-pid').value = '';
+                document.getElementById('cas-emm-data').value = '';
+                document.getElementById('cas-emm-clone').checked = false;
+            } else {
+                const idx = parseInt(sel.value, 10);
+                const p = g_casProfiles[idx];
+                if (p) {
+                    document.getElementById('cas-name').value = p.name || '';
+                    document.getElementById('cas-super-id').value = p.super_id || '';
+                    document.getElementById('cas-first-stream').checked = !!p.first_stream;
+                    document.getElementById('cas-ecmg-channel').value = p.ecmg_channel !== undefined ? p.ecmg_channel : '';
+                    document.getElementById('cas-ecmg-host').value = p.ecmg_host || '';
+                    document.getElementById('cas-ecmg-port').value = p.ecmg_port || 10000;
+                    document.getElementById('cas-ecmg-cp').value = p.ecmg_cp || 10;
+                    document.getElementById('cas-emmg-proto').value = p.emmg_proto || '';
+                    document.getElementById('cas-emmg-port').value = p.emmg_port || '';
+                    document.getElementById('cas-emm-pid').value = p.emm_pid || '';
+                    document.getElementById('cas-emm-data').value = p.emm_data || '';
+                    document.getElementById('cas-emm-clone').checked = !!p.emm_clone;
+                }
+            }
+        }
+
+        function cloneCas() {
+            const nameEl = document.getElementById('cas-name');
+            const curName = nameEl?.value?.trim() || 'CAS Profile';
+            nameEl.value = `${curName} (Copy)`;
+            document.getElementById('cas-select').value = '-';
+            showToast("CAS profile cloned as new profile");
+        }
+
+        async function saveCasProfile() {
+            const sel = document.getElementById('cas-select');
+            const name = document.getElementById('cas-name')?.value?.trim();
+            if (!name) { showToast("CAS profile name is required", true); return; }
+
+            const profile = {
+                name: name,
+                super_id: document.getElementById('cas-super-id')?.value?.trim() || '',
+                first_stream: !!document.getElementById('cas-first-stream')?.checked,
+                ecmg_channel: parseInt(document.getElementById('cas-ecmg-channel')?.value || '1', 10),
+                ecmg_host: document.getElementById('cas-ecmg-host')?.value?.trim() || '',
+                ecmg_port: parseInt(document.getElementById('cas-ecmg-port')?.value || '10000', 10),
+                ecmg_cp: parseInt(document.getElementById('cas-ecmg-cp')?.value || '10', 10),
+                emmg_proto: document.getElementById('cas-emmg-proto')?.value || '',
+                emmg_port: parseInt(document.getElementById('cas-emmg-port')?.value || '0', 10),
+                emm_pid: parseInt(document.getElementById('cas-emm-pid')?.value || '1000', 10),
+                emm_data: document.getElementById('cas-emm-data')?.value?.trim() || '',
+                emm_clone: !!document.getElementById('cas-emm-clone')?.checked
+            };
+
+            if (sel.value === '-') {
+                g_casProfiles.push(profile);
+            } else {
+                g_casProfiles[parseInt(sel.value, 10)] = profile;
+            }
+
+            try {
+                const res = await authFetch('/api/v1/modules/cas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: true, profiles: g_casProfiles })
+                });
+                if (res.ok) {
+                    showToast("CAS Simulcrypt profile saved successfully");
+                    await loadCasProfiles();
+                } else {
+                    showToast("Failed to save CAS profile", true);
+                }
+            } catch (err) {
+                showToast("Connection error saving CAS profile", true);
+            }
         }
 
         // Cluster Servers
-        function onServerSelectChange() {}
-        function testServerConnection() { showToast("Connection OK (Latency: 1.2ms)"); }
-        function saveServer() { showToast("Server saved"); }
+        let g_servers = [];
+        async function loadServers() {
+            try {
+                const res = await authFetch('/api/v1/servers');
+                if (res.ok) {
+                    g_servers = await res.json();
+                    const sel = document.getElementById('server-select');
+                    if (sel) {
+                        sel.innerHTML = '<option value="-">New Server</option>';
+                        g_servers.forEach((s, idx) => {
+                            const opt = document.createElement('option');
+                            opt.value = String(idx);
+                            opt.textContent = `${s.name || 'Server ' + (idx + 1)} (${s.host}:${s.port}${s.enabled ? ' - Active' : ''})`;
+                            sel.appendChild(opt);
+                        });
+                        if (g_servers.length > 0 && sel.value === '-') {
+                            sel.value = '0';
+                            onServerSelectChange();
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("loadServers error", e);
+            }
+        }
+
+        function onServerSelectChange() {
+            const sel = document.getElementById('server-select');
+            if (!sel) return;
+            if (sel.value === '-') {
+                document.getElementById('server-name').value = '';
+                document.getElementById('server-enable').checked = true;
+                document.getElementById('server-host').value = '';
+                document.getElementById('server-port').value = 8088;
+                document.getElementById('server-user').value = '';
+                document.getElementById('server-pass').value = '';
+            } else {
+                const idx = parseInt(sel.value, 10);
+                const s = g_servers[idx];
+                if (s) {
+                    document.getElementById('server-name').value = s.name || '';
+                    document.getElementById('server-enable').checked = s.enabled !== false;
+                    document.getElementById('server-host').value = s.host || '';
+                    document.getElementById('server-port').value = s.port || 8088;
+                    document.getElementById('server-user').value = s.user || '';
+                    document.getElementById('server-pass').value = s.password || '';
+                }
+            }
+        }
+
+        async function testServerConnection() {
+            const host = document.getElementById('server-host')?.value?.trim();
+            const port = parseInt(document.getElementById('server-port')?.value || '8088', 10);
+            if (!host) {
+                showToast("Please enter server address or domain", true);
+                return;
+            }
+            showToast(`Testing connection to ${host}:${port}...`);
+            try {
+                const res = await authFetch('/api/v1/servers/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ host, port })
+                });
+                const d = await res.json();
+                if (d.ok) {
+                    showToast(`Connection OK (Latency: ${d.latency_ms.toFixed(1)}ms)`);
+                } else {
+                    showToast(`Connection failed: ${d.error || 'Host unreachable'}`, true);
+                }
+            } catch (err) {
+                showToast("Connection test timed out or network error", true);
+            }
+        }
+
+        async function saveServer() {
+            const sel = document.getElementById('server-select');
+            const name = document.getElementById('server-name')?.value?.trim();
+            const host = document.getElementById('server-host')?.value?.trim();
+            if (!name) { showToast("Server name is required", true); return; }
+            if (!host) { showToast("Server IP or host is required", true); return; }
+
+            const srv = {
+                id: (sel.value !== '-' && g_servers[parseInt(sel.value, 10)]) ? g_servers[parseInt(sel.value, 10)].id : `srv_${Date.now()}`,
+                name: name,
+                enabled: !!document.getElementById('server-enable')?.checked,
+                host: host,
+                port: parseInt(document.getElementById('server-port')?.value || '8088', 10),
+                user: document.getElementById('server-user')?.value?.trim() || '',
+                password: document.getElementById('server-pass')?.value || ''
+            };
+
+            if (sel.value === '-') {
+                g_servers.push(srv);
+            } else {
+                g_servers[parseInt(sel.value, 10)] = srv;
+            }
+
+            try {
+                const res = await authFetch('/api/v1/servers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(g_servers)
+                });
+                if (res.ok) {
+                    showToast("Cluster server saved successfully");
+                    await loadServers();
+                } else {
+                    showToast("Failed to save server", true);
+                }
+            } catch (err) {
+                showToast("Connection error saving server", true);
+            }
+        }
 
         // Import
-        function executeImport() {
+        function populateImportAdapters() {
+            const adSel = document.getElementById('import-adapter');
+            if (!adSel) return;
+            adSel.innerHTML = '';
+            if (g_adapters && g_adapters.length) {
+                g_adapters.forEach(ad => {
+                    const opt = document.createElement('option');
+                    opt.value = String(ad.adapter_idx !== undefined ? ad.adapter_idx : 0);
+                    const freqStr = ad.frequency ? ` (${(ad.frequency / 1000000).toFixed(0)} MHz)` : '';
+                    opt.textContent = `Adapter ${ad.adapter_idx !== undefined ? ad.adapter_idx : 0}: ${ad.name || 'Tuner'}${freqStr}`;
+                    adSel.appendChild(opt);
+                });
+            } else {
+                adSel.innerHTML = '<option value="0">Adapter 0 (Default Tuner)</option>';
+            }
+        }
+
+        async function executeImport() {
             const content = document.getElementById('import-content')?.value?.trim();
             if (!content) { showToast("Please paste playlist or config content", true); return; }
-            showToast("Importing content...");
-            setTimeout(() => showToast("Import completed successfully"), 1200);
+            const format = document.getElementById('import-format')?.value || 'm3u';
+            const adapterIdx = parseInt(document.getElementById('import-adapter')?.value || '0', 10);
+
+            showToast("Importing streams...");
+
+            let importedList = [];
+            try {
+                if (format === 'm3u') {
+                    const lines = content.split('\n');
+                    let curName = '';
+                    let curSid = 0;
+                    let autoSid = 101;
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        if (line.startsWith('#EXTINF:')) {
+                            const nameMatch = line.match(/tvg-name="([^"]+)"/);
+                            const commaIdx = line.lastIndexOf(',');
+                            curName = commaIdx >= 0 ? line.substring(commaIdx + 1).trim() : (nameMatch ? nameMatch[1] : 'Channel');
+                            const sidMatch = line.match(/(?:service_id|pnr|sid)="?(\d+)"?/i);
+                            curSid = sidMatch ? parseInt(sidMatch[1], 10) : autoSid++;
+                        } else if (!line.startsWith('#')) {
+                            const url = line;
+                            const sid = curSid || autoSid++;
+                            let ip = `239.1.2.${(sid % 200) + 1}`;
+                            let port = 1234;
+                            const mcast = url.match(/(?:udp|rtp):\/\/@?([0-9\.]+):(\d+)/);
+                            if (mcast) {
+                                ip = mcast[1];
+                                port = parseInt(mcast[2], 10);
+                            }
+                            importedList.push({
+                                id: `spts_${sid}_imp`,
+                                name: curName || `Imported ${sid}`,
+                                type: 'spts',
+                                adapter_idx: adapterIdx,
+                                service_id: sid,
+                                input_url: `dvb://#adapter=${adapterIdx}&pnr=${sid}`,
+                                output_url: `${url.startsWith('rtp://') ? 'rtp' : 'udp'}://${ip}:${port}`,
+                                ip: ip,
+                                port: port,
+                                ttl: 16,
+                                is_rtp: url.startsWith('rtp://'),
+                                pacing: true,
+                                enabled: true
+                            });
+                            curName = '';
+                            curSid = 0;
+                        }
+                    }
+                } else if (format === 'aiastudio') {
+                    const parsed = JSON.parse(content);
+                    const rawList = Array.isArray(parsed) ? parsed : (parsed.streams || []);
+                    rawList.forEach((s, idx) => {
+                        const sid = s.service_id || (idx + 101);
+                        importedList.push({
+                            id: s.id || `stream_${sid}_imp`,
+                            name: s.name || `Imported ${sid}`,
+                            type: s.type || 'spts',
+                            adapter_idx: s.adapter_idx !== undefined ? s.adapter_idx : adapterIdx,
+                            service_id: sid,
+                            input_url: s.input_url || `dvb://#adapter=${adapterIdx}&pnr=${sid}`,
+                            output_url: s.output_url || `udp://239.1.2.${sid % 200}:1234`,
+                            ip: s.ip || `239.1.2.${sid % 200}`,
+                            port: s.port || 1234,
+                            ttl: s.ttl || 16,
+                            is_rtp: !!s.is_rtp,
+                            pacing: s.pacing !== false,
+                            enabled: s.enabled !== false
+                        });
+                    });
+                } else if (format === 'csv') {
+                    const lines = content.split('\n');
+                    let autoSid = 101;
+                    lines.forEach((line, idx) => {
+                        const parts = line.split(',').map(s => s.trim());
+                        if (parts.length >= 2 && parts[0] && !parts[0].toLowerCase().includes('name')) {
+                            const nm = parts[0];
+                            const sid = parseInt(parts[1], 10) || autoSid++;
+                            const outUrl = parts[2] || `udp://239.1.2.${sid % 200}:1234`;
+                            let ip = `239.1.2.${sid % 200}`;
+                            let port = 1234;
+                            const mcast = outUrl.match(/(?:udp|rtp):\/\/@?([0-9\.]+):(\d+)/);
+                            if (mcast) { ip = mcast[1]; port = parseInt(mcast[2], 10); }
+                            importedList.push({
+                                id: `spts_${sid}_imp`,
+                                name: nm,
+                                type: 'spts',
+                                adapter_idx: adapterIdx,
+                                service_id: sid,
+                                input_url: `dvb://#adapter=${adapterIdx}&pnr=${sid}`,
+                                output_url: outUrl,
+                                ip: ip,
+                                port: port,
+                                ttl: 16,
+                                is_rtp: outUrl.startsWith('rtp://'),
+                                pacing: true,
+                                enabled: true
+                            });
+                        }
+                    });
+                }
+
+                if (importedList.length === 0) {
+                    showToast("No valid channels detected in pasted content", true);
+                    return;
+                }
+
+                const res = await authFetch('/api/v1/import/streams', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(importedList)
+                });
+                const d = await res.json();
+                if (d.ok) {
+                    showToast(`Successfully imported ${d.imported || importedList.length} stream(s) into Adapter ${adapterIdx}!`);
+                    document.getElementById('import-content').value = '';
+                    pollState();
+                } else {
+                    showToast("Import failed on server", true);
+                }
+            } catch (err) {
+                showToast("Failed to parse import content: " + err.message, true);
+            }
         }
 
                 // Live EPG TV Guide
@@ -5392,6 +5964,7 @@
 
         // Initialize authentication session check and launch
         checkAuthSession();
+        updateHttpPlayLinks();
     </script>
 </body>
 </html>

@@ -115,6 +115,31 @@ typedef struct {
     time_t   created_at;
 } web_stream_config_t;
 
+#define MAX_WEB_SERVERS 32
+typedef struct {
+    char id[64];
+    char name[64];
+    bool enabled;
+    char host[128];
+    int  port;
+    char user[64];
+    char pass[64];
+} web_cluster_server_t;
+
+#define MAX_WEB_SOFTCAM_PROFILES 16
+typedef struct {
+    char id[64];
+    char name[64];
+    bool enabled;
+    char type[32];   /* "newcamd", "cccam", "biss" */
+    char host[128];
+    int  port;
+    char user[64];
+    char pass[64];
+    char des_key[32];
+    char caid[16];
+} web_softcam_profile_t;
+
 /* Global Gateway State */
 typedef struct {
     pthread_mutex_t lock;
@@ -134,6 +159,14 @@ typedef struct {
     /* Streams (Starts completely empty: num_streams = 0) */
     web_stream_config_t streams[MAX_WEB_STREAMS];
     int      num_streams;
+
+    /* Cluster Servers */
+    web_cluster_server_t servers[MAX_WEB_SERVERS];
+    int      num_servers;
+
+    /* Softcam Profiles */
+    web_softcam_profile_t softcam_profiles[MAX_WEB_SOFTCAM_PROFILES];
+    int      num_softcam_profiles;
 
     /* System Stats */
     uint64_t total_input_bytes;
@@ -196,6 +229,10 @@ json_t *web_state_telemetry_to_json(void);
 json_t *web_state_adapters_to_json(void);
 json_t *web_state_hardware_to_json(void);
 json_t *web_state_streams_to_json(void);
+json_t *web_state_servers_to_json(void);
+bool    web_state_servers_from_json(json_t *root);
+json_t *web_state_softcam_profiles_to_json(void);
+bool    web_state_softcam_profiles_from_json(json_t *root);
 json_t *web_state_config_to_json(void);
 json_t *web_state_logs_to_json(int max_entries);
 

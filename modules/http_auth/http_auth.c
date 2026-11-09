@@ -156,6 +156,9 @@ auth_result_t http_auth_check(struct MHD_Connection *conn, const char *url, cons
         strncmp(url, "/play/", 6) == 0 ||
         strncmp(url, "/live/", 6) == 0 ||
         strncmp(url, "/hls/", 5) == 0 ||
+        strncmp(url, "/channels/", 10) == 0 ||
+        strncmp(url, "/playlist/", 10) == 0 ||
+        strstr(url, ".ts") != NULL ||
         strstr(url, ".m3u8") != NULL ||
         strstr(url, ".m3u") != NULL ||
         strstr(url, ".xspf") != NULL) {
@@ -372,6 +375,14 @@ json_t *http_auth_to_json(void) {
     json_t *root = json_object();
     json_object_set_new(root, "enabled", g_auth.enabled ? json_true() : json_false());
     json_object_set_new(root, "expiry_hours", json_integer(g_auth.expiry_hours));
+    json_object_set_new(root, "backend_type", json_string(g_auth.backend_type));
+    json_object_set_new(root, "backend_url", json_string(g_auth.backend_url));
+    json_object_set_new(root, "promo_channel", json_string(g_auth.promo_channel));
+    json_object_set_new(root, "securetoken", json_string(g_auth.securetoken));
+    json_object_set_new(root, "allow_real_ip", g_auth.allow_real_ip ? json_true() : json_false());
+    json_object_set_new(root, "ip_allow", json_string(g_auth.ip_allow));
+    json_object_set_new(root, "ip_deny", json_string(g_auth.ip_deny));
+    json_object_set_new(root, "token_deny", json_string(g_auth.token_deny));
 
     json_t *users_arr = json_array();
     for (int i = 0; i < g_auth.num_users; i++) {
@@ -397,6 +408,30 @@ bool http_auth_from_json(json_t *root) {
     if (j_exp && json_integer_value(j_exp) > 0) {
         g_auth.expiry_hours = (int)json_integer_value(j_exp);
     }
+
+    const char *bt = json_string_value(json_object_get(root, "backend_type"));
+    if (bt) snprintf(g_auth.backend_type, sizeof(g_auth.backend_type), "%s", bt);
+
+    const char *bu = json_string_value(json_object_get(root, "backend_url"));
+    if (bu) snprintf(g_auth.backend_url, sizeof(g_auth.backend_url), "%s", bu);
+
+    const char *pc = json_string_value(json_object_get(root, "promo_channel"));
+    if (pc) snprintf(g_auth.promo_channel, sizeof(g_auth.promo_channel), "%s", pc);
+
+    const char *st = json_string_value(json_object_get(root, "securetoken"));
+    if (st) snprintf(g_auth.securetoken, sizeof(g_auth.securetoken), "%s", st);
+
+    json_t *j_rip = json_object_get(root, "allow_real_ip");
+    if (j_rip) g_auth.allow_real_ip = json_is_true(j_rip);
+
+    const char *ia = json_string_value(json_object_get(root, "ip_allow"));
+    if (ia) snprintf(g_auth.ip_allow, sizeof(g_auth.ip_allow), "%s", ia);
+
+    const char *id_val = json_string_value(json_object_get(root, "ip_deny"));
+    if (id_val) snprintf(g_auth.ip_deny, sizeof(g_auth.ip_deny), "%s", id_val);
+
+    const char *td = json_string_value(json_object_get(root, "token_deny"));
+    if (td) snprintf(g_auth.token_deny, sizeof(g_auth.token_deny), "%s", td);
 
     json_t *j_users = json_object_get(root, "users");
     if (j_users && json_is_array(j_users)) {

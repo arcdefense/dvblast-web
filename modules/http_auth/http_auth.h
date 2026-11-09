@@ -47,6 +47,14 @@ typedef struct {
     int         expiry_hours;
     auth_user_t users[MAX_AUTH_USERS];
     int         num_users;
+    char        backend_type[32];
+    char        backend_url[256];
+    char        promo_channel[64];
+    char        securetoken[64];
+    bool        allow_real_ip;
+    char        ip_allow[512];
+    char        ip_deny[512];
+    char        token_deny[512];
 } http_auth_config_t;
 
 void http_auth_init(void);

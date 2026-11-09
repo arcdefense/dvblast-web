@@ -16,6 +16,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <time.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 #define POST_BUFFER_MAX (1024 * 1024)
 
@@ -41,6 +49,11 @@ static int send_response(struct MHD_Connection *conn, int status_code,
     struct MHD_Response *resp = MHD_create_response_from_buffer(len, (void *)data, MHD_RESPMEM_MUST_COPY);
     if (!resp) return MHD_NO;
     MHD_add_response_header(resp, "Content-Type", content_type);
+    if (strstr(content_type, "text/html")) {
+        MHD_add_response_header(resp, "Cache-Control", "no-cache, no-store, must-revalidate");
+        MHD_add_response_header(resp, "Pragma", "no-cache");
+        MHD_add_response_header(resp, "Expires", "0");
+    }
     add_cors_headers(resp);
     int ret = MHD_queue_response(conn, status_code, resp);
     MHD_destroy_response(resp);
@@ -124,6 +137,12 @@ static int handle_get_request(struct MHD_Connection *conn, const char *url) {
     }
     if (strcmp(url, "/api/v1/modules/groups") == 0 || strcmp(url, "/api/v1/categories") == 0) {
         return send_json(conn, 200, groups_to_json());
+    }
+    if (strcmp(url, "/api/v1/servers") == 0 || strcmp(url, "/api/v1/modules/servers") == 0) {
+        return send_json(conn, 200, web_state_servers_to_json());
+    }
+    if (strcmp(url, "/api/v1/modules/softcam_profiles") == 0 || strcmp(url, "/api/v1/softcam/profiles") == 0) {
+        return send_json(conn, 200, web_state_softcam_profiles_to_json());
     }
 
     /* Full System Configuration */
@@ -529,6 +548,142 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         return send_json_ok(conn, "Categories & groups saved");
     }
 
+    if (strcmp(url, "/api/v1/servers") == 0 || strcmp(url, "/api/v1/modules/servers") == 0) {
+        if (!payload || !json_is_array(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON array body for servers");
+        }
+        web_state_servers_from_json(payload);
+        web_state_save_json(NULL);
+        json_decref(payload);
+        return send_json_ok(conn, "Cluster servers saved");
+    }
+
+    if (strcmp(url, "/api/v1/servers/test") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        const char *host = json_string_value(json_object_get(payload, "host"));
+        int port = (int)json_integer_value(json_object_get(payload, "port"));
+        if (!host || !*host || port <= 0) {
+            json_decref(payload);
+            return send_json_error(conn, 400, "Missing host or port");
+        }
+
+        struct timespec t0, t1;
+        clock_gettime(CLOCK_MONOTONIC, &t0);
+
+        struct addrinfo hints, *res = NULL, *rp;
+        char port_str[16];
+        snprintf(port_str, sizeof(port_str), "%d", port);
+        memset(&hints, 0, sizeof(hints));
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+
+        int sock = -1;
+        if (getaddrinfo(host, port_str, &hints, &res) == 0) {
+            for (rp = res; rp != NULL; rp = rp->ai_next) {
+                sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+                if (sock == -1) continue;
+                int flags = fcntl(sock, F_GETFL, 0);
+                fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+                int rc = connect(sock, rp->ai_addr, rp->ai_addrlen);
+                if (rc == 0) {
+                    break;
+                }
+                if (errno == EINPROGRESS) {
+                    fd_set wset;
+                    FD_ZERO(&wset);
+                    FD_SET(sock, &wset);
+                    struct timeval tv = { .tv_sec = 1, .tv_usec = 500000 };
+                    rc = select(sock + 1, NULL, &wset, NULL, &tv);
+                    if (rc > 0) {
+                        int err = 0;
+                        socklen_t len = sizeof(err);
+                        getsockopt(sock, SOL_SOCKET, SO_ERROR, &err, &len);
+                        if (err == 0) break;
+                    }
+                }
+                close(sock);
+                sock = -1;
+            }
+            freeaddrinfo(res);
+        }
+
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        double latency_ms = (t1.tv_sec - t0.tv_sec) * 1000.0 + (t1.tv_nsec - t0.tv_nsec) / 1000000.0;
+        json_decref(payload);
+
+        json_t *resp = json_object();
+        if (sock >= 0) {
+            close(sock);
+            json_object_set_new(resp, "ok", json_true());
+            json_object_set_new(resp, "latency_ms", json_real(latency_ms));
+            return send_json(conn, 200, resp);
+        } else {
+            json_object_set_new(resp, "ok", json_false());
+            json_object_set_new(resp, "error", json_string("Connection failed or timed out"));
+            return send_json(conn, 200, resp);
+        }
+    }
+
+    if (strcmp(url, "/api/v1/modules/softcam_profiles") == 0 || strcmp(url, "/api/v1/softcam/profiles") == 0) {
+        if (!payload || !json_is_array(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON array body for softcam profiles");
+        }
+        web_state_softcam_profiles_from_json(payload);
+        web_state_save_json(NULL);
+        json_decref(payload);
+        return send_json_ok(conn, "Softcam profiles saved");
+    }
+
+    if (strcmp(url, "/api/v1/import/streams") == 0) {
+        if (!payload || !json_is_array(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Expected JSON array of streams");
+        }
+        size_t idx;
+        json_t *item;
+        int imported_count = 0;
+        json_array_foreach(payload, idx, item) {
+            if (!json_is_object(item)) continue;
+            web_stream_config_t st;
+            memset(&st, 0, sizeof(st));
+            const char *id = json_string_value(json_object_get(item, "id"));
+            const char *nm = json_string_value(json_object_get(item, "name"));
+            const char *in = json_string_value(json_object_get(item, "input_url"));
+            const char *out = json_string_value(json_object_get(item, "output_url"));
+            const char *ip = json_string_value(json_object_get(item, "ip"));
+            if (id && *id) snprintf(st.id, sizeof(st.id), "%s", id);
+            else snprintf(st.id, sizeof(st.id), "stream_imp_%d", (int)idx + 1);
+            if (nm && *nm) snprintf(st.name, sizeof(st.name), "%s", nm);
+            else snprintf(st.name, sizeof(st.name), "Imported Stream %d", (int)idx + 1);
+            if (in && *in) snprintf(st.input_url, sizeof(st.input_url), "%s", in);
+            if (out && *out) snprintf(st.output_url, sizeof(st.output_url), "%s", out);
+            st.adapter_idx = (int)json_integer_value(json_object_get(item, "adapter_idx"));
+            st.service_id = (uint16_t)json_integer_value(json_object_get(item, "service_id"));
+            st.port = (int)json_integer_value(json_object_get(item, "port"));
+            if (st.port <= 0) st.port = 5000 + (int)idx;
+            if (ip && *ip) snprintf(st.ip, sizeof(st.ip), "%s", ip);
+            else snprintf(st.ip, sizeof(st.ip), "239.1.2.%d", 100 + (int)idx);
+            st.ttl = (int)json_integer_value(json_object_get(item, "ttl"));
+            if (st.ttl <= 0) st.ttl = 16;
+            st.enabled = true;
+            st.pacing = true;
+            if (web_manager_add_stream(&st)) {
+                imported_count++;
+            }
+        }
+        web_state_save_json(NULL);
+        json_decref(payload);
+        json_t *res = json_object();
+        json_object_set_new(res, "ok", json_true());
+        json_object_set_new(res, "imported", json_integer(imported_count));
+        return send_json(conn, 200, res);
+    }
+
     if (strcmp(url, "/api/v1/system/restart") == 0) {
         if (payload) json_decref(payload);
         web_state_log("WARN", "System daemon restart initiated from Web UI");
@@ -615,20 +770,22 @@ static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
         if (ret != MHD_NO) return ret;
     }
 
+    /* HLS Segmenter - Process before generic .m3u8 so /hls/ stream manifests are not intercepted */
+    if (strncmp(url, "/hls/", 5) == 0) {
+        int ret = hls_handle_request(conn, url);
+        if (ret != MHD_NO) return ret;
+    }
+
     /* HTTP Play TS Streaming & M3U/XSPF Playlist */
     if (strncmp(url, "/play/", 6) == 0 ||
         strncmp(url, "/live/", 6) == 0 ||
         strstr(url, ".m3u8") != NULL ||
         strstr(url, ".m3u") != NULL ||
-        strstr(url, ".xspf") != NULL) {
+        strstr(url, ".xspf") != NULL ||
+        strncmp(url, "/playlist", 9) == 0 ||
+        strncmp(url, "/channels", 9) == 0) {
         const char *host_hdr = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "Host");
         int ret = http_play_handle_request(conn, url, host_hdr);
-        if (ret != MHD_NO) return ret;
-    }
-
-    /* HLS Segmenter */
-    if (strncmp(url, "/hls/", 5) == 0) {
-        int ret = hls_handle_request(conn, url);
         if (ret != MHD_NO) return ret;
     }
 
