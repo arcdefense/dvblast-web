@@ -74,10 +74,11 @@
 int i_dvr_buffer_size = DVR_BUFFER_SIZE;
 
 int i_frontend = -1;
+int i_dvr = -1;
 float dvb_live_signal_dbm = -100.0f;
 float dvb_live_snr_db = 0.0f;
 static int i_demux_wildcard_fd = -1;
-static int i_dvr = -1, i_sec = -1;
+static int i_sec = -1;
 static struct ev_io frontend_watcher, dvr_watcher;
 static struct ev_timer lock_watcher, mute_watcher, print_watcher, worker_telemetry_watcher;
 extern bool b_web_enabled;

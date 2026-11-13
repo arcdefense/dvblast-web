@@ -6,7 +6,7 @@ uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
 deltacast_inc := $(shell sh -c 'test -f /usr/include/StreamMaster.h && echo -n Y')
 
 CFLAGS ?= -O3 -fomit-frame-pointer -g
-CFLAGS += -Wall -Wformat-security -Wno-strict-aliasing
+CFLAGS += -Wall -Wformat-security -Wno-strict-aliasing -MMD -MP
 CFLAGS += -I. -Imodules $(shell pkg-config --cflags libmicrohttpd jansson 2>/dev/null)
 CFLAGS += -DVERSION=\"$(VERSION_MAJOR).$(VERSION_MINOR)\"
 CFLAGS += -DVERSION_MAJOR=$(VERSION_MAJOR)
@@ -53,7 +53,7 @@ ifndef V
 Q = @
 endif
 
-CLEAN_OBJS = dvblast dvblastctl $(OBJ_DVBLAST) $(OBJ_DVBLASTCTL) dvbcsa/*.o
+CLEAN_OBJS = dvblast dvblastctl $(OBJ_DVBLAST) $(OBJ_DVBLASTCTL) dvbcsa/*.o *.d modules/*/*.d
 INSTALL_BIN = dvblast dvblastctl dvblast_mmi.sh
 INSTALL_MAN = dvblast.1
 
@@ -109,4 +109,7 @@ dist: clean
 	@echo "ARCHIVE dvblast-$(VERSION_MAJOR).$(VERSION_MINOR).tar.bz2"
 	$(Q)git archive --format=tar --prefix=dvblast-$(VERSION_MAJOR).$(VERSION_MINOR)/ master | bzip2 -9 > dvblast-$(VERSION_MAJOR).$(VERSION_MINOR).tar.bz2
 	$(Q)ls -l dvblast-$(VERSION_MAJOR).$(VERSION_MINOR).tar.bz2
+
+-include $(OBJ_DVBLAST:.o=.d) $(OBJ_DVBLASTCTL:.o=.d)
+
 

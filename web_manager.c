@@ -29,6 +29,7 @@ extern pthread_t g_main_thread_id;
 void demux_ExtractDiscoveredChannels(void);
 void demux_TriggerScan(void);
 void web_manager_notify_async(void);
+static bool web_manager_add_stream_internal(const web_stream_config_t *stream, bool save_json);
 
 typedef struct {
     int adapter_idx;
@@ -842,8 +843,8 @@ static bool web_manager_tune_adapter_internal(const char *adapter_id, int adapte
         return true;
     }
 
-    /* If primary adapter is already active on this frequency and bandwidth, skip redundant retune */
-    if (i_frontend >= 0 && i_adapter == ad->adapter_idx && i_frequency == (int)ad->frequency &&
+    /* If primary adapter is already active on this frequency and bandwidth, and DVR is actively open, skip redundant retune */
+    if (i_frontend >= 0 && i_dvr >= 0 && i_adapter == ad->adapter_idx && i_frequency == (int)ad->frequency &&
         i_bandwidth == ad->bandwidth) {
         web_state_log("INFO", "Primary Adapter %d already tuned to %llu Hz", ad->adapter_idx, (unsigned long long)ad->frequency);
         return true;
@@ -913,7 +914,8 @@ static bool web_manager_restart_adapter_internal(const char *id) {
     web_state_log("INFO", "Restarting Adapter %s (/dev/dvb/adapter%d)...", ad->id, ad->adapter_idx);
 
     if (i_adapter == ad->adapter_idx) {
-        dvb_CloseDevices();
+        dvb_ReleaseAll();
+        i_frequency = 0;
         demux_ResetTables();
     } else {
         web_manager_stop_worker_internal(ad->adapter_idx);
@@ -934,6 +936,14 @@ static bool web_manager_restart_adapter_internal(const char *id) {
     if (ad->enabled) {
         if (i_adapter == ad->adapter_idx) {
             web_manager_tune_adapter_internal(ad->id, ad->adapter_idx);
+            /* Re-add active streams on primary adapter */
+            pthread_mutex_lock(&g_gateway.lock);
+            for (int i = 0; i < g_gateway.num_streams; i++) {
+                if (g_gateway.streams[i].enabled && g_gateway.streams[i].adapter_idx == i_adapter) {
+                    web_manager_add_stream_internal(&g_gateway.streams[i], false);
+                }
+            }
+            pthread_mutex_unlock(&g_gateway.lock);
         } else {
             web_manager_sync_worker(ad->adapter_idx);
         }

