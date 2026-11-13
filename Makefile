@@ -41,9 +41,9 @@ LDLIBS_DVBCSA =
 OBJ_DVBCSA = dvbcsa/dvbcsa_algo.o dvbcsa/dvbcsa_block.o dvbcsa/dvbcsa_key.o dvbcsa/dvbcsa_stream.o
 endif
 
-LDLIBS_DVBLAST += -lpthread -lev -lm $(shell pkg-config --libs libmicrohttpd jansson 2>/dev/null) $(LDLIBS_DVBCSA)
+LDLIBS_DVBLAST += -lpthread -lev -lm $(shell pkg-config --libs libmicrohttpd jansson openssl 2>/dev/null) $(LDLIBS_DVBCSA)
 
-OBJ_MODULES = modules/softcam/softcam.o modules/cas/cas.o modules/http_play/http_play.o modules/http_auth/http_auth.o modules/hls/hls.o modules/epg/epg.o modules/general/general.o modules/groups/groups.o
+OBJ_MODULES = modules/softcam/softcam.o modules/cas/cas.o modules/http_play/http_play.o modules/http_auth/http_auth.o modules/hls/hls.o modules/epg/epg.o modules/general/general.o modules/groups/groups.o modules/ws/ws.o modules/analyzer/analyzer.o
 OBJ_WEB = web_state.o web_manager.o web_server.o web_ui_embed.o $(OBJ_MODULES)
 
 OBJ_DVBLAST = dvblast.o util.o dvb.o udp.o asi.o demux.o output.o en50221.o comm.o mrtg-cnt.o asi-deltacast.o $(OBJ_DVBCSA) $(OBJ_WEB)
@@ -64,6 +64,10 @@ MAN = $(subst //,/,$(DESTDIR)/$(PREFIX)/share/man/man1)
 all: dvblast dvblastctl
 
 .PHONY: clean install uninstall dist
+
+web_ui_embed.c: web/dvblast_ui.html
+	@echo "GEN     $@"
+	@python3 -c 'data = open("web/dvblast_ui.html", "rb").read(); out = open("web_ui_embed.c", "w"); out.write("/* Generated automatically from web/dvblast_ui.html */\n#include \"web_ui_embed.h\"\n\nconst unsigned char web_ui_html[] = {\n"); [out.write("    " + ", ".join(f"0x{b:02x}" for b in data[i:i+16]) + ",\n") for i in range(0, len(data), 16)]; out.write("    0x00\n};\n\nconst size_t web_ui_html_len = %d;\n" % len(data)); out.close()'
 
 %.o: %.c
 	@echo "CC      $<"

@@ -16,6 +16,21 @@ void groups_cleanup(void) {
     g_num_categories = 0;
 }
 
+const char *groups_get_category_for_stream(const char *stream_id, const char *stream_name) {
+    if (!stream_id && !stream_name) return NULL;
+    for (int i = 0; i < g_num_categories; i++) {
+        for (int j = 0; j < g_categories[i].num_groups; j++) {
+            const char *g = g_categories[i].groups[j];
+            if (!g || !*g) continue;
+            if (stream_id && strcasecmp(stream_id, g) == 0) return g_categories[i].name;
+            if (stream_name && strcasecmp(stream_name, g) == 0) return g_categories[i].name;
+            if (stream_name && strstr(stream_name, g) != NULL) return g_categories[i].name;
+            if (stream_id && strstr(stream_id, g) != NULL) return g_categories[i].name;
+        }
+    }
+    return NULL;
+}
+
 json_t *groups_to_json(void) {
     json_t *arr = json_array();
     for (int i = 0; i < g_num_categories; i++) {

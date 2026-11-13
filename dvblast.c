@@ -114,6 +114,7 @@ static void web_telemetry_cb(struct ev_loop *loop, struct ev_timer *w, int reven
     }
     web_manager_poll_secondary_telemetry();
     web_state_calc_bitrates();
+    web_server_broadcast_telemetry();
 }
 int i_fenum = 0;
 int i_canum = 0;

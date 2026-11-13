@@ -437,6 +437,10 @@ bool web_state_add_or_update_stream(const web_stream_config_t *stream) {
     target->pacing = copy.pacing;
     target->bitrate_bps = copy.bitrate_bps;
     if (copy.biss_key[0]) snprintf(target->biss_key, sizeof(target->biss_key), "%s", copy.biss_key);
+    if (copy.backup_url[0]) snprintf(target->backup_url, sizeof(target->backup_url), "%s", copy.backup_url);
+    target->backup_type = copy.backup_type;
+    target->backup_start_delay = copy.backup_start_delay > 0 ? copy.backup_start_delay : 5;
+    target->backup_return_delay = copy.backup_return_delay > 0 ? copy.backup_return_delay : 10;
 
     pthread_mutex_unlock(&g_gateway.lock);
     web_state_log("INFO", "Stream %s (%s, Dest: %s:%d, SID: %u) saved",
@@ -600,7 +604,7 @@ void web_state_calc_bitrates(void) {
                 g_gateway.adapters[i].total_packets = g_shm_stats->adapters[a_idx].input_packets;
                 if (a_idx != i_adapter && g_shm_stats->adapters[a_idx].last_update_sec > 0) {
                     time_t now = time(NULL);
-                    if (now - g_shm_stats->adapters[a_idx].last_update_sec <= 4) {
+                    if (now - g_shm_stats->adapters[a_idx].last_update_sec <= 10) {
                         g_gateway.adapters[i].locked = (g_shm_stats->adapters[a_idx].locked != 0);
                         g_gateway.adapters[i].signal_percent = g_shm_stats->adapters[a_idx].sig_pct;
                         g_gateway.adapters[i].snr_db = g_shm_stats->adapters[a_idx].snr_db;
@@ -683,7 +687,7 @@ void web_state_calc_bitrates(void) {
     /* Per-Adapter Bitrates */
     for (int i = 0; i < g_gateway.num_adapters; i++) {
         web_adapter_t *ad = &g_gateway.adapters[i];
-        if (!ad->enabled || !ad->locked) {
+        if (!ad->enabled) {
             ad->bitrate_bps = 0;
             ad->last_calc_bytes = ad->total_bytes;
             continue;
@@ -784,6 +788,11 @@ bool web_state_save_json(const char *path) {
         json_object_set_new(s_obj, "is_rtp", json_boolean(s->is_rtp));
         json_object_set_new(s_obj, "pacing", json_boolean(s->pacing));
         json_object_set_new(s_obj, "biss_key", json_string(s->biss_key));
+        json_object_set_new(s_obj, "backup_url", json_string(s->backup_url));
+        json_object_set_new(s_obj, "backup_type", json_integer(s->backup_type));
+        json_object_set_new(s_obj, "backup_start_delay", json_integer(s->backup_start_delay));
+        json_object_set_new(s_obj, "backup_return_delay", json_integer(s->backup_return_delay));
+        json_object_set_new(s_obj, "backup_active", json_boolean(s->backup_active));
         json_array_append_new(streams_arr, s_obj);
     }
     json_object_set_new(root, "streams", streams_arr);
@@ -913,6 +922,7 @@ bool web_state_load_json(const char *path) {
             const char *out = json_string_value(json_object_get(val, "output_url"));
             const char *ip = json_string_value(json_object_get(val, "ip"));
             const char *bk = json_string_value(json_object_get(val, "biss_key"));
+            const char *bu = json_string_value(json_object_get(val, "backup_url"));
 
             if (id) snprintf(s->id, sizeof(s->id), "%s", id);
             if (nm) snprintf(s->name, sizeof(s->name), "%s", nm);
@@ -921,6 +931,14 @@ bool web_state_load_json(const char *path) {
             if (out) snprintf(s->output_url, sizeof(s->output_url), "%s", out);
             if (ip) snprintf(s->ip, sizeof(s->ip), "%s", ip);
             if (bk) snprintf(s->biss_key, sizeof(s->biss_key), "%s", bk);
+            if (bu) snprintf(s->backup_url, sizeof(s->backup_url), "%s", bu);
+
+            s->backup_type = (int)json_integer_value(json_object_get(val, "backup_type"));
+            s->backup_start_delay = (int)json_integer_value(json_object_get(val, "backup_start_delay"));
+            if (s->backup_start_delay <= 0) s->backup_start_delay = 5;
+            s->backup_return_delay = (int)json_integer_value(json_object_get(val, "backup_return_delay"));
+            if (s->backup_return_delay <= 0) s->backup_return_delay = 10;
+            s->backup_active = json_is_true(json_object_get(val, "backup_active"));
 
             s->enabled = !json_is_false(json_object_get(val, "enabled"));
             s->adapter_idx = (int)json_integer_value(json_object_get(val, "adapter_idx"));
@@ -1206,6 +1224,11 @@ json_t *web_state_streams_to_json(void) {
         json_object_set_new(obj, "bytes_sent", json_integer((json_int_t)s->bytes_sent));
         json_object_set_new(obj, "cc_errors", json_integer(s->cc_errors));
         json_object_set_new(obj, "biss_key", json_string(s->biss_key));
+        json_object_set_new(obj, "backup_url", json_string(s->backup_url));
+        json_object_set_new(obj, "backup_type", json_integer(s->backup_type));
+        json_object_set_new(obj, "backup_start_delay", json_integer(s->backup_start_delay));
+        json_object_set_new(obj, "backup_return_delay", json_integer(s->backup_return_delay));
+        json_object_set_new(obj, "backup_active", json_boolean(s->backup_active));
 
         /* Channel name lookup */
         char channel_name[128] = "";
@@ -1423,6 +1446,11 @@ json_t *web_state_config_to_json(void) {
         json_object_set_new(so, "is_rtp", json_boolean(s->is_rtp));
         json_object_set_new(so, "pacing", json_boolean(s->pacing));
         json_object_set_new(so, "biss_key", json_string(s->biss_key));
+        json_object_set_new(so, "backup_url", json_string(s->backup_url));
+        json_object_set_new(so, "backup_type", json_integer(s->backup_type));
+        json_object_set_new(so, "backup_start_delay", json_integer(s->backup_start_delay));
+        json_object_set_new(so, "backup_return_delay", json_integer(s->backup_return_delay));
+        json_object_set_new(so, "backup_active", json_boolean(s->backup_active));
         json_array_append_new(s_arr, so);
     }
     json_object_set_new(root, "streams", s_arr);

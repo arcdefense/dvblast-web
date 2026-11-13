@@ -153,6 +153,9 @@ auth_result_t http_auth_check(struct MHD_Connection *conn, const char *url, cons
         strcmp(url, "/api/v1/auth/me") == 0 ||
         strcmp(url, "/auth/me") == 0 ||
         strcmp(url, "/api/v1/telemetry") == 0 ||
+        strcmp(url, "/api/v1/ws") == 0 ||
+        strcmp(url, "/ws") == 0 ||
+        strcmp(url, "/control/event/") == 0 ||
         strncmp(url, "/play/", 6) == 0 ||
         strncmp(url, "/live/", 6) == 0 ||
         strncmp(url, "/hls/", 5) == 0 ||

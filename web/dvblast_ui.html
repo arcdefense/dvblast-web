@@ -1303,6 +1303,132 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
+
+        /* PSI/SI Tree Inspector Styles (Astra Cesbo Dual-View) */
+        .psi-tab-btn {
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .psi-tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .psi-tab-btn.active {
+            background: var(--vlc-orange, #ff8c00);
+            border-color: var(--vlc-orange, #ff8c00);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(255, 140, 0, 0.3);
+        }
+        .psi-tree-container {
+            background: rgba(10, 15, 25, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 14px 16px;
+            font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            max-height: 52vh;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        .psi-section {
+            margin-bottom: 14px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .psi-section:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .psi-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+        .psi-badge {
+            display: inline-block;
+            padding: 2px 7px;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .psi-badge.pat { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+        .psi-badge.pmt { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+        .psi-badge.sdt { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .psi-badge.nit { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+
+        .psi-stream-badge {
+            display: inline-block;
+            padding: 1px 6px;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 3px;
+            text-transform: uppercase;
+            margin-right: 6px;
+        }
+        .psi-stream-badge.cat-video { background: #1d4ed8; color: #93c5fd; }
+        .psi-stream-badge.cat-audio { background: #15803d; color: #86efac; }
+        .psi-stream-badge.cat-data { background: #475569; color: #cbd5e1; }
+
+        .psi-tag {
+            display: inline-block;
+            padding: 1px 5px;
+            font-size: 10px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            margin-right: 6px;
+            text-transform: uppercase;
+        }
+        .psi-tag-cas { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .psi-tag-lang { background: rgba(14, 165, 233, 0.2); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.4); }
+        .psi-tag-net { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .psi-tag-srv { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .psi-tag-dvb { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+        .psi-tag-lcn { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); }
+
+        .psi-tree-line {
+            padding-left: 18px;
+            margin: 3px 0;
+            position: relative;
+        }
+        .psi-tree-line::before {
+            content: "├─";
+            position: absolute;
+            left: 0;
+            color: rgba(255, 255, 255, 0.25);
+        }
+        .psi-tree-sub {
+            padding-left: 36px;
+            margin: 2px 0;
+            position: relative;
+            color: var(--text-muted);
+        }
+        .psi-tree-sub::before {
+            content: "│  └─";
+            position: absolute;
+            left: 0;
+            color: rgba(255, 255, 255, 0.25);
+        }
+        .psi-highlight {
+            background: rgba(255, 140, 0, 0.12);
+            border-left: 2px solid var(--vlc-orange, #ff8c00);
+            padding-left: 8px;
+            border-radius: 0 4px 4px 0;
+        }
     </style>
 </head>
 <body>
@@ -1353,6 +1479,7 @@
 
             <nav class="nav-tabs">
                 <button class="nav-tab active" data-tab="tab-dashboard">Dashboard</button>
+                <button class="nav-tab" data-tab="tab-clients">Clients</button>
                 <button class="nav-tab" data-tab="tab-settings">Settings</button>
                 <button class="nav-tab" data-tab="tab-logs">Logs</button>
             </nav>
@@ -2394,6 +2521,39 @@
             </div>
         </div>
 
+        <!-- CLIENTS TAB -->
+        <div id="tab-clients" class="tab-pane">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <div>
+                    <h3 style="font-size: 15px; font-weight: 700;">Active Client Streaming Sessions</h3>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Realtime monitor of HTTP-TS, HLS players, and active subscribers.</div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm" onclick="loadClients()">↻ Refresh</button>
+                </div>
+            </div>
+
+            <div class="table-container" style="background: var(--card-bg); border-radius: 6px; border: 1px solid var(--border-color); overflow: hidden;">
+                <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: rgba(0,0,0,0.05); text-align: left; font-size: 11px; text-transform: uppercase;">
+                            <th style="padding: 10px 14px;">ID</th>
+                            <th style="padding: 10px 14px;">Client IP</th>
+                            <th style="padding: 10px 14px;">Protocol / Mode</th>
+                            <th style="padding: 10px 14px;">Stream Path / Channel</th>
+                            <th style="padding: 10px 14px;">Connected Time</th>
+                            <th style="padding: 10px 14px;">Bitrate</th>
+                            <th style="padding: 10px 14px;">User-Agent</th>
+                            <th style="padding: 10px 14px; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-clients" style="font-size: 12.5px;">
+                        <tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">No active streaming clients.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- LOGS TAB -->
         <div id="tab-logs" class="tab-pane">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -2943,11 +3103,108 @@
                     <label class="form-label">SoftCAM BISS Key (Optional)</label>
                     <input type="text" class="form-input" id="st-biss" placeholder="e.g. 11 22 33 44 55 66 77 88 (12, 16, or 32 Hex)">
                 </div>
+                <div style="border-top: 1px solid var(--border-color); margin-top: 10px; padding-top: 10px;">
+                    <div style="font-weight: 600; font-size: 12px; margin-bottom: 8px; color: var(--vlc-orange);">STREAM REDUNDANCY &amp; FAILOVER</div>
+                    <div class="form-group">
+                        <label class="form-label">Backup Stream URL</label>
+                        <input type="text" class="form-input" id="st-backup-url" placeholder="http://192.168.1.50:8000/live/ch1.ts or udp://@239.255.99.1:5000">
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Failover Mode</label>
+                            <select class="form-select" id="st-backup-type">
+                                <option value="0">Disabled (No Backup)</option>
+                                <option value="1">HTTP / HLS Backup</option>
+                                <option value="2">UDP / Multicast Backup</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Failover Start Delay (sec)</label>
+                            <input type="number" class="form-input" id="st-backup-start" value="5" min="1" max="60">
+                        </div>
+                    </div>
+                </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 12px;">
                     <button type="button" class="btn" onclick="closeStreamModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Stream</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL: MPEG-TS ANALYZER -->
+    <div class="modal-overlay" id="modal-analyzer">
+        <div class="modal-box" style="max-width: 850px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="modal-analyzer-title">MPEG-TS PID Analyzer</h3>
+                    <div id="analyzer-subtitle" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Elementary Streams, CC Continuity Errors &amp; PSI/SI Details</div>
+                </div>
+                <button class="modal-close" onclick="closeAnalyzerModal()">&times;</button>
+            </div>
+            <div style="overflow-y: auto; padding-right: 4px; flex: 1;">
+                <div class="system-banner" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 14px;">
+                    <div class="sys-card">
+                        <div class="sys-label">Elementary PIDs</div>
+                        <div class="sys-value"><span id="val-an-pids">0</span></div>
+                    </div>
+                    <div class="sys-card orange">
+                        <div class="sys-label">Total Bitrate</div>
+                        <div class="sys-value"><span id="val-an-br">0.00</span><span class="sys-unit">Mbps</span></div>
+                    </div>
+                    <div class="sys-card green">
+                        <div class="sys-label">CC Errors</div>
+                        <div class="sys-value"><span id="val-an-cc" style="color: var(--vlc-green);">0</span></div>
+                    </div>
+                    <div class="sys-card blue">
+                        <div class="sys-label">Transport Errors</div>
+                        <div class="sys-value"><span id="val-an-te">0</span></div>
+                    </div>
+                </div>
+
+                <!-- Tab Navigation: PSI/SI Tree Inspector vs PID Telemetry Grid -->
+                <div style="display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <button type="button" class="psi-tab-btn active" id="tab-btn-psi" onclick="switchAnalyzerTab('psi')">🌳 PSI/SI Tree Inspector</button>
+                    <button type="button" class="psi-tab-btn" id="tab-btn-pids" onclick="switchAnalyzerTab('pids')">📊 PID Telemetry Grid</button>
+                </div>
+
+                <!-- TAB 1: PSI/SI TREE (ASTRA CESBO STYLE) -->
+                <div id="analyzer-view-psi" class="psi-tree-container">
+                    <div style="text-align: center; padding: 20px; color: var(--text-muted);">Loading PSI/SI section tables...</div>
+                </div>
+
+                <!-- TAB 2: PID TELEMETRY GRID -->
+                <div id="analyzer-view-pids" style="display: none;">
+                    <div class="table-container" style="background: var(--card-bg); border-radius: 6px; border: 1px solid var(--border-color); overflow: hidden;">
+                        <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: rgba(0,0,0,0.05); text-align: left; font-size: 11px; text-transform: uppercase;">
+                                    <th style="padding: 8px 12px;">PID (Dec / Hex)</th>
+                                    <th style="padding: 8px 12px;">Stream Type / Codec</th>
+                                    <th style="padding: 8px 12px;">Bitrate</th>
+                                    <th style="padding: 8px 12px;">CC Errors</th>
+                                    <th style="padding: 8px 12px;">TE Errors</th>
+                                    <th style="padding: 8px 12px;">Scrambled</th>
+                                    <th style="padding: 8px 12px;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-analyzer" style="font-size: 12px; font-family: monospace;">
+                                <tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading PID data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm" onclick="copyAnalyzerTree()">📋 Copy Tree</button>
+                    <button class="btn btn-sm" onclick="copyAnalyzerJson()">📋 Copy JSON</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm btn-primary" onclick="refreshAnalyzerData()">↻ Refresh</button>
+                    <button class="btn btn-sm" onclick="closeAnalyzerModal()">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -3232,14 +3489,105 @@
             return false;
         }
 
+        let g_ws = null;
+        let g_wsConnected = false;
+        let g_wsRetryTimer = null;
+
+        function initWebSocket() {
+            if (g_ws) {
+                try { g_ws.close(); } catch(e){}
+                g_ws = null;
+            }
+            const proto = (location.protocol === 'https:') ? 'wss:' : 'ws:';
+            const wsUrl = `${proto}//${location.host}/api/v1/ws`;
+            try {
+                g_ws = new WebSocket(wsUrl);
+                g_ws.onopen = () => {
+                    g_wsConnected = true;
+                    console.log('[WS] Connected to DVBlast realtime telemetry feed');
+                    updateLiveBadge(true);
+                };
+                g_ws.onmessage = (event) => {
+                    try {
+                        const msg = JSON.parse(event.data);
+                        if (!msg) return;
+                        if (msg.system) applySystemTelemetry(msg.system);
+                        else if (msg.cpu_usage_percent !== undefined) applySystemTelemetry(msg);
+
+                        if (msg.adapters && Array.isArray(msg.adapters)) g_adapters = msg.adapters;
+                        if (msg.streams && Array.isArray(msg.streams)) g_streams = msg.streams;
+
+                        renderDashboardCards();
+                    } catch(err) {
+                        console.debug('[WS] parse message error:', err);
+                    }
+                };
+                g_ws.onclose = () => {
+                    g_wsConnected = false;
+                    updateLiveBadge(false);
+                    if (!g_wsRetryTimer) {
+                        g_wsRetryTimer = setTimeout(() => {
+                            g_wsRetryTimer = null;
+                            initWebSocket();
+                        }, 3000);
+                    }
+                };
+                g_ws.onerror = () => {
+                    g_wsConnected = false;
+                    updateLiveBadge(false);
+                };
+            } catch(e) {
+                console.warn('[WS] init error:', e);
+                g_wsConnected = false;
+                updateLiveBadge(false);
+            }
+        }
+
+        function updateLiveBadge(isWs) {
+            const tag = document.querySelector('.uptime-tag');
+            if (tag) {
+                tag.textContent = isWs ? '● WS LIVE' : 'UPTIME';
+                tag.style.color = isWs ? 'var(--vlc-green)' : '';
+            }
+        }
+
+        function applySystemTelemetry(sys) {
+            if (!sys) return;
+            document.getElementById('txt-uptime').textContent = formatDuration(sys.uptime_seconds || 0);
+            const cpu = (sys.cpu_usage_percent || 0).toFixed(1);
+            document.getElementById('val-cpu').textContent = cpu;
+            document.getElementById('bar-cpu').style.width = `${Math.min(100, cpu)}%`;
+
+            const usedMb = sys.ram_used_mb || 0;
+            const totalMb = sys.ram_total_mb || 0;
+            document.getElementById('val-ram-used').textContent = usedMb;
+            document.getElementById('val-ram-total').textContent = totalMb;
+            const ramPct = totalMb > 0 ? (usedMb / totalMb) * 100 : 0;
+            document.getElementById('bar-ram').style.width = `${ramPct}%`;
+
+            const inBr = (sys.input_bitrate_mbps || 0).toFixed(2);
+            document.getElementById('val-in-br').textContent = inBr;
+            document.getElementById('bar-in-br').style.width = `${Math.min(100, (inBr / 40) * 100)}%`;
+
+            const outBr = (sys.output_bitrate_mbps || 0).toFixed(2);
+            document.getElementById('val-out-br').textContent = outBr;
+            document.getElementById('bar-out-br').style.width = `${Math.min(100, (outBr / 40) * 100)}%`;
+        }
+
         function startApplication() {
             pollState();
+            initWebSocket();
             updateHttpPlayLinks();
-            if (!g_pollTimer) g_pollTimer = setInterval(pollState, 1500);
+            if (!g_pollTimer) {
+                g_pollTimer = setInterval(() => {
+                    if (!g_wsConnected) pollState();
+                }, 2500);
+            }
             if (!g_logsTimer) {
                 g_logsTimer = setInterval(() => {
                     const activeTab = document.querySelector('.nav-tab.active');
                     if (activeTab && activeTab.dataset.tab === 'tab-logs') loadLogs();
+                    if (activeTab && activeTab.dataset.tab === 'tab-clients') loadClients();
                 }, 2000);
             }
         }
@@ -3279,6 +3627,7 @@
                     const subId = activeSub ? activeSub.dataset.subtab : 'http_play';
                     switchSettingSubmenu(subId);
                 }
+                if (tab.dataset.tab === 'tab-clients') loadClients();
                 if (tab.dataset.tab === 'tab-logs') loadLogs();
             });
         });
@@ -4658,27 +5007,7 @@
         async function pollState() {
             // System Telemetry
             const sys = await apiGet('/api/v1/system');
-            if (sys) {
-                document.getElementById('txt-uptime').textContent = formatDuration(sys.uptime_seconds || 0);
-                const cpu = (sys.cpu_usage_percent || 0).toFixed(1);
-                document.getElementById('val-cpu').textContent = cpu;
-                document.getElementById('bar-cpu').style.width = `${Math.min(100, cpu)}%`;
-
-                const usedMb = sys.ram_used_mb || 0;
-                const totalMb = sys.ram_total_mb || 0;
-                document.getElementById('val-ram-used').textContent = usedMb;
-                document.getElementById('val-ram-total').textContent = totalMb;
-                const ramPct = totalMb > 0 ? (usedMb / totalMb) * 100 : 0;
-                document.getElementById('bar-ram').style.width = `${ramPct}%`;
-
-                const inBr = (sys.input_bitrate_mbps || 0).toFixed(2);
-                document.getElementById('val-in-br').textContent = inBr;
-                document.getElementById('bar-in-br').style.width = `${Math.min(100, (inBr / 40) * 100)}%`;
-
-                const outBr = (sys.output_bitrate_mbps || 0).toFixed(2);
-                document.getElementById('val-out-br').textContent = outBr;
-                document.getElementById('bar-out-br').style.width = `${Math.min(100, (outBr / 40) * 100)}%`;
-            }
+            if (sys) applySystemTelemetry(sys);
 
             // Adapters
             const adapters = await apiGet('/api/v1/adapters');
@@ -4818,6 +5147,7 @@
                 <details class="dropdown card-action" onclick="event.stopPropagation()">
                     <summary title="Actions" onclick="onDropdownSummaryClick(event)"><span class="btn-more">⋮</span></summary>
                     <div class="menu" onclick="closeAllCardDropdowns()">
+                        <a href="javascript:void(0)" onclick="openAdapterAnalyzerModal(${ad.adapter_idx}, '${escapeHtml(ad.name)}')">📊 TS Analyzer</a>
                         <a href="javascript:void(0)" onclick="restartAdapter('${ad.id}')">Restart</a>
                         <a href="javascript:void(0)" onclick="toggleAdapter('${ad.id}', ${!isEnabled})">${isEnabled ? 'Disable' : 'Enable'}</a>
                         <a href="javascript:void(0)" onclick="openScanModal('${ad.id}')">Scan Channels (${chCount})</a>
@@ -4867,19 +5197,22 @@
 
             const cardClass = isOnAir ? 'card-true-2' : (isEnabled ? 'card-true-0' : 'card-false-0');
             const dotClass = isOnAir ? 'dot-locked' : (isEnabled ? 'dot-unlocked' : 'dot-disabled');
+            const backupBadge = st.backup_active ? `<span class="badge badge-warning" style="margin-left:6px; font-size:10px; background:#e67e22; color:#fff;">⚠️ FAILOVER</span>` : '';
 
             return `
             <div id="card-st-${st.id}" class="card card-stream ${cardClass}" onclick="editStream('${st.id}')">
                 <div class="card-name" title="${escapeHtml(st.name || st.id)}">
                     <span class="status-dot ${dotClass}"></span>
                     <span class="card-title-text">${escapeHtml(st.name || st.id)}</span>
+                    ${backupBadge}
                 </div>
                 <details class="dropdown card-action" onclick="event.stopPropagation()">
                     <summary title="Actions" onclick="onDropdownSummaryClick(event)"><span class="btn-more">⋮</span></summary>
                     <div class="menu" onclick="closeAllCardDropdowns()">
-                        <a href="javascript:void(0)" onclick="toggleStream('${st.id}', ${!isEnabled})">${isEnabled ? 'Disable' : 'Enable'}</a>
-                        <a href="javascript:void(0)" onclick="editStream('${st.id}')">Edit</a>
+                        <a href="javascript:void(0)" onclick="openAnalyzerModal('${st.id}', '${escapeHtml(st.name || st.id)}')">📊 TS Analyzer</a>
                         <a href="javascript:void(0)" onclick="openEpgModal(${st.service_id || 0}, '${escapeHtml(st.name || st.id)}')">Live EPG Guide</a>
+                        <a href="javascript:void(0)" onclick="editStream('${st.id}')">Edit</a>
+                        <a href="javascript:void(0)" onclick="toggleStream('${st.id}', ${!isEnabled})">${isEnabled ? 'Disable' : 'Enable'}</a>
                         <hr>
                         <a href="javascript:void(0)" class="text-danger" onclick="deleteStream('${st.id}')">Remove</a>
                     </div>
@@ -5711,6 +6044,9 @@
             document.getElementById('st-input-url').value = '';
             document.getElementById('st-sid').value = '0';
             document.getElementById('st-biss').value = '';
+            document.getElementById('st-backup-url').value = '';
+            document.getElementById('st-backup-type').value = '0';
+            document.getElementById('st-backup-start').value = '5';
             populateStreamSourceDropdown();
             if (defaultAdapterIdx !== undefined) {
                 const sel = document.getElementById('st-source-select');
@@ -5742,6 +6078,9 @@
             document.getElementById('st-pacing').value = st.pacing ? 'true' : 'false';
             document.getElementById('st-biss').value = st.biss_key || '';
             document.getElementById('st-sid').value = st.service_id !== undefined ? st.service_id : 0;
+            document.getElementById('st-backup-url').value = st.backup_url || '';
+            document.getElementById('st-backup-type').value = st.backup_type !== undefined ? st.backup_type : 0;
+            document.getElementById('st-backup-start').value = st.backup_start_delay || 5;
 
             const sel = document.getElementById('st-source-select');
             const inputUrl = st.input_url || '';
@@ -5834,7 +6173,10 @@
                 ttl: parseInt(document.getElementById('st-ttl').value) || 16,
                 is_rtp: isRtp,
                 pacing: document.getElementById('st-pacing').value === 'true',
-                biss_key: document.getElementById('st-biss').value.trim()
+                biss_key: document.getElementById('st-biss').value.trim(),
+                backup_url: document.getElementById('st-backup-url').value.trim(),
+                backup_type: parseInt(document.getElementById('st-backup-type').value) || 0,
+                backup_start_delay: parseInt(document.getElementById('st-backup-start').value) || 5
             };
 
             const res = await apiPost('/api/v1/streams', payload);
@@ -5960,6 +6302,467 @@
         function clearLogsLocal() {
             g_logs = [];
             renderLogs();
+        }
+
+        // =====================================================================
+        // CLIENT SESSIONS & KICK
+        // =====================================================================
+        async function loadClients() {
+            const tbody = document.getElementById('tbody-clients');
+            if (!tbody) return;
+            try {
+                const sessions = await apiGet('/api/v1/sessions');
+                if (!sessions || !Array.isArray(sessions) || sessions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">No active streaming clients.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = sessions.map(s => {
+                    const dur = formatDuration(s.duration_sec || 0);
+                    const br = s.bitrate_kbps > 1000 ? `${(s.bitrate_kbps/1000).toFixed(2)} Mbps` : `${s.bitrate_kbps || 0} kbps`;
+                    return `
+                        <tr>
+                            <td><code>#${s.id}</code></td>
+                            <td><strong>${escapeHtml(s.remote_ip || '-')}</strong></td>
+                            <td><span class="badge badge-success">${escapeHtml(s.protocol || 'HTTP-TS')}</span></td>
+                            <td><code>${escapeHtml(s.stream_path || '-')}</code></td>
+                            <td>${dur}</td>
+                            <td>${br}</td>
+                            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(s.user_agent || '')}">${escapeHtml(s.user_agent || 'Unknown')}</td>
+                            <td style="text-align: right;">
+                                <button class="btn btn-sm btn-danger" onclick="kickClient(${s.id})">Kick</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch(e) {
+                console.error('Failed to load clients:', e);
+            }
+        }
+
+        async function kickClient(id) {
+            if (!confirm(`Are you sure you want to disconnect client #${id}?`)) return;
+            const res = await apiPost('/api/v1/sessions/kick', { id: id });
+            if (res && res.ok) {
+                showToast(`Client #${id} kicked`);
+                loadClients();
+            } else {
+                showToast(res ? res.error : 'Failed to kick client', true);
+            }
+        }
+
+        // =====================================================================
+        // MPEG-TS ANALYZER (Astra Cesbo PSI/SI Tree & PID Telemetry Dual-View)
+        // =====================================================================
+        let g_analyzerTarget = null;
+        let g_analyzerTimer = null;
+        let g_analyzerRawData = null;
+        let g_analyzerActiveTab = 'psi';
+
+        function switchAnalyzerTab(tab) {
+            g_analyzerActiveTab = tab;
+            const btnPsi = document.getElementById('tab-btn-psi');
+            const btnPids = document.getElementById('tab-btn-pids');
+            const viewPsi = document.getElementById('analyzer-view-psi');
+            const viewPids = document.getElementById('analyzer-view-pids');
+
+            if (tab === 'psi') {
+                if (btnPsi) btnPsi.classList.add('active');
+                if (btnPids) btnPids.classList.remove('active');
+                if (viewPsi) viewPsi.style.display = 'block';
+                if (viewPids) viewPids.style.display = 'none';
+            } else {
+                if (btnPsi) btnPsi.classList.remove('active');
+                if (btnPids) btnPids.classList.add('active');
+                if (viewPsi) viewPsi.style.display = 'none';
+                if (viewPids) viewPids.style.display = 'block';
+            }
+        }
+
+        function openAnalyzerModal(streamId, name) {
+            g_analyzerTarget = { type: 'stream', id: streamId, name: name };
+            document.getElementById('modal-analyzer-title').textContent = `MPEG-TS Analyzer: ${name || streamId}`;
+            document.getElementById('analyzer-subtitle').textContent = `Stream: ${streamId} • PSI/SI Tree & PID Telemetry`;
+            document.getElementById('modal-analyzer').classList.add('open');
+            switchAnalyzerTab(g_analyzerActiveTab || 'psi');
+            refreshAnalyzerData();
+            if (!g_analyzerTimer) g_analyzerTimer = setInterval(refreshAnalyzerData, 3000);
+        }
+
+        function openAdapterAnalyzerModal(adapterIdx, name) {
+            g_analyzerTarget = { type: 'adapter', idx: adapterIdx, name: name };
+            document.getElementById('modal-analyzer-title').textContent = `MPEG-TS Analyzer: ${name || `Adapter ${adapterIdx}`}`;
+            document.getElementById('analyzer-subtitle').textContent = `Adapter Index: ${adapterIdx} • PSI/SI Tree & Multiplex PID Telemetry`;
+            document.getElementById('modal-analyzer').classList.add('open');
+            switchAnalyzerTab(g_analyzerActiveTab || 'psi');
+            refreshAnalyzerData();
+            if (!g_analyzerTimer) g_analyzerTimer = setInterval(refreshAnalyzerData, 3000);
+        }
+
+        function closeAnalyzerModal() {
+            document.getElementById('modal-analyzer').classList.remove('open');
+            if (g_analyzerTimer) {
+                clearInterval(g_analyzerTimer);
+                g_analyzerTimer = null;
+            }
+            g_analyzerTarget = null;
+        }
+
+        /* Render Astra Cesbo Style PSI/SI Tree */
+        function renderPsiTree(psi) {
+            if (!psi || (!psi.pat && !psi.pmt && !psi.sdt && !psi.nit)) {
+                return '<div style="text-align: center; padding: 24px; color: var(--text-muted);">No PSI/SI section tables captured yet. Tuning or scanning in progress...</div>';
+            }
+
+            const targetSid = (g_analyzerTarget && g_analyzerTarget.type === 'stream' && g_analyzerRawData) ? g_analyzerRawData.service_id : null;
+            let out = '';
+
+            // Render Descriptors Helper
+            function renderDescriptors(descs) {
+                if (!descs || descs.length === 0) return '';
+                return descs.map(d => {
+                    const tid = d.type_id;
+                    let tagBadge = `<span class="psi-tag">${escapeHtml(d.type_name || `0x${tid.toString(16)}`)}</span>`;
+                    let content = '';
+
+                    if (tid === 9) { // CAS
+                        const caHex = '0x' + (d.caid || 0).toString(16).toUpperCase().padStart(4, '0');
+                        tagBadge = `<span class="psi-tag psi-tag-cas">CAS</span>`;
+                        content = `CaID: <strong>${caHex}</strong> PID: <strong>${d.pid}</strong>`;
+                    } else if (tid === 10) { // Language
+                        tagBadge = `<span class="psi-tag psi-tag-lang">Language</span>`;
+                        content = `<strong>${escapeHtml(d.lang || 'und')}</strong>`;
+                    } else if (tid === 64) { // Network Name
+                        tagBadge = `<span class="psi-tag psi-tag-net">Name</span>`;
+                        content = `<strong>${escapeHtml(d.network_name || '')}</strong>`;
+                    } else if (tid === 72) { // Service
+                        tagBadge = `<span class="psi-tag psi-tag-srv">Service</span>`;
+                        content = `Provider: <strong>${escapeHtml(d.service_provider || 'Unknown')}</strong> • Service: <strong>${escapeHtml(d.service_name || 'Unknown')}</strong>`;
+                    } else if (tid === 90) { // DVB-T Delivery
+                        tagBadge = `<span class="psi-tag psi-tag-dvb">DVB-T</span>`;
+                        content = `Freq: <strong>${(d.frequency || 0) / 1000000} MHz</strong> • Mod: <strong>${escapeHtml(d.modulation || '')}</strong> • BW: <strong>${escapeHtml(d.bandwidth || '')}</strong> • Guard: <strong>${escapeHtml(d.guard_interval || '')}</strong>`;
+                    } else if (tid === 131) { // LCN
+                        let lcnList = d.lcn || [];
+                        if (targetSid) lcnList = lcnList.filter(l => l.pnr === targetSid);
+                        if (lcnList.length === 0) return '';
+                        tagBadge = `<span class="psi-tag psi-tag-lcn">LCN</span>`;
+                        const str = lcnList.map(l => `LCN ${l.lcn} (PNR ${l.pnr})`).join(', ');
+                        content = `<strong>${escapeHtml(str)}</strong>`;
+                    } else {
+                        content = `<span style="color:var(--text-muted); font-size:11px;">${escapeHtml(d.data || '')}</span>`;
+                    }
+                    return `<div class="psi-tree-sub">${tagBadge} ${content}</div>`;
+                }).join('');
+            }
+
+            // 1. PAT
+            if (psi.pat) {
+                const pat = psi.pat;
+                let progs = pat.programs || [];
+                if (targetSid) progs = progs.filter(p => p.pnr === targetSid);
+
+                if (progs.length > 0) {
+                    out += `<div class="psi-section">`;
+                    out += `<div class="psi-header"><span class="psi-badge pat">PAT</span> <strong>TSID: ${pat.tsid}</strong> <span style="color:var(--text-muted); font-size:11px; margin-left:8px;">(version ${pat.version !== undefined ? pat.version : 0})</span></div>`;
+                    progs.forEach(p => {
+                        const hexPid = '0x' + p.pid.toString(16).toUpperCase().padStart(4, '0');
+                        out += `<div class="psi-tree-line psi-highlight">`;
+                        out += `PNR: <strong>${p.pnr}</strong> <span style="color:var(--text-muted); margin:0 4px;">➔</span> PMT PID: <strong>${p.pid}</strong> <span style="color:var(--text-muted);">(${hexPid})</span>`;
+                        out += `</div>`;
+                    });
+                    out += `</div>`;
+                }
+            }
+
+            // 2. PMT (one or multiple)
+            let pmts = psi.pmt ? (Array.isArray(psi.pmt) ? psi.pmt : [psi.pmt]) : [];
+            if (targetSid) pmts = pmts.filter(p => p.pnr === targetSid);
+
+            pmts.forEach(pmt => {
+                out += `<div class="psi-section psi-highlight">`;
+                out += `<div class="psi-header"><span class="psi-badge pmt">PMT</span> <strong>PNR: ${pmt.pnr}</strong> <span style="color:var(--text-muted); font-size:11px; margin-left:8px;">(PCR PID: <strong>${pmt.pcr}</strong> • version ${pmt.version !== undefined ? pmt.version : 0})</span></div>`;
+                if (pmt.descriptors && pmt.descriptors.length > 0) {
+                    out += renderDescriptors(pmt.descriptors);
+                }
+                if (pmt.streams && pmt.streams.length > 0) {
+                    pmt.streams.forEach(st => {
+                        const hexPid = '0x' + st.pid.toString(16).toUpperCase().padStart(4, '0');
+                        const hexType = '0x' + (st.type_id || 0).toString(16).toUpperCase().padStart(2, '0');
+                        const cat = (st.type_name || 'data').toLowerCase();
+                        let catClass = 'cat-data';
+                        if (cat === 'video') catClass = 'cat-video';
+                        else if (cat === 'audio') catClass = 'cat-audio';
+
+                        out += `<div class="psi-tree-line">`;
+                        out += `<span class="psi-stream-badge ${catClass}">${escapeHtml(cat.toUpperCase())}</span> PID: <strong>${st.pid}</strong> <span style="color:var(--text-muted);">(${hexPid})</span> <span style="color:var(--text-muted); margin-left:6px;">TYPE:</span> <strong>${hexType}</strong> <span style="color:var(--text-primary); margin-left:4px;">${escapeHtml(st.stream_type_name || '')}</span>`;
+                        out += `</div>`;
+                        if (st.descriptors && st.descriptors.length > 0) {
+                            out += renderDescriptors(st.descriptors);
+                        }
+                    });
+                }
+                out += `</div>`;
+            });
+
+            // 3. SDT
+            if (psi.sdt) {
+                const sdt = psi.sdt;
+                let srvs = sdt.services || [];
+                if (targetSid) srvs = srvs.filter(s => s.sid === targetSid);
+
+                if (srvs.length > 0) {
+                    out += `<div class="psi-section">`;
+                    out += `<div class="psi-header"><span class="psi-badge sdt">SDT</span> <strong>TSID: ${sdt.tsid}</strong> <span style="color:var(--text-muted); font-size:11px; margin-left:8px;">(ONID: <strong>${sdt.onid}</strong> • version ${sdt.version !== undefined ? sdt.version : 0})</span></div>`;
+                    srvs.forEach(srv => {
+                        out += `<div class="psi-tree-line psi-highlight">`;
+                        out += `PNR: <strong>${srv.sid}</strong> <span style="color:var(--text-muted); margin-left:6px;">running: ${srv.running}</span> ${srv.ca ? '<span class="badge badge-warning" style="font-size:10px; padding:1px 4px; margin-left:4px;">CA</span>' : '<span style="color:var(--vlc-green); font-size:11px; margin-left:4px;">Free-To-Air</span>'}`;
+                        out += `</div>`;
+                        if (srv.descriptors && srv.descriptors.length > 0) {
+                            out += renderDescriptors(srv.descriptors);
+                        }
+                    });
+                    out += `</div>`;
+                }
+            }
+
+            // 4. NIT
+            if (psi.nit) {
+                const nit = psi.nit;
+                let nitContent = '';
+                if (nit.descriptors && nit.descriptors.length > 0) {
+                    nitContent += renderDescriptors(nit.descriptors);
+                }
+                if (nit.streams && nit.streams.length > 0) {
+                    nit.streams.forEach(ns => {
+                        let streamDescHtml = '';
+                        if (ns.descriptors && ns.descriptors.length > 0) {
+                            streamDescHtml = renderDescriptors(ns.descriptors);
+                        }
+                        if (!targetSid || streamDescHtml.trim().length > 0) {
+                            nitContent += `<div class="psi-tree-line">`;
+                            nitContent += `TSID: <strong>${ns.tsid}</strong> <span style="color:var(--text-muted); margin-left:6px;">ONID: <strong>${ns.onid}</strong></span>`;
+                            nitContent += `</div>`;
+                            nitContent += streamDescHtml;
+                        }
+                    });
+                }
+                if (nitContent.trim().length > 0) {
+                    out += `<div class="psi-section">`;
+                    out += `<div class="psi-header"><span class="psi-badge nit">NIT</span> <strong>Network ID: ${nit.network_id}</strong> <span style="color:var(--text-muted); font-size:11px; margin-left:8px;">(version ${nit.version !== undefined ? nit.version : 0})</span></div>`;
+                    out += nitContent;
+                    out += `</div>`;
+                }
+            }
+
+            return out;
+        }
+
+        /* Format Plain Text Tree for Clipboard (matches Cesbo Astra copy format) */
+        function formatPsiTreeText(psi) {
+            if (!psi) return 'No PSI/SI data available';
+            const targetSid = (g_analyzerTarget && g_analyzerTarget.type === 'stream' && g_analyzerRawData) ? g_analyzerRawData.service_id : null;
+            let lines = [];
+            if (psi.pat) {
+                let progs = psi.pat.programs || [];
+                if (targetSid) progs = progs.filter(p => p.pnr === targetSid);
+                if (progs.length > 0) {
+                    lines.push(`PAT TSID: ${psi.pat.tsid} (version ${psi.pat.version !== undefined ? psi.pat.version : 0})`);
+                    progs.forEach(p => {
+                        const hexPid = '0x' + p.pid.toString(16).toUpperCase().padStart(4, '0');
+                        lines.push(`  PNR: ${p.pnr} PID: ${p.pid} (${hexPid})`);
+                    });
+                }
+            }
+            let pmts = psi.pmt ? (Array.isArray(psi.pmt) ? psi.pmt : [psi.pmt]) : [];
+            if (targetSid) pmts = pmts.filter(p => p.pnr === targetSid);
+
+            pmts.forEach(pmt => {
+                lines.push(`PMT PNR: ${pmt.pnr} (PCR PID: ${pmt.pcr})`);
+                (pmt.descriptors || []).forEach(d => {
+                    if (d.type_id === 9) lines.push(`  CAS CaID: 0x${(d.caid || 0).toString(16).toUpperCase()} PID: ${d.pid}`);
+                    else if (d.type_id === 10) lines.push(`  Language: ${d.lang}`);
+                    else lines.push(`  ${d.type_name || `Desc 0x${d.type_id.toString(16)}`}`);
+                });
+                (pmt.streams || []).forEach(st => {
+                    const hexType = '0x' + (st.type_id || 0).toString(16).toUpperCase().padStart(2, '0');
+                    lines.push(`  ${st.type_name || 'stream'} PID: ${st.pid} TYPE: ${hexType} ${st.stream_type_name || ''}`);
+                    (st.descriptors || []).forEach(d => {
+                        if (d.type_id === 10) lines.push(`    Language: ${d.lang}`);
+                        else if (d.type_id === 9) lines.push(`    CAS CaID: 0x${(d.caid || 0).toString(16).toUpperCase()} PID: ${d.pid}`);
+                        else lines.push(`    ${d.type_name || `Desc 0x${d.type_id.toString(16)}`}`);
+                    });
+                });
+            });
+            if (psi.sdt) {
+                let srvs = psi.sdt.services || [];
+                if (targetSid) srvs = srvs.filter(s => s.sid === targetSid);
+                if (srvs.length > 0) {
+                    lines.push(`SDT TSID: ${psi.sdt.tsid} ONID: ${psi.sdt.onid}`);
+                    srvs.forEach(srv => {
+                        lines.push(`  PNR: ${srv.sid}`);
+                        (srv.descriptors || []).forEach(d => {
+                            if (d.type_id === 72) {
+                                lines.push(`    Provider: ${d.service_provider || 'Unknown'}`);
+                                lines.push(`    Service: ${d.service_name || 'Unknown'}`);
+                            } else if (d.type_id === 131) {
+                                let lcns = d.lcn || [];
+                                if (targetSid) lcns = lcns.filter(l => l.pnr === targetSid);
+                                lcns.forEach(l => lines.push(`    LCN: ${l.lcn} (PNR: ${l.pnr})`));
+                            } else {
+                                lines.push(`    ${d.type_name || `Desc 0x${d.type_id.toString(16)}`}`);
+                            }
+                        });
+                    });
+                }
+            }
+            if (psi.nit) {
+                lines.push(`NIT ID: ${psi.nit.network_id}`);
+                (psi.nit.descriptors || []).forEach(d => {
+                    if (d.type_id === 64) lines.push(`  Name: ${d.network_name}`);
+                    else lines.push(`  ${d.type_name || `Desc 0x${d.type_id.toString(16)}`}`);
+                });
+                (psi.nit.streams || []).forEach(ns => {
+                    let streamLines = [];
+                    (ns.descriptors || []).forEach(d => {
+                        if (d.type_id === 90 && !targetSid) streamLines.push(`    DVB-T Modulation: ${d.modulation} Frequency: ${d.frequency} Bandwidth: ${d.bandwidth} Guard: ${d.guard_interval}`);
+                        else if (d.type_id === 131) {
+                            let lcns = d.lcn || [];
+                            if (targetSid) lcns = lcns.filter(l => l.pnr === targetSid);
+                            lcns.forEach(l => streamLines.push(`    LCN: ${l.lcn} (PNR: ${l.pnr})`));
+                        }
+                    });
+                    if (!targetSid || streamLines.length > 0) {
+                        lines.push(`  TSID: ${ns.tsid} ONID: ${ns.onid}`);
+                        lines.push(...streamLines);
+                    }
+                });
+            }
+            return lines.join('\n');
+        }
+
+        async function refreshAnalyzerData() {
+            if (!g_analyzerTarget) return;
+            let url = '/api/v1/analyze';
+            if (g_analyzerTarget.type === 'stream') {
+                url += `?stream_id=${encodeURIComponent(g_analyzerTarget.id)}`;
+            } else {
+                url += `?adapter=${encodeURIComponent(g_analyzerTarget.idx)}`;
+            }
+            try {
+                const data = await apiGet(url);
+                if (!data) return;
+                g_analyzerRawData = data;
+
+                let pids = data.pids || [];
+                let totalMb = (data.total_bitrate_mbps !== undefined) ? data.total_bitrate_mbps : (data.bitrate_mbps || 0);
+                let totalCc = (data.total_cc_errors !== undefined) ? data.total_cc_errors : 0;
+                let totalTe = (data.total_ts_errors !== undefined) ? data.total_ts_errors : (data.total_transport_errors || 0);
+
+                if ((!pids || pids.length === 0) && data.channels && Array.isArray(data.channels)) {
+                    pids = [];
+                    totalMb = 0; totalCc = 0; totalTe = 0;
+                    data.channels.forEach(ch => {
+                        totalMb += (ch.total_bitrate_mbps || ch.bitrate_mbps || 0);
+                        totalCc += (ch.total_cc_errors || 0);
+                        totalTe += (ch.total_ts_errors || ch.total_transport_errors || 0);
+                        (ch.pids || []).forEach(p => {
+                            pids.push({
+                                ...p,
+                                channel_name: ch.channel_name || `SID ${ch.service_id}`
+                            });
+                        });
+                    });
+                }
+
+                document.getElementById('val-an-pids').textContent = pids.length;
+                document.getElementById('val-an-br').textContent = totalMb.toFixed(2);
+
+                const ccEl = document.getElementById('val-an-cc');
+                ccEl.textContent = totalCc.toLocaleString();
+                ccEl.style.color = totalCc > 0 ? 'var(--vlc-orange, #e67e22)' : 'var(--vlc-green, #2ecc71)';
+
+                const teEl = document.getElementById('val-an-te');
+                teEl.textContent = totalTe.toLocaleString();
+                teEl.style.color = totalTe > 0 ? 'var(--vlc-red, #e74c3c)' : '';
+
+                // Render PSI/SI Tree Inspector (Tab 1)
+                const treeView = document.getElementById('analyzer-view-psi');
+                if (treeView) {
+                    treeView.innerHTML = renderPsiTree(data.psi);
+                }
+
+                // Render PID Telemetry Grid (Tab 2)
+                const tbody = document.getElementById('tbody-analyzer');
+                if (pids.length === 0) {
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">No active Elementary PIDs detected. Stream may be idle or tuning.</td></tr>';
+                    return;
+                }
+
+                if (tbody) {
+                    tbody.innerHTML = pids.map(p => {
+                        const pidDec = p.pid;
+                        const pidHex = p.pid_hex || ('0x' + pidDec.toString(16).toUpperCase().padStart(4, '0'));
+                        const brKbps = (p.bitrate_kbps !== undefined) ? p.bitrate_kbps : (p.bitrate_bps ? Math.round(p.bitrate_bps / 1000) : 0);
+                        const br = brKbps > 1000 ? `${(brKbps / 1000).toFixed(2)} Mbps` : `${brKbps} kbps`;
+                        const cc = p.cc_errors || 0;
+                        const te = (p.ts_errors !== undefined) ? p.ts_errors : (p.transport_errors || 0);
+                        const hasCc = cc > 0;
+                        const hasTe = te > 0;
+                        const isScr = !!p.scrambled;
+                        const isActive = (p.packets > 0) || (p.bitrate_bps > 0) || (p.active === true);
+
+                        const typeStr = (p.type || '').toLowerCase();
+                        const descStr = p.desc || p.stream_type_name || p.type || 'Unknown';
+                        let badgeClass = 'badge-secondary';
+                        if (typeStr === 'video') badgeClass = 'badge-primary';
+                        else if (typeStr === 'audio') badgeClass = 'badge-info';
+                        else if (typeStr === 'pcr') badgeClass = 'badge-warning';
+
+                        const chLabel = p.channel_name ? `<span style="color:var(--text-muted); font-size:11px; margin-right:4px;">[${escapeHtml(p.channel_name)}]</span>` : '';
+
+                        return `
+                            <tr>
+                                <td>${chLabel}<strong>${pidDec}</strong> <span style="color:var(--text-muted);">(${pidHex})</span></td>
+                                <td><span class="badge ${badgeClass}">${escapeHtml(descStr)}</span></td>
+                                <td>${br}</td>
+                                <td style="${hasCc ? 'color: #e67e22; font-weight: bold;' : 'color: var(--vlc-green);'}">${cc.toLocaleString()}</td>
+                                <td style="${hasTe ? 'color: #e74c3c; font-weight: bold;' : 'color: var(--text-muted);'}">${te.toLocaleString()}</td>
+                                <td>${isScr ? '<span class="badge badge-warning">SCRAMBLED</span>' : '<span style="color:var(--vlc-green);">CLEAR</span>'}</td>
+                                <td>${isActive ? '<span style="color:var(--vlc-green);">● ACTIVE</span>' : '<span style="color:var(--text-muted);">IDLE</span>'}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            } catch(e) {
+                console.error('Analyzer fetch error:', e);
+                const tbody = document.getElementById('tbody-analyzer');
+                if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: var(--vlc-red);">Error loading PID data: ${escapeHtml(e.message)}</td></tr>`;
+            }
+        }
+
+        function copyAnalyzerTree() {
+            if (!g_analyzerRawData || !g_analyzerRawData.psi) {
+                showToast('No PSI/SI tree data to copy', true);
+                return;
+            }
+            const text = formatPsiTreeText(g_analyzerRawData.psi);
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('PSI/SI Tree copied to clipboard!');
+            }).catch(() => {
+                showToast('Failed to copy to clipboard', true);
+            });
+        }
+
+        function copyAnalyzerJson() {
+            if (!g_analyzerRawData) {
+                showToast('No analyzer data to copy', true);
+                return;
+            }
+            const str = JSON.stringify(g_analyzerRawData, null, 2);
+            navigator.clipboard.writeText(str).then(() => {
+                showToast('Analysis JSON copied to clipboard!');
+            }).catch(() => {
+                showToast('Failed to copy to clipboard', true);
+            });
         }
 
         // Initialize authentication session check and launch

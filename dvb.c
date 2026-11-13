@@ -68,8 +68,8 @@
  * Local declarations
  *****************************************************************************/
 #define DVR_READ_TIMEOUT 30000000 /* 30 s */
-#define MAX_READ_ONCE 50
-#define DVR_BUFFER_SIZE 40*188*1024 /* bytes */
+#define MAX_READ_ONCE 256
+#define DVR_BUFFER_SIZE (64 * 1024 * 1024) /* 64 MB */
 
 int i_dvr_buffer_size = DVR_BUFFER_SIZE;
 
@@ -262,6 +262,7 @@ bool dvb_TuneFrontend(int adapter, int frontend, uint64_t freq_hz, int bw_mhz,
             usleep(20000);
         }
         if (dmx_fd >= 0) {
+            ioctl(dmx_fd, DMX_SET_BUFFER_SIZE, i_dvr_buffer_size);
             struct dmx_pes_filter_params filter;
             memset(&filter, 0, sizeof(filter));
             filter.pid = 0x2000;
@@ -278,7 +279,7 @@ bool dvb_TuneFrontend(int adapter, int frontend, uint64_t freq_hz, int bw_mhz,
         }
     }
 
-    /* Open DVR device with 16MB buffer */
+    /* Open DVR device with 64MB buffer */
     if (i_dvr < 0) {
         sprintf(psz_tmp, "/dev/dvb/adapter%d/dvr%d", i_adapter, i_fenum);
         for (int retry = 0; retry < 5; retry++) {
@@ -289,7 +290,7 @@ bool dvb_TuneFrontend(int adapter, int frontend, uint64_t freq_hz, int bw_mhz,
         if (i_dvr < 0) {
             msg_Err(NULL, "opening device %s failed (%s)", psz_tmp, strerror(errno));
         } else {
-            ioctl(i_dvr, DMX_SET_BUFFER_SIZE, 16 * 1024 * 1024);
+            ioctl(i_dvr, DMX_SET_BUFFER_SIZE, i_dvr_buffer_size);
             ev_io_init(&dvr_watcher, DVRRead, i_dvr, EV_READ);
             ev_io_start(event_loop, &dvr_watcher);
         }
@@ -364,8 +365,9 @@ static void DVRRead(struct ev_loop *loop, struct ev_io *w, int revents)
 
     if ( (i_len = readv(i_dvr, p_iov, MAX_READ_ONCE)) < 0 )
     {
-        msg_Err( NULL, "couldn't read from DVR device (%s)",
-                 strerror(errno) );
+        if ( errno != EAGAIN && errno != EWOULDBLOCK )
+            msg_Err( NULL, "couldn't read from DVR device (%s)",
+                     strerror(errno) );
         i_len = 0;
     }
     else if ( i_len > 0 )

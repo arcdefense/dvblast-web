@@ -43,6 +43,11 @@ void http_play_push_packet(uint16_t sid, const uint8_t *ts_packet, size_t len);
 /* Handle incoming HTTP request: /play/{stream_id}, /live/{sid}.ts, /playlist.m3u */
 int  http_play_handle_request(struct MHD_Connection *conn, const char *url, const char *host_header);
 
+/* Session management */
+bool http_play_kick_client(int client_id);
+json_t *http_play_get_sessions_json(void);
+void http_play_ensure_relay(uint16_t sid, const char *ip, int port);
+
 json_t *http_play_to_json(void);
 bool    http_play_from_json(json_t *root);
 

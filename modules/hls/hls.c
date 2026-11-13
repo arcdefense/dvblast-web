@@ -1,5 +1,7 @@
 #include "hls.h"
 #include "web_state.h"
+#include "dvblast.h"
+#include "modules/http_play/http_play.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -235,6 +237,31 @@ int hls_handle_request(struct MHD_Connection *conn, const char *url) {
         if (g_hls_streams[i].active && strcmp(g_hls_streams[i].stream_id, stream_id) == 0) {
             ctx = &g_hls_streams[i];
             break;
+        }
+    }
+
+    if (!ctx) {
+        /* Check if stream exists in g_gateway.streams and activate relay */
+        pthread_mutex_lock(&g_gateway.lock);
+        web_stream_config_t matched_st;
+        bool found_stream = false;
+        int check_sid = atoi(stream_id + (strncmp(stream_id, "spts_", 5) == 0 ? 5 : 0));
+        for (int i = 0; i < g_gateway.num_streams; i++) {
+            if (strcmp(g_gateway.streams[i].id, stream_id) == 0 ||
+                (check_sid > 0 && g_gateway.streams[i].service_id == check_sid)) {
+                matched_st = g_gateway.streams[i];
+                found_stream = true;
+                break;
+            }
+        }
+        pthread_mutex_unlock(&g_gateway.lock);
+
+        if (found_stream) {
+            if (matched_st.adapter_idx != i_adapter) {
+                http_play_ensure_relay(matched_st.service_id, matched_st.ip, matched_st.port);
+            }
+            ctx = find_or_create_stream(matched_st.service_id);
+            if (ctx) snprintf(ctx->stream_id, sizeof(ctx->stream_id), "%s", stream_id);
         }
     }
 

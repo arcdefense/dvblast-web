@@ -13,6 +13,7 @@
  *****************************************************************************/
 
 #include <stddef.h>
+#include <string.h>
 
 typedef void * access_t;
 

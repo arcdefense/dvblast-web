@@ -112,6 +112,13 @@ typedef struct {
     uint32_t cc_errors;
     bool     scrambled;
     char     biss_key[64];
+    /* Stream Redundancy & Failover */
+    char     backup_url[256];
+    int      backup_type;          /* 0=disable, 1=passive, 2=active */
+    int      backup_start_delay;   /* seconds of lost signal before switching */
+    int      backup_return_delay;  /* seconds of stable primary before reverting */
+    bool     backup_active;        /* currently running on backup */
+    time_t   last_active_time;
     time_t   created_at;
 } web_stream_config_t;
 

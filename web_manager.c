@@ -1,6 +1,9 @@
 #include "web_manager.h"
 #include "dvblast.h"
+#include "en50221.h"
+#include "comm.h"
 #include "modules/softcam/softcam.h"
+#include "modules/epg/epg.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,8 +14,11 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <linux/dvb/frontend.h>
 #include <pthread.h>
+#include <bitstream/mpeg/psi.h>
 
 #ifndef MAX_DTV_STATS
 #define MAX_DTV_STATS 4
@@ -346,8 +352,179 @@ void web_manager_sync_workers(void) {
     }
 }
 
+/* Helper to query worker socket */
+static uint8_t *worker_comm_query(int adapter_idx, uint8_t cmd, const uint8_t *payload, size_t payload_len, size_t *out_size) {
+    *out_size = 0;
+    char srv_path[64];
+    snprintf(srv_path, sizeof(srv_path), "/tmp/dvblast_ad%d.sock", adapter_idx);
+    if (access(srv_path, F_OK) != 0) return NULL;
+
+    static volatile uint32_t s_query_seq = 0;
+    uint32_t seq = __sync_fetch_and_add(&s_query_seq, 1);
+    struct sockaddr_un sun_client, sun_server;
+    char client_path[sizeof(sun_client.sun_path)];
+    snprintf(client_path, sizeof(client_path), "/tmp/dvblast_epg_%d_%d_%lx_%u.sock",
+             adapter_idx, getpid(), (unsigned long)pthread_self(), seq);
+    unlink(client_path);
+
+    int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+    if (fd < 0) return NULL;
+
+    struct timeval tv = { .tv_sec = 0, .tv_usec = 100000 }; /* 100ms timeout max */
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+    memset(&sun_client, 0, sizeof(sun_client));
+    sun_client.sun_family = AF_UNIX;
+    snprintf(sun_client.sun_path, sizeof(sun_client.sun_path), "%s", client_path);
+
+    if (bind(fd, (struct sockaddr *)&sun_client, sizeof(sun_client)) < 0) {
+        close(fd);
+        unlink(client_path);
+        return NULL;
+    }
+
+    memset(&sun_server, 0, sizeof(sun_server));
+    sun_server.sun_family = AF_UNIX;
+    strncpy(sun_server.sun_path, srv_path, sizeof(sun_server.sun_path) - 1);
+
+    uint8_t send_buf[COMM_BUFFER_SIZE];
+    send_buf[0] = COMM_HEADER_MAGIC;
+    send_buf[1] = cmd;
+    memset(send_buf + 2, 0, COMM_HEADER_SIZE - 2);
+
+    size_t send_len = COMM_HEADER_SIZE;
+    if (payload && payload_len > 0) {
+        if (send_len + payload_len > sizeof(send_buf)) payload_len = sizeof(send_buf) - send_len;
+        memcpy(send_buf + send_len, payload, payload_len);
+        send_len += payload_len;
+    }
+
+    if (sendto(fd, send_buf, send_len, 0, (struct sockaddr *)&sun_server, sizeof(sun_server)) < 0) {
+        close(fd);
+        unlink(client_path);
+        return NULL;
+    }
+
+    size_t alloc_sz = 32768;
+    uint8_t *res_buf = malloc(alloc_sz);
+    if (!res_buf) {
+        close(fd);
+        unlink(client_path);
+        return NULL;
+    }
+
+    uint8_t chunk[COMM_MAX_MSG_CHUNK + COMM_HEADER_SIZE];
+    ssize_t n = recv(fd, chunk, sizeof(chunk), 0);
+    if (n <= (ssize_t)COMM_HEADER_SIZE) {
+        free(res_buf);
+        close(fd);
+        unlink(client_path);
+        return NULL;
+    }
+
+    uint32_t total_expected = *(uint32_t *)&chunk[4];
+    size_t plen = (size_t)(n - COMM_HEADER_SIZE);
+    memcpy(res_buf, chunk + COMM_HEADER_SIZE, plen);
+    *out_size = plen;
+
+    /* Handle multi-packet responses (e.g. large EIT schedules) */
+    while (*out_size + COMM_HEADER_SIZE < total_expected) {
+        n = recv(fd, chunk, sizeof(chunk), 0);
+        if (n <= 0) break;
+        size_t c_len = (size_t)n;
+        if (*out_size + c_len > alloc_sz) {
+            alloc_sz = (*out_size + c_len) * 2;
+            uint8_t *nb = realloc(res_buf, alloc_sz);
+            if (!nb) break;
+            res_buf = nb;
+        }
+        memcpy(res_buf + *out_size, chunk, c_len);
+        *out_size += c_len;
+    }
+
+    close(fd);
+    unlink(client_path);
+    return res_buf;
+}
+
+void web_manager_sync_secondary_epg(void) {
+    for (int i = 0; i < MAX_WEB_ADAPTERS; i++) {
+        if (!g_workers[i].running || g_workers[i].pid <= 0) continue;
+        int a_idx = g_workers[i].adapter_idx;
+        if (a_idx == i_adapter) continue;
+
+        web_adapter_t *ad = web_state_find_adapter_by_idx(a_idx);
+        if (!ad || !ad->enabled) continue;
+
+        /* Get active SIDs for this adapter */
+        uint16_t sids[MAX_DISCOVERED_CHANNELS];
+        int num_sids = 0;
+        pthread_mutex_lock(&g_gateway.lock);
+        for (int c = 0; c < ad->num_channels && num_sids < MAX_DISCOVERED_CHANNELS; c++) {
+            sids[num_sids++] = ad->channels[c].service_id;
+        }
+        for (int s = 0; s < g_gateway.num_streams && num_sids < MAX_DISCOVERED_CHANNELS; s++) {
+            if (g_gateway.streams[s].adapter_idx == a_idx && g_gateway.streams[s].service_id > 0) {
+                bool exists = false;
+                for (int k = 0; k < num_sids; k++) {
+                    if (sids[k] == g_gateway.streams[s].service_id) { exists = true; break; }
+                }
+                if (!exists) sids[num_sids++] = g_gateway.streams[s].service_id;
+            }
+        }
+        pthread_mutex_unlock(&g_gateway.lock);
+
+        for (int k = 0; k < num_sids; k++) {
+            uint16_t sid = sids[k];
+            uint8_t sid_be[2] = { (uint8_t)((sid >> 8) & 0xFF), (uint8_t)(sid & 0xFF) };
+
+            /* Query EIT schedule */
+            size_t eit_sz = 0;
+            uint8_t *eit_buf = worker_comm_query(a_idx, CMD_GET_EIT_SCHEDULE, sid_be, 2, &eit_sz);
+            if (eit_buf && eit_sz >= PSI_HEADER_SIZE) {
+                size_t off = 0;
+                while (off + PSI_HEADER_SIZE <= eit_sz) {
+                    uint16_t sec_len = psi_get_length(eit_buf + off) + PSI_HEADER_SIZE;
+                    if (off + sec_len > eit_sz) break;
+                    epg_handle_eit_section(eit_buf + off, sec_len);
+                    off += sec_len;
+                }
+                free(eit_buf);
+            }
+
+            /* Query EIT present/following */
+            eit_sz = 0;
+            eit_buf = worker_comm_query(a_idx, CMD_GET_EIT_PF, sid_be, 2, &eit_sz);
+            if (eit_buf && eit_sz >= PSI_HEADER_SIZE) {
+                size_t off = 0;
+                while (off + PSI_HEADER_SIZE <= eit_sz) {
+                    uint16_t sec_len = psi_get_length(eit_buf + off) + PSI_HEADER_SIZE;
+                    if (off + sec_len > eit_sz) break;
+                    epg_handle_eit_section(eit_buf + off, sec_len);
+                    off += sec_len;
+                }
+                free(eit_buf);
+            }
+        }
+    }
+}
+
+static volatile bool s_epg_sync_in_progress = false;
+
+static void *secondary_epg_sync_worker_thread(void *arg) {
+    (void)arg;
+    web_manager_sync_secondary_epg();
+    s_epg_sync_in_progress = false;
+    return NULL;
+}
+
+static int g_telemetry_ticks = 0;
+
 void web_manager_poll_secondary_telemetry(void) {
-    /* Reap and auto-restart any died child worker processes */
+    g_telemetry_ticks++;
+    time_t now = time(NULL);
+
+    /* 1. Reap and auto-restart any died child worker processes */
     for (int i = 0; i < MAX_WEB_ADAPTERS; i++) {
         if (g_workers[i].running && g_workers[i].pid > 0) {
             int status = 0;
@@ -358,6 +535,56 @@ void web_manager_poll_secondary_telemetry(void) {
                 g_workers[i].running = false;
                 g_workers[i].pid = 0;
                 web_manager_sync_worker(g_workers[i].adapter_idx);
+            }
+        }
+    }
+
+    /* 2. Stream Redundancy & Failover Monitor */
+    pthread_mutex_lock(&g_gateway.lock);
+    for (int i = 0; i < g_gateway.num_streams; i++) {
+        web_stream_config_t *st = &g_gateway.streams[i];
+        if (!st->enabled) continue;
+
+        if (st->bitrate_bps == 0) {
+            if (st->last_active_time == 0) st->last_active_time = now;
+            if (st->backup_type > 0 && st->backup_url[0] && !st->backup_active) {
+                int threshold = st->backup_start_delay > 0 ? st->backup_start_delay : 5;
+                if (now - st->last_active_time >= threshold) {
+                    st->backup_active = true;
+                    web_state_log("WARN", "Stream %s (SID %u) signal lost for %d sec, FAILOVER ACTIVE -> %s",
+                                  st->id, st->service_id, threshold, st->backup_url);
+                }
+            }
+        } else {
+            st->last_active_time = now;
+            if (st->backup_active) {
+                st->backup_active = false;
+                web_state_log("INFO", "Stream %s (SID %u) primary signal restored, FAILOVER DEACTIVATED",
+                              st->id, st->service_id);
+            }
+        }
+    }
+    pthread_mutex_unlock(&g_gateway.lock);
+
+    /* 3. Sync Secondary EPG every 60 seconds asynchronously in background thread */
+    if (g_telemetry_ticks % 60 == 0 && !s_epg_sync_in_progress) {
+        s_epg_sync_in_progress = true;
+        pthread_t epg_th;
+        if (pthread_create(&epg_th, NULL, secondary_epg_sync_worker_thread, NULL) == 0) {
+            pthread_detach(epg_th);
+        } else {
+            s_epg_sync_in_progress = false;
+        }
+    }
+
+    /* 4. Auto-discover channels on locked secondary adapters that have 0 channels */
+    if (g_telemetry_ticks % 10 == 0) {
+        for (int i = 0; i < MAX_WEB_ADAPTERS; i++) {
+            if (g_workers[i].running && g_workers[i].adapter_idx != i_adapter) {
+                web_adapter_t *ad = web_state_find_adapter_by_idx(g_workers[i].adapter_idx);
+                if (ad && ad->enabled && ad->locked && ad->num_channels == 0) {
+                    web_manager_trigger_scan(ad->adapter_idx);
+                }
             }
         }
     }
@@ -624,6 +851,13 @@ static bool web_manager_tune_adapter_internal(const char *adapter_id, int adapte
 
     web_state_log("INFO", "Tuning Primary Adapter %d (%s, id=%s): Freq=%llu Hz, BW=%d MHz, Delsys=%s",
                   ad->adapter_idx, ad->name, ad->id, (unsigned long long)ad->frequency, ad->bandwidth, ad->delsys);
+
+    /* Configure buffer size for primary adapter DVR */
+    if (ad->buffer_size > 0) {
+        i_dvr_buffer_size = ad->buffer_size * 1024 * 1024;
+    } else {
+        i_dvr_buffer_size = 64 * 1024 * 1024;
+    }
 
     /* Reset demux tables when tuning a new frequency */
     demux_ResetTables();

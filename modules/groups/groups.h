@@ -21,6 +21,8 @@ typedef struct {
 void groups_init(void);
 void groups_cleanup(void);
 
+const char *groups_get_category_for_stream(const char *stream_id, const char *stream_name);
+
 json_t *groups_to_json(void);
 bool    groups_from_json(json_t *root);
 

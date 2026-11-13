@@ -1,6 +1,8 @@
 #include "http_play.h"
 #include "web_state.h"
 #include "dvblast.h"
+#include "modules/groups/groups.h"
+#include "modules/hls/hls.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +20,7 @@ typedef struct http_client_node {
     char                    stream_id[64];
     uint16_t                service_id;
     char                    remote_ip[64];
+    char                    user_agent[128];
     uint8_t                *buffer;
     size_t                  capacity;
     size_t                  write_pos;
@@ -203,6 +206,7 @@ static void *udp_relay_worker(void *arg) {
             for (ssize_t i = offset; i + 188 <= n; i += 188) {
                 if (buf[i] == 0x47) {
                     http_play_push_packet(r->service_id, buf + i, 188);
+                    hls_push_packet(r->service_id, buf + i, 188);
                 }
             }
         }
@@ -284,6 +288,10 @@ static void relay_subscribe(uint16_t sid, const char *ip, int port) {
     r->next = g_relay_list;
     g_relay_list = r;
     pthread_mutex_unlock(&g_relay_mutex);
+}
+
+void http_play_ensure_relay(uint16_t sid, const char *ip, int port) {
+    relay_subscribe(sid, ip, port);
 }
 
 static void relay_unsubscribe(uint16_t sid) {
@@ -594,7 +602,8 @@ static int handle_playlist_m3u(struct MHD_Connection *conn, const char *url, con
         if (!s->enabled) continue;
 
         web_adapter_t *ad = web_state_find_adapter_by_idx(s->adapter_idx);
-        const char *group = ad ? ad->name : "DVBlast";
+        const char *group = groups_get_category_for_stream(s->id, s->name);
+        if (!group || !*group) group = ad ? ad->name : "DVBlast";
 
         char stream_url[256];
         if (mode_udp) {
@@ -912,6 +921,11 @@ int http_play_handle_request(struct MHD_Connection *conn, const char *url, const
         snprintf(client->remote_ip, sizeof(client->remote_ip), "127.0.0.1");
     }
 
+    /* Capture User-Agent */
+    const char *ua = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "User-Agent");
+    if (ua && *ua) snprintf(client->user_agent, sizeof(client->user_agent), "%s", ua);
+    else snprintf(client->user_agent, sizeof(client->user_agent), "HTTP Streaming Client");
+
     client->active = true;
     client->connected_at = time(NULL);
     pthread_mutex_init(&client->lock, NULL);
@@ -987,6 +1001,7 @@ json_t *http_play_to_json(void) {
         json_object_set_new(co, "stream_id", json_string(c->stream_id));
         json_object_set_new(co, "service_id", json_integer(c->service_id));
         json_object_set_new(co, "remote_ip", json_string(c->remote_ip[0] ? c->remote_ip : "127.0.0.1"));
+        json_object_set_new(co, "user_agent", json_string(c->user_agent[0] ? c->user_agent : "HTTP Client"));
         json_object_set_new(co, "connected_at", json_integer(c->connected_at));
         json_object_set_new(co, "uptime_sec", json_integer(now - c->connected_at));
         json_object_set_new(co, "bytes_sent", json_integer(c->bytes_sent));
@@ -997,6 +1012,53 @@ json_t *http_play_to_json(void) {
 
     pthread_mutex_unlock(&g_clients_mutex);
     return root;
+}
+
+bool http_play_kick_client(int client_id) {
+    bool kicked = false;
+    pthread_mutex_lock(&g_clients_mutex);
+    http_client_node_t *c = g_client_list;
+    while (c) {
+        if (c->client_id == client_id && c->active) {
+            pthread_mutex_lock(&c->lock);
+            c->active = false;
+            pthread_cond_broadcast(&c->cond);
+            pthread_mutex_unlock(&c->lock);
+            kicked = true;
+            break;
+        }
+        c = c->next;
+    }
+    pthread_mutex_unlock(&g_clients_mutex);
+    return kicked;
+}
+
+json_t *http_play_get_sessions_json(void) {
+    pthread_mutex_lock(&g_clients_mutex);
+    time_t now = time(NULL);
+    json_t *arr = json_array();
+    http_client_node_t *c = g_client_list;
+    while (c) {
+        if (c->active) {
+            json_t *co = json_object();
+            json_object_set_new(co, "id", json_integer(c->client_id));
+            json_object_set_new(co, "type", json_string("http-ts"));
+            json_object_set_new(co, "stream_id", json_string(c->stream_id));
+            json_object_set_new(co, "service_id", json_integer(c->service_id));
+            json_object_set_new(co, "remote_ip", json_string(c->remote_ip[0] ? c->remote_ip : "127.0.0.1"));
+            json_object_set_new(co, "user_agent", json_string(c->user_agent[0] ? c->user_agent : "HTTP Client"));
+            json_object_set_new(co, "connected_at", json_integer(c->connected_at));
+            int uptime = (int)(now - c->connected_at);
+            json_object_set_new(co, "uptime_sec", json_integer(uptime));
+            json_object_set_new(co, "bytes_sent", json_integer(c->bytes_sent));
+            uint32_t kbps = uptime > 0 ? (uint32_t)((c->bytes_sent * 8) / (uptime * 1000)) : 0;
+            json_object_set_new(co, "bitrate_kbps", json_integer(kbps));
+            json_array_append_new(arr, co);
+        }
+        c = c->next;
+    }
+    pthread_mutex_unlock(&g_clients_mutex);
+    return arr;
 }
 
 bool http_play_from_json(json_t *root) {

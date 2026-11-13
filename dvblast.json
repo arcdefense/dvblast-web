@@ -83,21 +83,21 @@
       "tone": 0,
       "diseqc": 0,
       "lnb_type": "",
-      "lnb_mode": "",
+      "lnb_mode": "universal",
       "uni_scr": 0,
-      "uni_pos": "",
+      "uni_pos": "A",
       "uni_frequency": 0,
       "uncommitted": 0,
       "diseqc_cmd": "",
       "satip_url": "",
-      "satip_pids": "",
+      "satip_pids": "all",
       "modulation": "",
       "multistream_id": 0,
       "lof1": 9750,
       "lof2": 10600,
       "slof": 11700,
-      "fec": 0,
-      "rolloff": 0,
+      "fec": 999,
+      "rolloff": 35,
       "buffer_size": 64
     }
   ],
@@ -116,7 +116,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_22",
@@ -132,7 +137,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_107",
@@ -148,7 +158,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_30266",
@@ -164,7 +179,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_30267",
@@ -180,7 +200,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_30268",
@@ -196,7 +221,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_30269",
@@ -212,7 +242,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_ad1_1",
@@ -228,7 +263,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_ad1_2",
@@ -244,7 +284,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_ad1_3",
@@ -260,7 +305,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_ad1_4",
@@ -276,7 +326,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_40002",
@@ -292,7 +347,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_40003",
@@ -308,7 +368,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_40001",
@@ -324,7 +389,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_40005",
@@ -340,7 +410,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_40007",
@@ -356,7 +431,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_40010",
@@ -372,7 +452,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_40004",
@@ -388,7 +473,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     },
     {
       "id": "spts_40006",
@@ -404,7 +494,12 @@
       "ttl": 64,
       "is_rtp": false,
       "pacing": true,
-      "biss_key": ""
+      "biss_key": "",
+      "backup_url": "",
+      "backup_type": 0,
+      "backup_start_delay": 5,
+      "backup_return_delay": 10,
+      "backup_active": false
     }
   ],
   "descramble": [],
@@ -414,8 +509,8 @@
     "tsdb_org": "aiastudio",
     "tsdb_token": "",
     "tsdb_interval": 60,
-    "event_request": "https://bill.aiastudio.my.id/webhook/telegram?tenant_id=1",
-    "sessions_url": "https://bill.aiastudio.my.id/webhook/telegram?tenant_id=1",
+    "event_request": "",
+    "sessions_url": "",
     "sessions_time": 10,
     "http_server_name": "AIA Custom TV Server",
     "http_access_log": "/var/log/dvblast_access.log",
@@ -453,10 +548,21 @@
     "allow_http": true,
     "allow_hls": true,
     "disable_tls": false,
-    "active_clients": 0,
-    "total_clients_served": 0,
-    "total_bytes_streamed": 0,
-    "clients": []
+    "active_clients": 1,
+    "total_clients_served": 1,
+    "total_bytes_streamed": 5545248,
+    "clients": [
+      {
+        "id": 1,
+        "stream_id": "spts_30266",
+        "service_id": 30266,
+        "remote_ip": "10.10.10.206",
+        "user_agent": "VLC/3.0.24 LibVLC/3.0.24",
+        "connected_at": 1794593620,
+        "uptime_sec": 9,
+        "bytes_sent": 5545248
+      }
+    ]
   },
   "http_auth": {
     "enabled": true,
@@ -488,12 +594,12 @@
     ]
   },
   "hls": {
-    "enabled": false,
+    "enabled": true,
     "segment_sec": 3,
     "window_size": 5,
     "storage_path": "/dev/shm/hls",
-    "total_segments_created": 2732,
-    "active_streams": 8,
+    "total_segments_created": 14,
+    "active_streams": 7,
     "naming": "asc",
     "timeout_sec": 60,
     "round_duration": false,
@@ -514,8 +620,8 @@
     "port": 10000,
     "user": "dvblast",
     "des_key": "0102030405060708091011121314",
-    "state": 5,
-    "status_msg": "Connection failed or refused",
+    "state": 0,
+    "status_msg": "CAS Disabled",
     "ecm_requests": 0,
     "cw_received": 0,
     "ecm_errors": 0,

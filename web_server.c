@@ -10,6 +10,8 @@
 #include "modules/epg/epg.h"
 #include "modules/general/general.h"
 #include "modules/groups/groups.h"
+#include "modules/ws/ws.h"
+#include "modules/analyzer/analyzer.h"
 
 #include <microhttpd.h>
 #include <jansson.h>
@@ -143,6 +145,34 @@ static int handle_get_request(struct MHD_Connection *conn, const char *url) {
     }
     if (strcmp(url, "/api/v1/modules/softcam_profiles") == 0 || strcmp(url, "/api/v1/softcam/profiles") == 0) {
         return send_json(conn, 200, web_state_softcam_profiles_to_json());
+    }
+
+    /* MPEG-TS Stream & Adapter Analyzer */
+    if (strcmp(url, "/api/v1/analyze") == 0 || strcmp(url, "/api/v1/analyzer") == 0) {
+        const char *sid_arg = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "stream_id");
+        if (!sid_arg) sid_arg = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "id");
+        const char *ad_arg = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "adapter");
+        if (!ad_arg) ad_arg = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "adapter_idx");
+
+        json_t *res = NULL;
+        if (sid_arg && *sid_arg) {
+            res = analyzer_get_stream(sid_arg);
+        } else if (ad_arg && *ad_arg) {
+            res = analyzer_get_adapter(atoi(ad_arg));
+        } else {
+            res = analyzer_get_stream(NULL);
+        }
+        return send_json(conn, 200, res);
+    }
+
+    /* Active Streaming Clients & Sessions */
+    if (strcmp(url, "/api/v1/sessions") == 0 || strcmp(url, "/api/v1/clients") == 0) {
+        return send_json(conn, 200, http_play_get_sessions_json());
+    }
+
+    /* Active WebSocket Telemetry Sessions */
+    if (strcmp(url, "/api/v1/ws/sessions") == 0) {
+        return send_json(conn, 200, ws_get_sessions_json());
     }
 
     /* Full System Configuration */
@@ -348,6 +378,8 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         const char *out = json_string_value(json_object_get(payload, "output_url"));
         const char *ip = json_string_value(json_object_get(payload, "ip"));
         const char *bk = json_string_value(json_object_get(payload, "biss_key"));
+        const char *bu = json_string_value(json_object_get(payload, "backup_url"));
+        const char *bt = json_string_value(json_object_get(payload, "backup_type"));
 
         if (!id || !*id) {
             json_decref(payload);
@@ -360,6 +392,16 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         if (in) snprintf(st.input_url, sizeof(st.input_url), "%s", in);
         if (out) snprintf(st.output_url, sizeof(st.output_url), "%s", out);
         if (bk) snprintf(st.biss_key, sizeof(st.biss_key), "%s", bk);
+        if (bu) snprintf(st.backup_url, sizeof(st.backup_url), "%s", bu);
+        if (bt) {
+            if (strcmp(bt, "http") == 0 || strcmp(bt, "hls") == 0) st.backup_type = 1;
+            else if (strcmp(bt, "udp") == 0 || strcmp(bt, "rtp") == 0) st.backup_type = 2;
+            else st.backup_type = atoi(bt);
+        } else if (bu && *bu) {
+            st.backup_type = 1;
+        }
+        st.backup_start_delay = (int)json_integer_value(json_object_get(payload, "backup_start_delay"));
+        st.backup_return_delay = (int)json_integer_value(json_object_get(payload, "backup_return_delay"));
 
         st.enabled = !json_is_false(json_object_get(payload, "enabled"));
         st.adapter_idx = (int)json_integer_value(json_object_get(payload, "adapter_idx"));
@@ -424,6 +466,20 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         bool ok = web_manager_toggle_stream(id, enabled);
         json_decref(payload);
         return ok ? send_json_ok(conn, "Stream state toggled") : send_json_error(conn, 404, "Stream not found");
+    }
+
+    if (strcmp(url, "/api/v1/sessions/kick") == 0 || strcmp(url, "/api/v1/clients/kick") == 0) {
+        int id = 0;
+        if (payload && json_is_object(payload)) {
+            id = (int)json_integer_value(json_object_get(payload, "id"));
+        }
+        if (payload) json_decref(payload);
+        if (id <= 0) {
+            return send_json_error(conn, 400, "Missing or invalid client 'id'");
+        }
+        bool ok = http_play_kick_client(id);
+        ws_kick_session(id);
+        return ok ? send_json_ok(conn, "Client disconnected") : send_json_error(conn, 404, "Session not found");
     }
 
     /* ===================================================================== */
@@ -764,6 +820,13 @@ static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
         return send_json_error(conn, 403, "Access Forbidden: Administrative privileges required");
     }
 
+    /* WebSocket Upgrade check */
+    if (ws_is_upgrade_request(conn)) {
+        if (strcmp(url, "/api/v1/ws") == 0 || strcmp(url, "/ws") == 0 || strcmp(url, "/control/event/") == 0) {
+            return ws_handle_upgrade(conn, "admin");
+        }
+    }
+
     /* Auth API */
     if (strncmp(url, "/api/v1/auth/", 13) == 0 || strncmp(url, "/auth/", 6) == 0) {
         int ret = http_auth_handle_api(conn, url, method, ctx->data);
@@ -832,10 +895,12 @@ bool web_server_start(int port, const char *host) {
     epg_init();
     general_init();
     groups_init();
+    ws_init();
+    analyzer_init();
 
     (void)host;
     g_mhd_daemon = MHD_start_daemon(
-        MHD_USE_INTERNAL_POLLING_THREAD | MHD_USE_THREAD_PER_CONNECTION,
+        MHD_USE_INTERNAL_POLLING_THREAD | MHD_USE_THREAD_PER_CONNECTION | MHD_ALLOW_UPGRADE,
         port,
         NULL, NULL,
         &http_handler, NULL,
@@ -859,6 +924,8 @@ void web_server_stop(void) {
         web_state_log("INFO", "HTTP Server stopped");
 
         /* Cleanup Submodules */
+        analyzer_cleanup();
+        ws_cleanup();
         cas_cleanup();
         hls_cleanup();
         epg_cleanup();
@@ -866,4 +933,13 @@ void web_server_stop(void) {
         http_auth_cleanup();
         softcam_cleanup();
     }
+}
+
+void web_server_broadcast_telemetry(void) {
+    json_t *root = json_object();
+    json_object_set_new(root, "system", web_state_telemetry_to_json());
+    json_object_set_new(root, "adapters", web_state_adapters_to_json());
+    json_object_set_new(root, "streams", web_state_streams_to_json());
+    ws_broadcast_json(root);
+    json_decref(root);
 }
