@@ -3652,7 +3652,8 @@
                 g_ws = null;
             }
             const proto = (location.protocol === 'https:') ? 'wss:' : 'ws:';
-            const wsUrl = `${proto}//${location.host}/api/v1/ws`;
+            const tokenParam = g_authToken ? `?token=${encodeURIComponent(g_authToken)}` : '';
+            const wsUrl = `${proto}//${location.host}/api/v1/ws${tokenParam}`;
             try {
                 g_ws = new WebSocket(wsUrl);
                 g_ws.onopen = () => {
@@ -5254,11 +5255,6 @@
                                 ttl: 16,
                                 is_rtp: outUrl.startsWith('rtp://'),
                                 pacing: true,
-                                enabled: true
-                            });
-                        }
-                    });
-                }
                                 enabled: true
                             });
                         }

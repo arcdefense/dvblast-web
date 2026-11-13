@@ -280,6 +280,9 @@ auth_result_t http_auth_check(struct MHD_Connection *conn, const char *url, cons
     if (strcmp(url, "/") == 0 ||
         strcmp(url, "/index.html") == 0 ||
         strcmp(url, "/favicon.ico") == 0 ||
+        strcmp(url, "/api/v1/ws") == 0 ||
+        strcmp(url, "/ws") == 0 ||
+        strcmp(url, "/control/event/") == 0 ||
         strcmp(url, "/api/v1/auth/login") == 0 ||
         strcmp(url, "/auth/login") == 0 ||
         strcmp(url, "/api/v1/auth/logout") == 0 ||
