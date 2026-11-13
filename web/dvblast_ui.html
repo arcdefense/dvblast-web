@@ -64,6 +64,35 @@
             --card-hover-shadow: 0 6px 16px rgba(0,0,0,0.4);
         }
 
+        .dark.theme-slate {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-card: #1e293b;
+            --bg-input: #0f172a;
+            --border-color: #334155;
+            --border-card: #475569;
+            --header-bg: #0f172a;
+            --header-border: #334155;
+            --stack-header-bg: #334155;
+            --stack-header-text: #f8fafc;
+        }
+
+        .dark.theme-cyber {
+            --bg-base: #0a0e17;
+            --bg-surface: #111927;
+            --bg-card: #131d2e;
+            --bg-input: #0a0e17;
+            --border-color: #1e2e4a;
+            --border-card: #203558;
+            --primary: #00d2ff;
+            --primary-hover: #33dcff;
+            --vlc-red: #00d2ff;
+            --header-bg: #0c1220;
+            --header-border: #1e2e4a;
+            --stack-header-bg: #1e2e4a;
+            --stack-header-text: #38bdf8;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -1472,7 +1501,7 @@
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
                 </svg>
                 <div class="brand-title">
-                    <span>DVBLAST</span>
+                    <span id="txt-brand-title">DVBLAST</span>
                     <span class="brand-badge">PRO GATEWAY</span>
                 </div>
             </div>
@@ -1557,6 +1586,9 @@
             <div class="settings-layout">
                 <!-- Settings Sidebar Submenu (Strict Typography - No Icons) -->
                 <div class="settings-sidebar">
+                    <button type="button" class="settings-nav-btn" data-subtab="interface" onclick="switchSettingSubmenu('interface')">
+                        Interface
+                    </button>
                     <button type="button" class="settings-nav-btn active" data-subtab="general" onclick="switchSettingSubmenu('general')">
                         General
                     </button>
@@ -1603,6 +1635,79 @@
                 <!-- Settings Content Panes -->
                 <div class="settings-content">
                     
+                    <!-- 0. INTERFACE MODULE -->
+                    <div id="subtab-interface" class="settings-pane">
+                        <div class="settings-section-header">
+                            <div>
+                                <div class="settings-section-title">Web Interface &amp; Dashboard</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Custom title, visual appearance, dashboard groupings, and stream sorting filters.</div>
+                            </div>
+                            <span class="badge badge-info">MODULE: INTERFACE</span>
+                        </div>
+
+                        <div class="settings-grid-2">
+                            <div class="settings-card">
+                                <div class="form-group">
+                                    <label class="form-label">Web Interface Name / Title</label>
+                                    <input type="text" class="form-input" id="cfg-ui-title" placeholder="DVBlast Web Gateway" oninput="applyInterfaceTitle(this.value)">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Theme Appearance</label>
+                                    <select class="form-select" id="cfg-ui-theme" onchange="applyInterfaceTheme(this.value)">
+                                        <option value="dark">Default Dark (Studio)</option>
+                                        <option value="slate">Slate Modern</option>
+                                        <option value="cyber">Cyber DVB</option>
+                                        <option value="light">Classic Light</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label class="form-label">Dashboard Arrange By</label>
+                                    <select class="form-select" id="cfg-ui-arrange" onchange="applyDashboardPreferences()">
+                                        <option value="">Default: Adapter Tuner View</option>
+                                        <option value="category">Category / Group View</option>
+                                        <option value="type">Stream Type (SPTS / MPTS)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div style="font-weight: 700; font-size: 13px; margin-bottom: 12px;">Dashboard Filtering &amp; Ordering</div>
+                                <div class="form-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="cfg-ui-hide-disabled" onchange="applyDashboardPreferences()">
+                                        <span>Hide disabled items</span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="cfg-ui-hide-inactive" onchange="applyDashboardPreferences()">
+                                        <span>Hide inactive items (bitrate 0 Mbps)</span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="cfg-ui-hide-no-error" onchange="applyDashboardPreferences()">
+                                        <span>Hide items without error</span>
+                                    </label>
+                                </div>
+                                <div class="settings-divider"></div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label class="form-label">Order By</label>
+                                    <select class="form-select" id="cfg-ui-order" onchange="applyDashboardPreferences()">
+                                        <option value="">Default: Adapter and SID</option>
+                                        <option value="name">Channel Name</option>
+                                        <option value="sid">LCN / Service ID</option>
+                                        <option value="bitrate">Bitrate (Descending)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                            <button class="btn btn-primary" onclick="saveInterfaceSettings()">Apply Settings</button>
+                        </div>
+                    </div>
+
                     <!-- 1. GENERAL MODULE -->
                     <div id="subtab-general" class="settings-pane active">
                         <div class="settings-section-header">
@@ -1845,11 +1950,13 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th style="width: 200px;">Login</th>
+                                        <th style="width: 140px;">Login</th>
                                         <th>Comment</th>
-                                        <th style="width: 150px;">Type</th>
-                                        <th style="width: 150px;">Created</th>
-                                        <th style="width: 100px;">Status</th>
+                                        <th style="width: 110px;">Type</th>
+                                        <th style="width: 130px;">Token</th>
+                                        <th style="width: 110px;">IP Binding</th>
+                                        <th style="width: 120px;">Expiration</th>
+                                        <th style="width: 90px;">Status</th>
                                         <th style="text-align: right; width: 120px;">Actions</th>
                                     </tr>
                                 </thead>
@@ -2397,6 +2504,7 @@
                                     <span style="color: var(--vlc-red);">Remove Category</span>
                                 </label>
                                 <div style="display: flex; gap: 8px; margin-left: auto;">
+                                    <button type="button" class="btn btn-secondary btn-sm" id="btn-group-streams" onclick="openCategoryStreamsModal()" style="display: none;">Streams</button>
                                     <button class="btn btn-primary btn-sm" onclick="saveCategory()">Apply</button>
                                 </div>
                             </div>
@@ -3054,6 +3162,10 @@
                     <input type="text" class="form-input" id="st-name" placeholder="e.g. RCTI HD">
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Category / Group</label>
+                    <input type="text" class="form-input" id="st-groups" placeholder="e.g. Entertainment, News, Sports">
+                </div>
+                <div class="form-group">
                     <label class="form-label">Source Selection</label>
                     <select class="form-select" id="st-source-select" onchange="onStreamSourceChange()">
                         <option value="manual">Custom Source URL (Manual)</option>
@@ -3278,17 +3390,29 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Token</label>
-                        <input type="text" class="form-input" id="user-token" placeholder="Optional token">
+                        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Token</span>
+                            <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 6px; font-size:10.5px;" onclick="generateUserToken()">Generate</button>
+                        </label>
+                        <input type="text" class="form-input" id="user-token" placeholder="Permanent streaming token">
                     </div>
                 </div>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label">Allowed IP</label>
-                        <input type="text" class="form-input" id="user-ip" placeholder="e.g. 192.168.1.50">
+                        <label class="form-label">Allowed IP / CIDR</label>
+                        <input type="text" class="form-input" id="user-ip" placeholder="e.g. 192.168.1.50 or 10.0.0.0/8">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Expiration (YYYY-MM-DD)</label>
+                        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Expiration</span>
+                            <span style="display:flex; gap:3px;">
+                                <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 4px; font-size:10px;" onclick="addUserExpireDays(1)">+1d</button>
+                                <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 4px; font-size:10px;" onclick="addUserExpireDays(7)">+1w</button>
+                                <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 4px; font-size:10px;" onclick="addUserExpireDays(30)">+1m</button>
+                                <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 4px; font-size:10px;" onclick="addUserExpireDays(365)">+1y</button>
+                                <button type="button" class="btn btn-secondary btn-sm" style="padding:1px 4px; font-size:10px;" onclick="clearUserExpire()">Clear</button>
+                            </span>
+                        </label>
                         <input type="date" class="form-input" id="user-expire">
                     </div>
                 </div>
@@ -3297,6 +3421,35 @@
                     <button type="submit" class="btn btn-primary">Save User</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ASSIGN STREAMS TO GROUP -->
+    <div class="modal-overlay" id="modal-cat-streams">
+        <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-cat-streams-title">Assign Streams to Group</h3>
+                <button class="modal-close" onclick="closeCatStreamsModal()">&times;</button>
+            </div>
+            <div style="padding: 10px 0;">
+                <div class="form-group">
+                    <label class="form-label">Category: <strong id="cat-streams-cat-name" style="color:var(--vlc-orange);"></strong> &bull; Target Group:</label>
+                    <select class="form-select" id="cat-streams-group-select" onchange="onCatGroupSelected()">
+                        <!-- populated dynamically -->
+                    </select>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Check channels belonging to this group:</div>
+                <div id="cat-streams-list" style="max-height: 320px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px; display: flex; flex-direction: column; gap: 6px;">
+                    <!-- dynamic stream checkboxes -->
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 12px;">
+                <button type="button" class="btn btn-sm btn-secondary" onclick="selectAllCatStreams(true)">Select All</button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn" onclick="closeCatStreamsModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="applyCatStreamsAssignment()">Apply Mapping</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -3594,22 +3747,20 @@
 
         // Theme Toggle (Strict Typography - No Icons)
         function initTheme() {
-            const saved = localStorage.getItem('dvblast_theme');
-            const icon = document.getElementById('theme-icon');
-            if (saved === 'dark') {
-                document.documentElement.classList.add('dark');
-                if (icon) icon.textContent = 'LIGHT';
-            } else {
-                document.documentElement.classList.remove('dark');
-                if (icon) icon.textContent = 'DARK';
-            }
+            const savedTheme = localStorage.getItem('dvblast_theme') || 'dark';
+            applyInterfaceTheme(savedTheme);
+            const savedTitle = localStorage.getItem('dvblast_ui_title') || '';
+            if (savedTitle) applyInterfaceTitle(savedTitle);
         }
 
         function toggleTheme() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('dvblast_theme', isDark ? 'dark' : 'light');
-            const icon = document.getElementById('theme-icon');
-            if (icon) icon.textContent = isDark ? 'LIGHT' : 'DARK';
+            const currentTheme = localStorage.getItem('dvblast_theme') || 'dark';
+            const newTheme = (currentTheme === 'light') ? 'dark' : 'light';
+            localStorage.setItem('dvblast_theme', newTheme);
+            applyInterfaceTheme(newTheme);
+            if (document.getElementById('cfg-ui-theme')) {
+                document.getElementById('cfg-ui-theme').value = newTheme;
+            }
         }
         initTheme();
 
@@ -3828,7 +3979,9 @@
         // Load settings per module
         async function loadModuleSettings(subTabId) {
             try {
-                if (subTabId === 'general') {
+                if (subTabId === 'interface') {
+                    loadInterfaceSettings();
+                } else if (subTabId === 'general') {
                     const res = await authFetch('/api/v1/modules/general');
                     if (res.ok) {
                         const d = await res.json();
@@ -3915,6 +4068,22 @@
                         if (d.disable_tls !== undefined && document.getElementById('cfg-http-play-disable-tls')) {
                             document.getElementById('cfg-http-play-disable-tls').checked = !!d.disable_tls;
                         }
+                        if (d.screenshots_path !== undefined && document.getElementById('cfg-http-play-screenshots')) {
+                            document.getElementById('cfg-http-play-screenshots').value = d.screenshots_path;
+                        }
+                        if (document.getElementById('cfg-http-play-arrange')) {
+                            const arrSel = document.getElementById('cfg-http-play-arrange');
+                            arrSel.innerHTML = '<option value="">Default (Order by ID)</option>';
+                            if (g_categories && g_categories.length) {
+                                g_categories.forEach(c => {
+                                    const opt = document.createElement('option');
+                                    opt.value = c.name;
+                                    opt.textContent = c.name;
+                                    arrSel.appendChild(opt);
+                                });
+                            }
+                            if (d.playlist_arrange) arrSel.value = d.playlist_arrange;
+                        }
 
                         updateHttpPlayLinks();
                         renderHttpPlayClients(d);
@@ -3955,6 +4124,81 @@
             } catch (err) {
                 console.error("Failed loading settings for " + subTabId, err);
             }
+        }
+
+        // Interface Settings
+        function loadInterfaceSettings() {
+            const title = localStorage.getItem('dvblast_ui_title') || '';
+            const theme = localStorage.getItem('dvblast_theme') || 'dark';
+            const arrange = localStorage.getItem('dvblast_ui_arrange') || '';
+            const hideDisabled = localStorage.getItem('dvblast_ui_hide_disabled') === 'true';
+            const hideInactive = localStorage.getItem('dvblast_ui_hide_inactive') === 'true';
+            const hideNoError = localStorage.getItem('dvblast_ui_hide_no_error') === 'true';
+            const order = localStorage.getItem('dvblast_ui_order') || '';
+
+            if (document.getElementById('cfg-ui-title')) document.getElementById('cfg-ui-title').value = title;
+            if (document.getElementById('cfg-ui-theme')) document.getElementById('cfg-ui-theme').value = theme;
+            if (document.getElementById('cfg-ui-arrange')) document.getElementById('cfg-ui-arrange').value = arrange;
+            if (document.getElementById('cfg-ui-hide-disabled')) document.getElementById('cfg-ui-hide-disabled').checked = hideDisabled;
+            if (document.getElementById('cfg-ui-hide-inactive')) document.getElementById('cfg-ui-hide-inactive').checked = hideInactive;
+            if (document.getElementById('cfg-ui-hide-no-error')) document.getElementById('cfg-ui-hide-no-error').checked = hideNoError;
+            if (document.getElementById('cfg-ui-order')) document.getElementById('cfg-ui-order').value = order;
+
+            applyInterfaceTitle(title);
+            applyInterfaceTheme(theme);
+        }
+
+        function saveInterfaceSettings() {
+            const title = document.getElementById('cfg-ui-title')?.value?.trim() || '';
+            const theme = document.getElementById('cfg-ui-theme')?.value || 'dark';
+            const arrange = document.getElementById('cfg-ui-arrange')?.value || '';
+            const hideDisabled = !!document.getElementById('cfg-ui-hide-disabled')?.checked;
+            const hideInactive = !!document.getElementById('cfg-ui-hide-inactive')?.checked;
+            const hideNoError = !!document.getElementById('cfg-ui-hide-no-error')?.checked;
+            const order = document.getElementById('cfg-ui-order')?.value || '';
+
+            localStorage.setItem('dvblast_ui_title', title);
+            localStorage.setItem('dvblast_theme', theme);
+            localStorage.setItem('dvblast_ui_arrange', arrange);
+            localStorage.setItem('dvblast_ui_hide_disabled', String(hideDisabled));
+            localStorage.setItem('dvblast_ui_hide_inactive', String(hideInactive));
+            localStorage.setItem('dvblast_ui_hide_no_error', String(hideNoError));
+            localStorage.setItem('dvblast_ui_order', order);
+
+            applyInterfaceTitle(title);
+            applyInterfaceTheme(theme);
+            applyDashboardPreferences();
+
+            showToast("Interface preferences saved");
+        }
+
+        function applyInterfaceTitle(val) {
+            const finalTitle = val || "DVBlast Web Gateway";
+            document.title = `${finalTitle} - Professional DVB/IP Gateway`;
+            const brandEl = document.getElementById('txt-brand-title');
+            if (brandEl) brandEl.textContent = val ? val.toUpperCase() : "DVBLAST";
+        }
+
+        function applyInterfaceTheme(val) {
+            document.documentElement.classList.remove('dark', 'theme-slate', 'theme-cyber');
+            const icon = document.getElementById('theme-icon');
+            if (val === 'light') {
+                if (icon) icon.textContent = 'DARK';
+            } else if (val === 'slate') {
+                document.documentElement.classList.add('dark', 'theme-slate');
+                if (icon) icon.textContent = 'LIGHT';
+            } else if (val === 'cyber') {
+                document.documentElement.classList.add('dark', 'theme-cyber');
+                if (icon) icon.textContent = 'LIGHT';
+            } else {
+                document.documentElement.classList.add('dark');
+                if (icon) icon.textContent = 'LIGHT';
+            }
+        }
+
+        function applyDashboardPreferences() {
+            g_renderedKeys = ''; // force re-render
+            renderDashboardCards();
         }
 
         // Save General Settings
@@ -4012,6 +4256,8 @@
                 disable_tls: !!document.getElementById('cfg-http-play-disable-tls')?.checked,
                 buffer_kb: parseInt(document.getElementById('cfg-http-play-buffer')?.value || "2048", 10),
                 tv_logos_path: document.getElementById('cfg-http-play-logos')?.value || "",
+                screenshots_path: document.getElementById('cfg-http-play-screenshots')?.value || "",
+                playlist_arrange: document.getElementById('cfg-http-play-arrange')?.value || "",
                 m3u_header: document.getElementById('cfg-http-play-m3u-hdr')?.value || "",
                 xspf_title: document.getElementById('cfg-http-play-xspf-title')?.value || "DVBlast Web Gateway"
             };
@@ -4138,11 +4384,13 @@
             const nameInput = document.getElementById('group-cat-name');
             const container = document.getElementById('group-items-container');
             const lblRemove = document.getElementById('lbl-group-remove');
+            const btnStreams = document.getElementById('btn-group-streams');
             container.innerHTML = '';
 
             if (sel.value === '-') {
                 nameInput.value = '';
                 if (lblRemove) lblRemove.style.display = 'none';
+                if (btnStreams) btnStreams.style.display = 'none';
                 addGroupRow('');
             } else {
                 const idx = parseInt(sel.value, 10);
@@ -4150,6 +4398,7 @@
                 if (cat) {
                     nameInput.value = cat.name;
                     if (lblRemove) lblRemove.style.display = 'block';
+                    if (btnStreams) btnStreams.style.display = 'inline-block';
                     if (cat.groups && cat.groups.length) {
                         cat.groups.forEach(g => addGroupRow(g.name || g));
                     } else {
@@ -4211,6 +4460,110 @@
             }
         }
 
+        // Category Groups Stream Assignment Modal Handlers
+        let g_catStreamsSelectedCategory = null;
+
+        function openCategoryStreamsModal() {
+            const sel = document.getElementById('group-cat-select');
+            if (!sel || sel.value === '-') {
+                showToast("Please select a saved category first", true);
+                return;
+            }
+            const idx = parseInt(sel.value, 10);
+            const cat = g_categories[idx];
+            if (!cat) return;
+            g_catStreamsSelectedCategory = cat;
+
+            document.getElementById('cat-streams-cat-name').textContent = cat.name;
+            const grpSel = document.getElementById('cat-streams-group-select');
+            grpSel.innerHTML = '';
+
+            const groups = (cat.groups && cat.groups.length) ? cat.groups.map(g => (typeof g === 'object' ? g.name : g)).filter(Boolean) : [];
+            if (groups.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = cat.name;
+                opt.textContent = cat.name;
+                grpSel.appendChild(opt);
+            } else {
+                groups.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g;
+                    opt.textContent = g;
+                    grpSel.appendChild(opt);
+                });
+            }
+
+            renderCatStreamsCheckboxes();
+            document.getElementById('modal-cat-streams')?.classList.add('open');
+        }
+
+        function closeCatStreamsModal() {
+            document.getElementById('modal-cat-streams')?.classList.remove('open');
+        }
+
+        function onCatGroupSelected() {
+            renderCatStreamsCheckboxes();
+        }
+
+        function renderCatStreamsCheckboxes() {
+            const listEl = document.getElementById('cat-streams-list');
+            const targetGroup = document.getElementById('cat-streams-group-select')?.value || '';
+            if (!listEl) return;
+
+            if (!g_streams || g_streams.length === 0) {
+                listEl.innerHTML = '<div style="color:var(--text-muted); padding:10px; text-align:center;">No streams configured in gateway</div>';
+                return;
+            }
+
+            const sorted = [...g_streams].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+
+            listEl.innerHTML = sorted.map(st => {
+                const assigned = (st.groups && st.groups === targetGroup);
+                const curGroup = st.groups ? `<span style="font-size:11px; color:var(--text-muted); margin-left:6px;">[Current: ${escapeHtml(st.groups)}]</span>` : '';
+                return `
+                    <label style="display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:4px; cursor:pointer;" class="cat-stream-item">
+                        <input type="checkbox" class="cat-stream-chk" data-stream-id="${escapeHtml(st.id)}" ${assigned ? 'checked' : ''}>
+                        <span style="font-size:13px; font-weight:500;">${escapeHtml(st.name || st.id)}</span>
+                        ${curGroup}
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function selectAllCatStreams(check) {
+            document.querySelectorAll('.cat-stream-chk').forEach(chk => {
+                chk.checked = check;
+            });
+        }
+
+        async function applyCatStreamsAssignment() {
+            const targetGroup = document.getElementById('cat-streams-group-select')?.value || '';
+            const checkedIds = [];
+            document.querySelectorAll('.cat-stream-chk:checked').forEach(chk => {
+                checkedIds.push(chk.dataset.streamId);
+            });
+
+            try {
+                const res = await authFetch('/api/v1/categories/assign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        group: targetGroup,
+                        stream_ids: checkedIds
+                    })
+                });
+                if (res.ok) {
+                    showToast(`Updated streams assigned to group "${targetGroup}"`);
+                    closeCatStreamsModal();
+                    pollState();
+                } else {
+                    showToast("Failed to assign streams to group", true);
+                }
+            } catch (e) {
+                showToast("Connection error assigning stream groups", true);
+            }
+        }
+
         // Restart Modal Handlers
         function openRestartModal() {
             document.getElementById('modal-restart')?.classList.add('open');
@@ -4237,8 +4590,8 @@
                     g_authUsers = res.users;
                 } else {
                     g_authUsers = [
-                        { username: 'admin', role: 'admin', enabled: true },
-                        { username: 'viewer', role: 'viewer', enabled: true }
+                        { username: 'admin', role: 'admin', enabled: true, comment: 'System Administrator', token: 'admin_master_token' },
+                        { username: 'viewer', role: 'viewer', enabled: true, comment: 'Default Viewer' }
                     ];
                 }
                 renderUsersTable();
@@ -4251,42 +4604,96 @@
             const tbody = document.getElementById('tbody-users');
             if (!tbody) return;
             if (!g_authUsers.length) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:20px;">No users configured</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:20px;">No users configured</td></tr>';
                 return;
             }
             tbody.innerHTML = g_authUsers.map((u) => {
                 const isBuiltin = (u.username === 'admin' || u.username === 'arc');
-                const roleLabel = (u.role === 'admin') ? 'Administrator' : 'Observer';
+                const roleLabel = (u.role === 'admin') ? 'Administrator' : ((u.role === 'viewer') ? 'Observer' : 'User');
                 const statusBadge = u.enabled ? '<span class="badge badge-success">ACTIVE</span>' : '<span class="badge badge-danger">DISABLED</span>';
-                const comment = isBuiltin ? 'Built-in System Account' : (u.comment || 'Custom Account');
+                const comment = u.comment || (isBuiltin ? 'Built-in System Account' : 'Custom Account');
+                let expireLabel = '<span style="color:var(--text-muted);">Permanent</span>';
+                if (u.expire > 0) {
+                    const now = Math.floor(Date.now() / 1000);
+                    const d = new Date(u.expire * 1000);
+                    const ds = d.toLocaleDateString();
+                    if (now > u.expire) {
+                        expireLabel = `<span class="text-danger" style="font-weight:600;">Expired (${ds})</span>`;
+                    } else {
+                        expireLabel = `<span style="color:var(--text-main); font-weight:500;">${ds}</span>`;
+                    }
+                }
+                const tok = u.token ? `<code style="font-size:11px; background:var(--bg-card); padding:2px 4px; border-radius:3px;">${escapeHtml(u.token.substring(0, 10))}...</code>` : '<span style="color:var(--text-muted);">-</span>';
+                const ipBind = u.ip ? `<span style="font-size:11.5px; font-family:monospace;">${escapeHtml(u.ip)}</span>` : '<span style="color:var(--text-muted);">Any</span>';
+                const safeUserJson = escapeHtml(JSON.stringify(u));
+
                 return `<tr>
                     <td style="font-weight: 600;">${escapeHtml(u.username)}</td>
                     <td>${escapeHtml(comment)}</td>
                     <td>${roleLabel}</td>
-                    <td>Permanent</td>
+                    <td>${tok}</td>
+                    <td>${ipBind}</td>
+                    <td>${expireLabel}</td>
                     <td>${statusBadge}</td>
                     <td style="text-align: right;">
-                        <button class="btn btn-sm" onclick="editUser('${escapeHtml(u.username)}', '${escapeHtml(comment)}', '${u.role === 'admin' ? '1' : '2'}', ${u.enabled})">Edit</button>
+                        <button class="btn btn-sm" onclick='editUserDirect(${safeUserJson})'>Edit</button>
                         ${!isBuiltin ? `<button class="btn btn-sm text-danger" style="margin-left: 4px;" onclick="deleteUser('${escapeHtml(u.username)}')">Delete</button>` : ''}
                     </td>
                 </tr>`;
             }).join('');
         }
 
-        function openUserModal(login = '', comment = '', type = '1', enable = true) {
+        function openUserModal(login = '', comment = '', type = '1', enable = true, token = '', ip = '', expire = 0) {
             document.getElementById('user-login').value = login;
             document.getElementById('user-pass').value = '';
-            document.getElementById('user-comment').value = comment;
+            document.getElementById('user-comment').value = comment || '';
             document.getElementById('user-type').value = type;
             document.getElementById('user-enable').checked = enable;
+            document.getElementById('user-token').value = token || '';
+            document.getElementById('user-ip').value = ip || '';
+
+            if (expire > 0) {
+                const d = new Date(expire * 1000);
+                const ds = d.toISOString().split('T')[0];
+                document.getElementById('user-expire').value = ds;
+            } else {
+                document.getElementById('user-expire').value = '';
+            }
+
             document.getElementById('modal-user-title').textContent = login ? `Edit User: ${login}` : 'New User';
             document.getElementById('modal-user')?.classList.add('open');
         }
+
         function closeUserModal() {
             document.getElementById('modal-user')?.classList.remove('open');
         }
+
+        function editUserDirect(u) {
+            if (!u) return;
+            const typeVal = (u.role === 'admin') ? '1' : ((u.role === 'viewer') ? '2' : '3');
+            openUserModal(u.username, u.comment, typeVal, u.enabled !== false, u.token, u.ip, u.expire);
+        }
+
         function editUser(login, comment, type, enable) {
             openUserModal(login, comment, type, enable);
+        }
+
+        function addUserExpireDays(days) {
+            const inp = document.getElementById('user-expire');
+            let cur = inp.value ? new Date(inp.value) : new Date();
+            cur.setDate(cur.getDate() + days);
+            inp.value = cur.toISOString().split('T')[0];
+        }
+
+        function clearUserExpire() {
+            document.getElementById('user-expire').value = '';
+        }
+
+        function generateUserToken() {
+            const arr = new Uint8Array(16);
+            crypto.getRandomValues(arr);
+            const tok = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+            document.getElementById('user-token').value = tok;
         }
 
         async function handleUserSubmit(e) {
@@ -4296,32 +4703,47 @@
             const type = document.getElementById('user-type').value;
             const enable = document.getElementById('user-enable').checked;
             const comment = document.getElementById('user-comment').value.trim();
+            const token = document.getElementById('user-token').value.trim();
+            const ip = document.getElementById('user-ip').value.trim();
+            const expireStr = document.getElementById('user-expire').value;
+            let expireTs = 0;
+            if (expireStr) {
+                expireTs = Math.floor(new Date(expireStr + 'T23:59:59').getTime() / 1000);
+            }
 
             if (!login) { showToast("Login name is required", true); return; }
 
-            const role = (type === '1') ? 'admin' : 'viewer';
-            const existingIdx = g_authUsers.findIndex(u => u.username === login);
+            const role = (type === '1') ? 'admin' : (type === '2' ? 'viewer' : 'user');
             const userObj = {
                 username: login,
                 role: role,
                 enabled: enable,
-                comment: comment
+                comment: comment,
+                token: token,
+                ip: ip,
+                expire: expireTs
             };
             if (pass) userObj.password = pass;
 
+            const existingIdx = g_authUsers.findIndex(u => u.username === login);
             if (existingIdx >= 0) {
                 g_authUsers[existingIdx] = Object.assign({}, g_authUsers[existingIdx], userObj);
             } else {
                 g_authUsers.push(userObj);
             }
 
-            const payload = {
-                enabled: true,
-                expiry_hours: 24,
-                users: g_authUsers
-            };
+            let authCfg = { enabled: true, expiry_hours: 24 };
+            try {
+                const curRes = await authFetch('/api/v1/modules/http_auth');
+                if (curRes.ok) {
+                    const existing = await curRes.json();
+                    authCfg = Object.assign({}, existing);
+                }
+            } catch(e) {}
 
-            const res = await apiPost('/api/v1/modules/http_auth', payload);
+            authCfg.users = g_authUsers;
+
+            const res = await apiPost('/api/v1/modules/http_auth', authCfg);
             closeUserModal();
             if (res && res.ok) {
                 showToast("User account saved successfully");
@@ -4334,12 +4756,15 @@
         async function deleteUser(username) {
             if (!confirm(`Are you sure you want to delete user '${username}'?`)) return;
             g_authUsers = g_authUsers.filter(u => u.username !== username);
-            const payload = {
-                enabled: true,
-                expiry_hours: 24,
-                users: g_authUsers
-            };
-            const res = await apiPost('/api/v1/modules/http_auth', payload);
+
+            let authCfg = { enabled: true, expiry_hours: 24 };
+            try {
+                const curRes = await authFetch('/api/v1/modules/http_auth');
+                if (curRes.ok) authCfg = Object.assign({}, await curRes.json());
+            } catch(e) {}
+
+            authCfg.users = g_authUsers;
+            const res = await apiPost('/api/v1/modules/http_auth', authCfg);
             if (res && res.ok) {
                 showToast(`User '${username}' deleted`);
                 loadUsers();
@@ -4712,20 +5137,35 @@
             showToast("Importing streams...");
 
             let importedList = [];
+            const existingIds = new Set((g_streams || []).map(s => s.id));
+            let autoSid = 101;
+            while ((g_streams || []).some(s => s.service_id === autoSid)) autoSid++;
+
+            function getUniqueStreamId(baseId) {
+                let id = baseId;
+                let counter = 1;
+                while (existingIds.has(id) || importedList.some(item => item.id === id)) {
+                    id = `${baseId}_${counter++}`;
+                }
+                return id;
+            }
+
             try {
                 if (format === 'm3u') {
                     const lines = content.split('\n');
                     let curName = '';
                     let curSid = 0;
-                    let autoSid = 101;
+                    let curGroup = '';
                     for (let i = 0; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (!line) continue;
                         if (line.startsWith('#EXTINF:')) {
-                            const nameMatch = line.match(/tvg-name="([^"]+)"/);
+                            const grpMatch = line.match(/group-title="([^"]+)"/i);
+                            curGroup = grpMatch ? grpMatch[1] : '';
+                            const nameMatch = line.match(/tvg-name="([^"]+)"/i);
                             const commaIdx = line.lastIndexOf(',');
                             curName = commaIdx >= 0 ? line.substring(commaIdx + 1).trim() : (nameMatch ? nameMatch[1] : 'Channel');
-                            const sidMatch = line.match(/(?:service_id|pnr|sid)="?(\d+)"?/i);
+                            const sidMatch = line.match(/(?:service_id|pnr|sid|tvg-id)="?(\d+)"?/i);
                             curSid = sidMatch ? parseInt(sidMatch[1], 10) : autoSid++;
                         } else if (!line.startsWith('#')) {
                             const url = line;
@@ -4737,12 +5177,14 @@
                                 ip = mcast[1];
                                 port = parseInt(mcast[2], 10);
                             }
+                            const stId = getUniqueStreamId(`spts_${sid}_imp`);
                             importedList.push({
-                                id: `spts_${sid}_imp`,
+                                id: stId,
                                 name: curName || `Imported ${sid}`,
                                 type: 'spts',
                                 adapter_idx: adapterIdx,
                                 service_id: sid,
+                                groups: curGroup,
                                 input_url: `dvb://#adapter=${adapterIdx}&pnr=${sid}`,
                                 output_url: `${url.startsWith('rtp://') ? 'rtp' : 'udp'}://${ip}:${port}`,
                                 ip: ip,
@@ -4754,19 +5196,26 @@
                             });
                             curName = '';
                             curSid = 0;
+                            curGroup = '';
                         }
                     }
                 } else if (format === 'aiastudio') {
                     const parsed = JSON.parse(content);
                     const rawList = Array.isArray(parsed) ? parsed : (parsed.streams || []);
                     rawList.forEach((s, idx) => {
-                        const sid = s.service_id || (idx + 101);
+                        const sid = s.service_id || autoSid++;
+                        let grp = s.groups || s.group || '';
+                        if (typeof grp === 'object' && grp !== null) {
+                            grp = Object.values(grp)[0] || '';
+                        }
+                        const stId = getUniqueStreamId(s.id || `stream_${sid}_imp`);
                         importedList.push({
-                            id: s.id || `stream_${sid}_imp`,
+                            id: stId,
                             name: s.name || `Imported ${sid}`,
                             type: s.type || 'spts',
                             adapter_idx: s.adapter_idx !== undefined ? s.adapter_idx : adapterIdx,
                             service_id: sid,
+                            groups: grp,
                             input_url: s.input_url || `dvb://#adapter=${adapterIdx}&pnr=${sid}`,
                             output_url: s.output_url || `udp://239.1.2.${sid % 200}:1234`,
                             ip: s.ip || `239.1.2.${sid % 200}`,
@@ -4779,23 +5228,25 @@
                     });
                 } else if (format === 'csv') {
                     const lines = content.split('\n');
-                    let autoSid = 101;
-                    lines.forEach((line, idx) => {
+                    lines.forEach((line) => {
                         const parts = line.split(',').map(s => s.trim());
                         if (parts.length >= 2 && parts[0] && !parts[0].toLowerCase().includes('name')) {
                             const nm = parts[0];
                             const sid = parseInt(parts[1], 10) || autoSid++;
                             const outUrl = parts[2] || `udp://239.1.2.${sid % 200}:1234`;
+                            const grp = parts[3] || '';
                             let ip = `239.1.2.${sid % 200}`;
                             let port = 1234;
                             const mcast = outUrl.match(/(?:udp|rtp):\/\/@?([0-9\.]+):(\d+)/);
                             if (mcast) { ip = mcast[1]; port = parseInt(mcast[2], 10); }
+                            const stId = getUniqueStreamId(`spts_${sid}_imp`);
                             importedList.push({
-                                id: `spts_${sid}_imp`,
+                                id: stId,
                                 name: nm,
                                 type: 'spts',
                                 adapter_idx: adapterIdx,
                                 service_id: sid,
+                                groups: grp,
                                 input_url: `dvb://#adapter=${adapterIdx}&pnr=${sid}`,
                                 output_url: outUrl,
                                 ip: ip,
@@ -4803,6 +5254,11 @@
                                 ttl: 16,
                                 is_rtp: outUrl.startsWith('rtp://'),
                                 pacing: true,
+                                enabled: true
+                            });
+                        }
+                    });
+                }
                                 enabled: true
                             });
                         }
@@ -5026,7 +5482,7 @@
 
         let g_renderedKeys = '';
 
-        // Render Dashboard Cards (Uniform Card Grid per Transponder)
+        // Render Dashboard Cards (Uniform Card Grid per Transponder / Category / Type)
         function renderDashboardCards() {
             const totalCount = g_adapters.length + g_streams.length;
             const emptyEl = document.getElementById('empty-dashboard');
@@ -5041,57 +5497,104 @@
 
             if (emptyEl) emptyEl.style.display = 'none';
 
-            const currentKeys = g_adapters.map(a => `${a.id}:${a.name}:${(a.channels||[]).length}`).join(',') + '|' +
-                                g_streams.map(s => `${s.id}:${s.adapter_idx}:${s.name}`).join(',');
+            // User Display Preferences
+            const hideDisabled = localStorage.getItem('dvblast_ui_hide_disabled') === 'true';
+            const hideInactive = localStorage.getItem('dvblast_ui_hide_inactive') === 'true';
+            const hideNoError = localStorage.getItem('dvblast_ui_hide_no_error') === 'true';
+            const arrange = localStorage.getItem('dvblast_ui_arrange') || '';
+            const order = localStorage.getItem('dvblast_ui_order') || '';
+
+            // Filter adapters
+            let filteredAdapters = g_adapters.filter(ad => {
+                if (hideDisabled && ad.enabled === false) return false;
+                const br = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0));
+                if (hideInactive && br <= 0) return false;
+                if (hideNoError && ad.locked) return false;
+                return true;
+            });
+
+            // Filter streams
+            let filteredStreams = g_streams.filter(st => {
+                if (hideDisabled && st.enabled === false) return false;
+                const br = (st.bitrate_mbps || (st.bitrate_bps ? st.bitrate_bps / 1e6 : 0));
+                if (hideInactive && br <= 0) return false;
+                if (hideNoError && br > 0) return false;
+                return true;
+            });
+
+            // Sort streams
+            if (order === 'name') {
+                filteredStreams.sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+            } else if (order === 'sid') {
+                filteredStreams.sort((a, b) => (a.service_id || 0) - (b.service_id || 0));
+            } else if (order === 'bitrate') {
+                filteredStreams.sort((a, b) => ((b.bitrate_mbps || (b.bitrate_bps ? b.bitrate_bps / 1e6 : 0)) - (a.bitrate_mbps || (a.bitrate_bps ? a.bitrate_bps / 1e6 : 0))));
+            }
+
+            const currentKeys = `${hideDisabled}:${hideInactive}:${hideNoError}:${arrange}:${order}|` +
+                                filteredAdapters.map(a => `${a.id}:${a.name}:${(a.channels||[]).length}`).join(',') + '|' +
+                                filteredStreams.map(s => `${s.id}:${s.adapter_idx}:${s.name}:${s.groups}`).join(',');
 
             if (currentKeys !== g_renderedKeys) {
                 g_renderedKeys = currentKeys;
                 let html = '';
 
-                // Group by Adapter (Each adapter is a clean .card-stack with data-header)
-                g_adapters.forEach(ad => {
-                    const adapterStreams = g_streams.filter(st => st.adapter_idx === ad.adapter_idx);
-                    const fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
-                    const inBr = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
-                    const isSatIp = (ad.delsys === 'SATIP');
-                    let subInfo = `${ad.delsys || 'DVB-T2'} @ ${fMhz} MHz`;
-                    if (isSatIp) {
-                        subInfo = `SAT&gt;IP (${escapeHtml(ad.satip_url || 'Network')})`;
-                    } else if (ad.lnb_mode === 'unicable_10') {
-                        subInfo = `${ad.delsys} @ ${fMhz} MHz (Unicable I UB${ad.uni_scr || 1} ${ad.uni_frequency || 1210}MHz)`;
-                    } else if (ad.lnb_mode === 'unicable_20') {
-                        subInfo = `${ad.delsys} @ ${fMhz} MHz (Unicable II UB${ad.uni_scr || 1} ${ad.uni_frequency || 1210}MHz)`;
+                if (arrange === 'category') {
+                    // Group by Stream Category / Group
+                    const groupMap = {};
+                    filteredStreams.forEach(st => {
+                        const grpName = (st.groups && st.groups.trim()) ? st.groups.trim() : 'Uncategorized';
+                        if (!groupMap[grpName]) groupMap[grpName] = [];
+                        groupMap[grpName].push(st);
+                    });
+
+                    // Tuners stack
+                    if (filteredAdapters.length > 0) {
+                        html += `
+                            <div class="card-stack" data-header="HARDWARE ADAPTERS / TUNERS (${filteredAdapters.length})" id="stack-hw-adapters">
+                                ${filteredAdapters.map(ad => renderAdapterCardHtml(ad)).join('')}
+                            </div>
+                        `;
                     }
-                    const headerText = `${ad.name} • ${subInfo} • Ingest: ${inBr} Mbps (${adapterStreams.length} stream${adapterStreams.length !== 1 ? 's' : ''})`;
 
-                    const streamCardsHtml = adapterStreams.map(st => renderStreamCardHtml(st)).join('');
-                    html += `
-                        <div class="card-stack" data-header="${escapeHtml(headerText)}" id="stack-ad-${ad.id}">
-                            ${renderAdapterCardHtml(ad)}
-                            ${streamCardsHtml}
-                        </div>
-                    `;
-                });
-
-                // Unassigned / Standalone Streams
-                const unassignedStreams = g_streams.filter(st => !g_adapters.some(ad => ad.adapter_idx === st.adapter_idx));
-                if (unassignedStreams.length > 0) {
-                    html += `
-                        <div class="card-stack" data-header="IP INPUTS / STANDALONE STREAMS (${unassignedStreams.length} STREAMS)" id="stack-unassigned">
-                            ${unassignedStreams.map(st => renderStreamCardHtml(st)).join('')}
-                        </div>
-                    `;
-                }
-
-                stackEl.innerHTML = html;
-            } else {
-                // Reactive in-place update (keeps dropdowns open & avoids flicker)
-                g_adapters.forEach(ad => {
-                    const el = document.getElementById(`card-ad-${ad.id}`);
-                    if (el) updateAdapterCard(el, ad);
-                    const stack = document.getElementById(`stack-ad-${ad.id}`);
-                    if (stack) {
-                        const adapterStreams = g_streams.filter(st => st.adapter_idx === ad.adapter_idx);
+                    Object.keys(groupMap).sort().forEach(grpName => {
+                        const grpStreams = groupMap[grpName];
+                        const headerText = `CATEGORY: ${grpName.toUpperCase()} (${grpStreams.length} STREAM${grpStreams.length !== 1 ? 'S' : ''})`;
+                        html += `
+                            <div class="card-stack" data-header="${escapeHtml(headerText)}" id="stack-cat-${escapeHtml(grpName)}">
+                                ${grpStreams.map(st => renderStreamCardHtml(st)).join('')}
+                            </div>
+                        `;
+                    });
+                } else if (arrange === 'type') {
+                    // Group by Type (Adapters, SPTS, MPTS)
+                    if (filteredAdapters.length > 0) {
+                        html += `
+                            <div class="card-stack" data-header="DVB HARDWARE TUNERS (${filteredAdapters.length})" id="stack-type-adapters">
+                                ${filteredAdapters.map(ad => renderAdapterCardHtml(ad)).join('')}
+                            </div>
+                        `;
+                    }
+                    const sptsStreams = filteredStreams.filter(st => st.type === 'spts' || (!st.type && st.service_id > 0));
+                    if (sptsStreams.length > 0) {
+                        html += `
+                            <div class="card-stack" data-header="SPTS SERVICES (${sptsStreams.length})" id="stack-type-spts">
+                                ${sptsStreams.map(st => renderStreamCardHtml(st)).join('')}
+                            </div>
+                        `;
+                    }
+                    const mptsStreams = filteredStreams.filter(st => st.type === 'mpts' || (!st.type && (!st.service_id || st.service_id === 0)));
+                    if (mptsStreams.length > 0) {
+                        html += `
+                            <div class="card-stack" data-header="MPTS TRANSPONDER STREAMS (${mptsStreams.length})" id="stack-type-mpts">
+                                ${mptsStreams.map(st => renderStreamCardHtml(st)).join('')}
+                            </div>
+                        `;
+                    }
+                } else {
+                    // Default: Group by Adapter
+                    filteredAdapters.forEach(ad => {
+                        const adapterStreams = filteredStreams.filter(st => st.adapter_idx === ad.adapter_idx);
                         const fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
                         const inBr = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
                         const isSatIp = (ad.delsys === 'SATIP');
@@ -5103,10 +5606,36 @@
                         } else if (ad.lnb_mode === 'unicable_20') {
                             subInfo = `${ad.delsys} @ ${fMhz} MHz (Unicable II UB${ad.uni_scr || 1} ${ad.uni_frequency || 1210}MHz)`;
                         }
-                        stack.setAttribute('data-header', `${ad.name} • ${subInfo} • Ingest: ${inBr} Mbps (${adapterStreams.length} stream${adapterStreams.length !== 1 ? 's' : ''})`);
+                        const headerText = `${ad.name} • ${subInfo} • Ingest: ${inBr} Mbps (${adapterStreams.length} stream${adapterStreams.length !== 1 ? 's' : ''})`;
+
+                        const streamCardsHtml = adapterStreams.map(st => renderStreamCardHtml(st)).join('');
+                        html += `
+                            <div class="card-stack" data-header="${escapeHtml(headerText)}" id="stack-ad-${ad.id}">
+                                ${renderAdapterCardHtml(ad)}
+                                ${streamCardsHtml}
+                            </div>
+                        `;
+                    });
+
+                    // Unassigned / Standalone Streams
+                    const unassignedStreams = filteredStreams.filter(st => !g_adapters.some(ad => ad.adapter_idx === st.adapter_idx));
+                    if (unassignedStreams.length > 0) {
+                        html += `
+                            <div class="card-stack" data-header="IP INPUTS / STANDALONE STREAMS (${unassignedStreams.length} STREAMS)" id="stack-unassigned">
+                                ${unassignedStreams.map(st => renderStreamCardHtml(st)).join('')}
+                            </div>
+                        `;
                     }
+                }
+
+                stackEl.innerHTML = html;
+            } else {
+                // Reactive in-place update
+                filteredAdapters.forEach(ad => {
+                    const el = document.getElementById(`card-ad-${ad.id}`);
+                    if (el) updateAdapterCard(el, ad);
                 });
-                g_streams.forEach(st => {
+                filteredStreams.forEach(st => {
                     const el = document.getElementById(`card-st-${st.id}`);
                     if (el) updateStreamCard(el, st);
                 });
@@ -6039,6 +6568,7 @@
             idInput.readOnly = false;
             idInput.value = `stream_${g_streams.length + 1}`;
             document.getElementById('st-name').value = `Stream ${g_streams.length + 1}`;
+            document.getElementById('st-groups').value = '';
             document.getElementById('st-ip').value = `239.255.1.${g_streams.length + 1}`;
             document.getElementById('st-port').value = '5000';
             document.getElementById('st-input-url').value = '';
@@ -6071,6 +6601,7 @@
             idInput.value = st.id;
             idInput.readOnly = true;
             document.getElementById('st-name').value = st.name || '';
+            document.getElementById('st-groups').value = st.groups || '';
             document.getElementById('st-ip').value = st.ip || '';
             document.getElementById('st-port').value = st.port || 5000;
             document.getElementById('st-protocol').value = st.is_rtp ? 'rtp' : 'udp';
@@ -6162,6 +6693,7 @@
             const payload = {
                 id: stId,
                 name: document.getElementById('st-name').value.trim(),
+                groups: document.getElementById('st-groups')?.value?.trim() || "",
                 enabled: isEnabled,
                 adapter_idx: adapterIdx,
                 type: sid === 0 ? 'mpts' : 'spts',
@@ -6253,23 +6785,38 @@
         async function loadConfigFile() {
             const cfg = await apiGet('/api/v1/config');
             if (cfg) {
-                document.getElementById('cfg-editor').value = JSON.stringify(cfg, null, 2);
+                const ed = document.getElementById('cfg-editor');
+                if (ed) {
+                    ed.value = JSON.stringify(cfg, null, 2);
+                    ed.style.borderColor = 'var(--border-color)';
+                }
                 showToast("Configuration reloaded");
             }
         }
 
         async function saveConfigFile() {
+            const val = document.getElementById('cfg-editor').value;
+            let parsed;
             try {
-                const parsed = JSON.parse(document.getElementById('cfg-editor').value);
+                parsed = JSON.parse(val);
+            } catch (e) {
+                showToast("JSON Syntax Error: " + e.message, true);
+                const ed = document.getElementById('cfg-editor');
+                if (ed) ed.style.borderColor = 'var(--vlc-red)';
+                return;
+            }
+            try {
                 const res = await apiPost('/api/v1/config', parsed);
                 if (res && res.ok) {
                     showToast("Configuration saved and applied!");
+                    const ed = document.getElementById('cfg-editor');
+                    if (ed) ed.style.borderColor = 'var(--vlc-green)';
                     pollState();
                 } else {
                     showToast(res ? res.error : "Save error", true);
                 }
-            } catch (e) {
-                showToast("Invalid JSON syntax", true);
+            } catch (err) {
+                showToast("Failed to save config: " + err.message, true);
             }
         }
 
@@ -6764,6 +7311,38 @@
                 showToast('Failed to copy to clipboard', true);
             });
         }
+
+        function setupTextareaTabKey(elId) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            el.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+                    this.selectionStart = this.selectionEnd = start + 4;
+                }
+            });
+        }
+
+        function setupLiveJsonValidation(elId) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            el.addEventListener('input', function() {
+                try {
+                    JSON.parse(this.value);
+                    this.style.borderColor = 'var(--border-color)';
+                } catch(e) {
+                    this.style.borderColor = 'var(--vlc-red)';
+                }
+            });
+        }
+
+        // Initialize editor keys & validation
+        setupTextareaTabKey('cfg-editor');
+        setupTextareaTabKey('import-content');
+        setupLiveJsonValidation('cfg-editor');
 
         // Initialize authentication session check and launch
         checkAuthSession();

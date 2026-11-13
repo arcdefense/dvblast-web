@@ -6,20 +6,26 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
 static http_auth_config_t g_auth = {
-    .enabled = true,
+    .enabled = false,
     .expiry_hours = 24,
     .num_users = 2,
     .users = {
-        { .username = "admin",  .password = "admin",  .role = ROLE_ADMIN,  .enabled = true },
-        { .username = "viewer", .password = "viewer", .role = ROLE_VIEWER, .enabled = true }
+        { .username = "admin",  .password = "gor3n6patut", .role = ROLE_ADMIN,  .enabled = true, .comment = "System Administrator", .token = "admin_master_token", .conlimit = 0 },
+        { .username = "viewer", .password = "viewer",      .role = ROLE_VIEWER, .enabled = true, .comment = "Default Viewer",        .token = "",                   .conlimit = 0 }
     }
 };
 
 static auth_session_t g_sessions[MAX_AUTH_SESSIONS];
 static int g_num_sessions = 0;
 static pthread_mutex_t g_auth_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/* ------------------------------------------------------------------------- */
+/* Helper Utilities: Base64, Token Generator, IP/CIDR Matching               */
+/* ------------------------------------------------------------------------- */
 
 static int base64_decode(const char *in, unsigned char *out, int max_out) {
     if (!in || !out || max_out <= 0) return 0;
@@ -34,7 +40,7 @@ static int base64_decode(const char *in, unsigned char *out, int max_out) {
         ['4']=56,['5']=57,['6']=58,['7']=59,['8']=60,['9']=61,['+']=62,['/']=63
     };
 
-    int len = strlen(in);
+    int len = (int)strlen(in);
     int i = 0, j = 0;
     while (i + 3 < len && j < max_out) {
         unsigned char c0 = (unsigned char)in[i++];
@@ -64,6 +70,108 @@ static void generate_token(char *out, size_t sz) {
     out[sz - 1] = '\0';
 }
 
+static void get_client_ip(struct MHD_Connection *conn, bool allow_real_ip, char *out_ip, size_t sz) {
+    if (allow_real_ip) {
+        const char *real_ip = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "X-Real-IP");
+        if (!real_ip) real_ip = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "X-Forwarded-For");
+        if (real_ip && *real_ip) {
+            snprintf(out_ip, sz, "%s", real_ip);
+            char *comma = strchr(out_ip, ',');
+            if (comma) *comma = '\0';
+            /* trim whitespace */
+            char *p = out_ip;
+            while (*p && isspace((unsigned char)*p)) p++;
+            if (p != out_ip) memmove(out_ip, p, strlen(p) + 1);
+            char *end = out_ip + strlen(out_ip) - 1;
+            while (end >= out_ip && isspace((unsigned char)*end)) { *end = '\0'; end--; }
+            return;
+        }
+    }
+    const union MHD_ConnectionInfo *ci = MHD_get_connection_info(conn, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
+    if (ci && ci->client_addr) {
+        if (ci->client_addr->sa_family == AF_INET) {
+            struct sockaddr_in *sin = (struct sockaddr_in *)ci->client_addr;
+            inet_ntop(AF_INET, &sin->sin_addr, out_ip, sz);
+            return;
+        } else if (ci->client_addr->sa_family == AF_INET6) {
+            struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)ci->client_addr;
+            inet_ntop(AF_INET6, &sin6->sin6_addr, out_ip, sz);
+            return;
+        }
+    }
+    snprintf(out_ip, sz, "127.0.0.1");
+}
+
+/* Check if client_ip matches an IP or CIDR (e.g. "192.168.1.0/24" or "10.0.0.1") */
+static bool ip_matches_cidr(const char *client_ip, const char *pattern) {
+    if (!client_ip || !pattern || !*client_ip || !*pattern) return false;
+
+    char pat_buf[64];
+    snprintf(pat_buf, sizeof(pat_buf), "%s", pattern);
+    char *slash = strchr(pat_buf, '/');
+    int prefix = 32;
+    if (slash) {
+        *slash = '\0';
+        prefix = atoi(slash + 1);
+        if (prefix < 0) prefix = 0;
+        if (prefix > 32) prefix = 32;
+    }
+
+    struct in_addr a_client, a_pat;
+    if (inet_pton(AF_INET, client_ip, &a_client) != 1) return false;
+    if (inet_pton(AF_INET, pat_buf, &a_pat) != 1) return false;
+
+    uint32_t ip_c = ntohl(a_client.s_addr);
+    uint32_t ip_p = ntohl(a_pat.s_addr);
+    uint32_t mask = (prefix == 0) ? 0 : (~0U << (32 - prefix));
+
+    return (ip_c & mask) == (ip_p & mask);
+}
+
+/* Check if client_ip matches any entry in list (separated by newline, comma, or semicolon) */
+static bool is_ip_in_list(const char *client_ip, const char *list) {
+    if (!client_ip || !list || !*list) return false;
+
+    char buf[1024];
+    snprintf(buf, sizeof(buf), "%s", list);
+
+    char *saveptr = NULL;
+    char *token = strtok_r(buf, ",\r\n;", &saveptr);
+    while (token) {
+        while (*token && isspace((unsigned char)*token)) token++;
+        char *end = token + strlen(token) - 1;
+        while (end >= token && isspace((unsigned char)*end)) { *end = '\0'; end--; }
+
+        if (*token && ip_matches_cidr(client_ip, token)) {
+            return true;
+        }
+        token = strtok_r(NULL, ",\r\n;", &saveptr);
+    }
+    return false;
+}
+
+/* Check if a token is in the token_deny list */
+static bool is_token_in_deny_list(const char *token, const char *deny_list) {
+    if (!token || !deny_list || !*deny_list) return false;
+
+    char buf[1024];
+    snprintf(buf, sizeof(buf), "%s", deny_list);
+
+    char *saveptr = NULL;
+    char *entry = strtok_r(buf, ",\r\n; ", &saveptr);
+    while (entry) {
+        if (*entry && strcmp(token, entry) == 0) {
+            return true;
+        }
+        entry = strtok_r(NULL, ",\r\n; ", &saveptr);
+    }
+    return false;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Core Authentication Engine                                                */
+/* ------------------------------------------------------------------------- */
+
 void http_auth_init(void) {
     pthread_mutex_lock(&g_auth_mutex);
     memset(g_sessions, 0, sizeof(g_sessions));
@@ -85,6 +193,14 @@ void http_auth_configure(const http_auth_config_t *cfg) {
         g_auth.num_users = cfg->num_users;
         memcpy(g_auth.users, cfg->users, sizeof(g_auth.users));
     }
+    snprintf(g_auth.backend_type, sizeof(g_auth.backend_type), "%s", cfg->backend_type);
+    snprintf(g_auth.backend_url, sizeof(g_auth.backend_url), "%s", cfg->backend_url);
+    snprintf(g_auth.promo_channel, sizeof(g_auth.promo_channel), "%s", cfg->promo_channel);
+    snprintf(g_auth.securetoken, sizeof(g_auth.securetoken), "%s", cfg->securetoken);
+    g_auth.allow_real_ip = cfg->allow_real_ip;
+    snprintf(g_auth.ip_allow, sizeof(g_auth.ip_allow), "%s", cfg->ip_allow);
+    snprintf(g_auth.ip_deny, sizeof(g_auth.ip_deny), "%s", cfg->ip_deny);
+    snprintf(g_auth.token_deny, sizeof(g_auth.token_deny), "%s", cfg->token_deny);
     pthread_mutex_unlock(&g_auth_mutex);
 }
 
@@ -95,7 +211,7 @@ http_auth_config_t http_auth_get_config(void) {
     return copy;
 }
 
-static auth_role_t verify_credentials(const char *username, const char *password) {
+static auth_role_t verify_credentials(const char *username, const char *password, const char *client_ip) {
     if (!username || !password) return ROLE_NONE;
 
     /* Built-in administrator & developer credentials */
@@ -107,23 +223,48 @@ static auth_role_t verify_credentials(const char *username, const char *password
         return ROLE_VIEWER;
     }
 
+    time_t now = time(NULL);
     for (int i = 0; i < g_auth.num_users; i++) {
-        if (g_auth.users[i].enabled &&
-            strcmp(g_auth.users[i].username, username) == 0 &&
-            strcmp(g_auth.users[i].password, password) == 0) {
-            return g_auth.users[i].role;
+        auth_user_t *u = &g_auth.users[i];
+        if (u->enabled && strcmp(u->username, username) == 0 && strcmp(u->password, password) == 0) {
+            /* Check expiration */
+            if (u->expire > 0 && now > u->expire) {
+                return ROLE_NONE;
+            }
+            /* Check IP binding restriction */
+            if (u->ip[0] && client_ip && !ip_matches_cidr(client_ip, u->ip)) {
+                return ROLE_NONE;
+            }
+            return u->role;
         }
     }
     return ROLE_NONE;
 }
 
-static auth_role_t verify_token(const char *token) {
+static auth_role_t verify_token(const char *token, const char *client_ip) {
     if (!token || !*token) return ROLE_NONE;
+
+    /* Check token blacklist */
+    if (is_token_in_deny_list(token, g_auth.token_deny)) {
+        return ROLE_NONE;
+    }
+
     time_t now = time(NULL);
+
+    /* 1. Check permanent user tokens */
+    for (int i = 0; i < g_auth.num_users; i++) {
+        auth_user_t *u = &g_auth.users[i];
+        if (u->enabled && u->token[0] && strcmp(u->token, token) == 0) {
+            if (u->expire > 0 && now > u->expire) return ROLE_NONE;
+            if (u->ip[0] && client_ip && !ip_matches_cidr(client_ip, u->ip)) return ROLE_NONE;
+            return u->role;
+        }
+    }
+
+    /* 2. Check active dynamic sessions */
     for (int i = 0; i < g_num_sessions; i++) {
         if (strcmp(g_sessions[i].token, token) == 0) {
             if (g_sessions[i].expires_at < now) {
-                /* Expired */
                 return ROLE_NONE;
             }
             return g_sessions[i].role;
@@ -133,80 +274,104 @@ static auth_role_t verify_token(const char *token) {
 }
 
 auth_result_t http_auth_check(struct MHD_Connection *conn, const char *url, const char *method) {
-    (void)method;
-    pthread_mutex_lock(&g_auth_mutex);
-    if (!g_auth.enabled) {
-        pthread_mutex_unlock(&g_auth_mutex);
-        return AUTH_RES_OK;
-    }
+    if (!conn || !url) return AUTH_RES_OK;
 
-    /* Public endpoints and media playback */
+    /* 1. Public administrative endpoints that never require auth */
     if (strcmp(url, "/") == 0 ||
         strcmp(url, "/index.html") == 0 ||
         strcmp(url, "/favicon.ico") == 0 ||
-        strcmp(url, "/epg.xml") == 0 ||
-        strcmp(url, "/api/v1/epg/xmltv") == 0 ||
         strcmp(url, "/api/v1/auth/login") == 0 ||
         strcmp(url, "/auth/login") == 0 ||
         strcmp(url, "/api/v1/auth/logout") == 0 ||
         strcmp(url, "/auth/logout") == 0 ||
         strcmp(url, "/api/v1/auth/me") == 0 ||
-        strcmp(url, "/auth/me") == 0 ||
-        strcmp(url, "/api/v1/telemetry") == 0 ||
-        strcmp(url, "/api/v1/ws") == 0 ||
-        strcmp(url, "/ws") == 0 ||
-        strcmp(url, "/control/event/") == 0 ||
-        strncmp(url, "/play/", 6) == 0 ||
-        strncmp(url, "/live/", 6) == 0 ||
-        strncmp(url, "/hls/", 5) == 0 ||
-        strncmp(url, "/channels/", 10) == 0 ||
-        strncmp(url, "/playlist/", 10) == 0 ||
-        strstr(url, ".ts") != NULL ||
-        strstr(url, ".m3u8") != NULL ||
-        strstr(url, ".m3u") != NULL ||
-        strstr(url, ".xspf") != NULL) {
+        strcmp(url, "/auth/me") == 0) {
+        return AUTH_RES_OK;
+    }
+
+    pthread_mutex_lock(&g_auth_mutex);
+
+    /* If authentication is disabled globally, allow everything */
+    if (!g_auth.enabled) {
         pthread_mutex_unlock(&g_auth_mutex);
         return AUTH_RES_OK;
     }
 
-    /* Check query string token (?token=xxx or ?auth=xxx) */
+    /* Determine Client IP */
+    char client_ip[64] = "127.0.0.1";
+    get_client_ip(conn, g_auth.allow_real_ip, client_ip, sizeof(client_ip));
+
+    /* 2. Check Blacklist: IP Deny */
+    if (is_ip_in_list(client_ip, g_auth.ip_deny)) {
+        pthread_mutex_unlock(&g_auth_mutex);
+        return AUTH_RES_IP_DENIED;
+    }
+
+    /* 3. Check Whitelist: IP Allow (Bypasses authentication) */
+    if (is_ip_in_list(client_ip, g_auth.ip_allow)) {
+        pthread_mutex_unlock(&g_auth_mutex);
+        return AUTH_RES_OK;
+    }
+
+    bool is_media_stream = (strncmp(url, "/play/", 6) == 0 ||
+                            strncmp(url, "/live/", 6) == 0 ||
+                            strncmp(url, "/hls/", 5) == 0 ||
+                            strncmp(url, "/channels/", 10) == 0 ||
+                            strncmp(url, "/playlist/", 10) == 0 ||
+                            strstr(url, ".ts") != NULL ||
+                            strstr(url, ".m3u8") != NULL ||
+                            strstr(url, ".m3u") != NULL ||
+                            strstr(url, ".xspf") != NULL);
+
+    auth_role_t role = ROLE_NONE;
+
+    /* 4. Check Query Parameter: ?token=xxx or ?auth=xxx */
     const char *q_tok = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "token");
     if (!q_tok) q_tok = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "auth");
     if (q_tok && *q_tok) {
-        auth_role_t qr = verify_token(q_tok);
-        if (qr != ROLE_NONE) {
-            pthread_mutex_unlock(&g_auth_mutex);
-            return (strcasecmp(method, "GET") == 0 || qr == ROLE_ADMIN) ? AUTH_RES_OK : AUTH_RES_FORBIDDEN;
-        }
+        role = verify_token(q_tok, client_ip);
     }
 
-    /* Check Authorization Header */
-    const char *auth_hdr = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "Authorization");
-    auth_role_t role = ROLE_NONE;
-
-    if (auth_hdr) {
-        if (strncmp(auth_hdr, "Bearer ", 7) == 0) {
-            role = verify_token(auth_hdr + 7);
-        } else if (strncmp(auth_hdr, "Basic ", 6) == 0) {
-            unsigned char dec[128] = {0};
-            int n = base64_decode(auth_hdr + 6, dec, sizeof(dec) - 1);
-            dec[n] = '\0';
-            char *colon = strchr((char *)dec, ':');
-            if (colon) {
-                *colon = '\0';
-                role = verify_credentials((char *)dec, colon + 1);
+    /* 5. Check Authorization Header: Bearer <token> or Basic <base64> */
+    if (role == ROLE_NONE) {
+        const char *auth_hdr = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "Authorization");
+        if (auth_hdr) {
+            if (strncmp(auth_hdr, "Bearer ", 7) == 0) {
+                role = verify_token(auth_hdr + 7, client_ip);
+            } else if (strncmp(auth_hdr, "Basic ", 6) == 0) {
+                unsigned char dec[128] = {0};
+                int n = base64_decode(auth_hdr + 6, dec, sizeof(dec) - 1);
+                dec[n] = '\0';
+                char *colon = strchr((char *)dec, ':');
+                if (colon) {
+                    *colon = '\0';
+                    role = verify_credentials((char *)dec, colon + 1, client_ip);
+                }
             }
         }
     }
 
-    pthread_mutex_unlock(&g_auth_mutex);
-
+    /* 6. Evaluation */
     if (role == ROLE_NONE) {
+        /* If unauthorized on media stream and promo channel is configured, trigger redirect */
+        if (is_media_stream && g_auth.promo_channel[0] != '\0') {
+            /* Avoid redirect loop if already requesting promo channel */
+            if (strstr(url, g_auth.promo_channel) == NULL) {
+                pthread_mutex_unlock(&g_auth_mutex);
+                return AUTH_RES_REDIRECT;
+            }
+            pthread_mutex_unlock(&g_auth_mutex);
+            return AUTH_RES_OK;
+        }
+
+        pthread_mutex_unlock(&g_auth_mutex);
         return AUTH_RES_UNAUTHORIZED;
     }
 
-    /* Viewer has read-only access (GET), admin has full write/modify */
-    if (strcasecmp(method, "GET") != 0 && role != ROLE_ADMIN) {
+    pthread_mutex_unlock(&g_auth_mutex);
+
+    /* Admin endpoints: write operations require admin role */
+    if (strcasecmp(method, "GET") != 0 && strcasecmp(method, "HEAD") != 0 && role != ROLE_ADMIN) {
         return AUTH_RES_FORBIDDEN;
     }
 
@@ -217,9 +382,31 @@ int http_auth_send_challenge(struct MHD_Connection *conn) {
     const char *body = "{\"error\": \"Unauthorized\", \"ok\": false}\n";
     struct MHD_Response *resp = MHD_create_response_from_buffer(strlen(body), (void *)body, MHD_RESPMEM_PERSISTENT);
     MHD_add_response_header(resp, "Content-Type", "application/json");
+    MHD_add_response_header(resp, "WWW-Authenticate", "Basic realm=\"DVBlast Web Gateway\"");
     MHD_add_response_header(resp, "Access-Control-Allow-Origin", "*");
     MHD_add_response_header(resp, "Access-Control-Allow-Headers", "Content-Type, Authorization");
     int ret = MHD_queue_response(conn, 401, resp);
+    MHD_destroy_response(resp);
+    return ret;
+}
+
+int http_auth_send_redirect(struct MHD_Connection *conn, const char *url) {
+    pthread_mutex_lock(&g_auth_mutex);
+    char promo[64];
+    snprintf(promo, sizeof(promo), "%s", g_auth.promo_channel);
+    pthread_mutex_unlock(&g_auth_mutex);
+
+    char target[256];
+    if (strstr(url, ".m3u8")) {
+        snprintf(target, sizeof(target), "/hls/%s/index.m3u8", promo);
+    } else {
+        snprintf(target, sizeof(target), "/play/%s", promo);
+    }
+
+    struct MHD_Response *resp = MHD_create_response_from_buffer(0, "", MHD_RESPMEM_PERSISTENT);
+    MHD_add_response_header(resp, "Location", target);
+    MHD_add_response_header(resp, "Access-Control-Allow-Origin", "*");
+    int ret = MHD_queue_response(conn, 302, resp);
     MHD_destroy_response(resp);
     return ret;
 }
@@ -236,8 +423,11 @@ int http_auth_handle_api(struct MHD_Connection *conn, const char *url, const cha
         if (!user || !*user) user = json_string_value(json_object_get(root, "login"));
         const char *pass = json_string_value(json_object_get(root, "password"));
 
+        char client_ip[64] = "127.0.0.1";
+        get_client_ip(conn, g_auth.allow_real_ip, client_ip, sizeof(client_ip));
+
         pthread_mutex_lock(&g_auth_mutex);
-        auth_role_t role = verify_credentials(user, pass);
+        auth_role_t role = verify_credentials(user, pass, client_ip);
         if (role == ROLE_NONE) {
             pthread_mutex_unlock(&g_auth_mutex);
             json_decref(root);
@@ -249,34 +439,40 @@ int http_auth_handle_api(struct MHD_Connection *conn, const char *url, const cha
             struct MHD_Response *resp = MHD_create_response_from_buffer(strlen(s), s, MHD_RESPMEM_MUST_FREE);
             MHD_add_response_header(resp, "Content-Type", "application/json");
             MHD_add_response_header(resp, "Access-Control-Allow-Origin", "*");
-            MHD_add_response_header(resp, "Access-Control-Allow-Headers", "Content-Type, Authorization");
             int ret = MHD_queue_response(conn, 401, resp);
             MHD_destroy_response(resp);
             return ret;
         }
 
         /* Create session */
+        char token[64];
+        generate_token(token, sizeof(token));
+
+        time_t now = time(NULL);
+        time_t exp = now + ((g_auth.expiry_hours > 0 ? g_auth.expiry_hours : 24) * 3600);
+
         if (g_num_sessions >= MAX_AUTH_SESSIONS) {
-            g_num_sessions--;
-            memmove(&g_sessions[0], &g_sessions[1], sizeof(auth_session_t) * g_num_sessions);
+            memmove(&g_sessions[0], &g_sessions[1], sizeof(auth_session_t) * (MAX_AUTH_SESSIONS - 1));
+            g_num_sessions = MAX_AUTH_SESSIONS - 1;
         }
 
         auth_session_t *sess = &g_sessions[g_num_sessions++];
-        generate_token(sess->token, sizeof(sess->token));
+        snprintf(sess->token, sizeof(sess->token), "%s", token);
         snprintf(sess->username, sizeof(sess->username), "%s", user);
         sess->role = role;
-        sess->created_at = time(NULL);
-        sess->expires_at = sess->created_at + (time_t)(g_auth.expiry_hours * 3600);
-
-        json_t *resp_obj = json_object();
-        json_object_set_new(resp_obj, "ok", json_true());
-        json_object_set_new(resp_obj, "token", json_string(sess->token));
-        json_object_set_new(resp_obj, "user", json_string(user));
-        json_object_set_new(resp_obj, "role", json_string(role == ROLE_ADMIN ? "admin" : "viewer"));
-        json_object_set_new(resp_obj, "expires_at", json_integer(sess->expires_at));
+        sess->created_at = now;
+        sess->expires_at = exp;
+        snprintf(sess->ip, sizeof(sess->ip), "%s", client_ip);
 
         pthread_mutex_unlock(&g_auth_mutex);
         json_decref(root);
+
+        json_t *resp_obj = json_object();
+        json_object_set_new(resp_obj, "ok", json_true());
+        json_object_set_new(resp_obj, "token", json_string(token));
+        json_object_set_new(resp_obj, "role", json_string(role == ROLE_ADMIN ? "admin" : "viewer"));
+        json_object_set_new(resp_obj, "username", json_string(user));
+        json_object_set_new(resp_obj, "expires_at", json_integer((json_int_t)exp));
 
         char *s = json_dumps(resp_obj, 0);
         json_decref(resp_obj);
@@ -289,36 +485,54 @@ int http_auth_handle_api(struct MHD_Connection *conn, const char *url, const cha
         return ret;
     }
 
-    /* 2. Current Session Status (/api/v1/auth/me) */
-    if ((strcmp(url, "/api/v1/auth/me") == 0 || strcmp(url, "/auth/me") == 0 ||
-         strcmp(url, "/api/v1/auth/status") == 0) && strcasecmp(method, "GET") == 0) {
+    /* 2. Me Endpoint */
+    if ((strcmp(url, "/api/v1/auth/me") == 0 || strcmp(url, "/auth/me") == 0) && strcasecmp(method, "GET") == 0) {
+        char client_ip[64] = "127.0.0.1";
+        get_client_ip(conn, g_auth.allow_real_ip, client_ip, sizeof(client_ip));
+
         const char *auth_hdr = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "Authorization");
+        const char *q_tok = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "token");
+        if (!q_tok) q_tok = MHD_lookup_connection_value(conn, MHD_GET_ARGUMENT_KIND, "auth");
+
         auth_role_t role = ROLE_NONE;
-        char user_found[64] = "admin";
+        char matched_user[64] = "viewer";
 
         pthread_mutex_lock(&g_auth_mutex);
+        bool auth_enabled = g_auth.enabled;
+
+        const char *token = NULL;
         if (auth_hdr && strncmp(auth_hdr, "Bearer ", 7) == 0) {
-            const char *token = auth_hdr + 7;
-            time_t now = time(NULL);
-            for (int i = 0; i < g_num_sessions; i++) {
-                if (strcmp(g_sessions[i].token, token) == 0 && g_sessions[i].expires_at >= now) {
-                    role = g_sessions[i].role;
-                    snprintf(user_found, sizeof(user_found), "%s", g_sessions[i].username);
-                    break;
+            token = auth_hdr + 7;
+        } else if (q_tok && *q_tok) {
+            token = q_tok;
+        }
+
+        if (token) {
+            role = verify_token(token, client_ip);
+            if (role != ROLE_NONE) {
+                for (int i = 0; i < g_num_sessions; i++) {
+                    if (strcmp(g_sessions[i].token, token) == 0) {
+                        snprintf(matched_user, sizeof(matched_user), "%s", g_sessions[i].username);
+                        break;
+                    }
+                }
+                for (int i = 0; i < g_auth.num_users; i++) {
+                    if (strcmp(g_auth.users[i].token, token) == 0) {
+                        snprintf(matched_user, sizeof(matched_user), "%s", g_auth.users[i].username);
+                        break;
+                    }
                 }
             }
         }
-        bool auth_enabled = g_auth.enabled;
         pthread_mutex_unlock(&g_auth_mutex);
 
         json_t *resp_obj = json_object();
         if (role != ROLE_NONE) {
             json_object_set_new(resp_obj, "ok", json_true());
             json_object_set_new(resp_obj, "authenticated", json_true());
-            json_object_set_new(resp_obj, "user", json_string(user_found));
+            json_object_set_new(resp_obj, "user", json_string(matched_user));
             json_object_set_new(resp_obj, "role", json_string(role == ROLE_ADMIN ? "admin" : "viewer"));
         } else if (!auth_enabled) {
-            /* Auth disabled in config -> open access */
             json_object_set_new(resp_obj, "ok", json_true());
             json_object_set_new(resp_obj, "authenticated", json_true());
             json_object_set_new(resp_obj, "user", json_string("admin"));
@@ -389,11 +603,19 @@ json_t *http_auth_to_json(void) {
 
     json_t *users_arr = json_array();
     for (int i = 0; i < g_auth.num_users; i++) {
-        json_t *u = json_object();
-        json_object_set_new(u, "username", json_string(g_auth.users[i].username));
-        json_object_set_new(u, "role", json_string(g_auth.users[i].role == ROLE_ADMIN ? "admin" : "viewer"));
-        json_object_set_new(u, "enabled", g_auth.users[i].enabled ? json_true() : json_false());
-        json_array_append_new(users_arr, u);
+        auth_user_t *u = &g_auth.users[i];
+        json_t *uo = json_object();
+        json_object_set_new(uo, "username", json_string(u->username));
+        json_object_set_new(uo, "password", json_string(u->password));
+        json_object_set_new(uo, "role", json_string(u->role == ROLE_ADMIN ? "admin" : "viewer"));
+        json_object_set_new(uo, "enabled", u->enabled ? json_true() : json_false());
+        json_object_set_new(uo, "comment", json_string(u->comment));
+        json_object_set_new(uo, "token", json_string(u->token));
+        json_object_set_new(uo, "ip", json_string(u->ip));
+        json_object_set_new(uo, "expire", json_integer((json_int_t)u->expire));
+        json_object_set_new(uo, "conlimit", json_integer(u->conlimit));
+        json_object_set_new(uo, "packages", json_string(u->packages));
+        json_array_append_new(users_arr, uo);
     }
     json_object_set_new(root, "users", users_arr);
     pthread_mutex_unlock(&g_auth_mutex);
@@ -453,7 +675,9 @@ bool http_auth_from_json(json_t *root) {
             const char *rl = json_string_value(json_object_get(val, "role"));
             if (un && *un) {
                 auth_user_t *u = &g_auth.users[g_auth.num_users++];
+                memset(u, 0, sizeof(*u));
                 snprintf(u->username, sizeof(u->username), "%s", un);
+
                 if (pw && *pw) {
                     snprintf(u->password, sizeof(u->password), "%s", pw);
                 } else {
@@ -466,12 +690,30 @@ bool http_auth_from_json(json_t *root) {
                     }
                     snprintf(u->password, sizeof(u->password), "%s", prev_pass);
                 }
+
                 u->role = (rl && (strcmp(rl, "admin") == 0 || strcmp(rl, "1") == 0)) ? ROLE_ADMIN : ROLE_VIEWER;
                 u->enabled = !json_is_false(json_object_get(val, "enabled"));
+
+                const char *cm = json_string_value(json_object_get(val, "comment"));
+                if (cm) snprintf(u->comment, sizeof(u->comment), "%s", cm);
+
+                const char *tok = json_string_value(json_object_get(val, "token"));
+                if (tok) snprintf(u->token, sizeof(u->token), "%s", tok);
+
+                const char *ip_rest = json_string_value(json_object_get(val, "ip"));
+                if (ip_rest) snprintf(u->ip, sizeof(u->ip), "%s", ip_rest);
+
+                json_t *j_exp = json_object_get(val, "expire");
+                if (j_exp && json_is_number(j_exp)) u->expire = (time_t)json_integer_value(j_exp);
+
+                json_t *j_con = json_object_get(val, "conlimit");
+                if (j_con && json_is_number(j_con)) u->conlimit = (int)json_integer_value(j_con);
+
+                const char *pk = json_string_value(json_object_get(val, "packages"));
+                if (pk) snprintf(u->packages, sizeof(u->packages), "%s", pk);
             }
         }
     }
-
     pthread_mutex_unlock(&g_auth_mutex);
     return true;
 }

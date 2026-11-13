@@ -20,17 +20,25 @@ typedef enum {
 typedef enum {
     AUTH_RES_OK           = 0,
     AUTH_RES_UNAUTHORIZED = 1,
-    AUTH_RES_FORBIDDEN    = 2
+    AUTH_RES_FORBIDDEN    = 2,
+    AUTH_RES_REDIRECT     = 3,
+    AUTH_RES_IP_DENIED    = 4
 } auth_result_t;
 
-#define MAX_AUTH_USERS 16
-#define MAX_AUTH_SESSIONS 64
+#define MAX_AUTH_USERS 64
+#define MAX_AUTH_SESSIONS 128
 
 typedef struct {
     char        username[64];
     char        password[64];
     auth_role_t role;
     bool        enabled;
+    char        comment[128];
+    char        token[64];        /* Permanent API/streaming token */
+    char        ip[64];           /* IP or CIDR restriction */
+    time_t      expire;           /* 0 = permanent, else UNIX expiration timestamp */
+    int         conlimit;         /* 0 = unlimited, else max concurrent streams */
+    char        packages[256];    /* Comma-separated category names allowed */
 } auth_user_t;
 
 typedef struct {
@@ -63,11 +71,14 @@ void http_auth_cleanup(void);
 void http_auth_configure(const http_auth_config_t *cfg);
 http_auth_config_t http_auth_get_config(void);
 
-/* Check if HTTP request is permitted. If not, can trigger HTTP 401 challenge */
+/* Check if HTTP request is permitted. If not, can trigger HTTP 401 challenge or redirect */
 auth_result_t http_auth_check(struct MHD_Connection *conn, const char *url, const char *method);
 
 /* Request authentication challenge response (WWW-Authenticate: Basic realm="DVBlast") */
 int http_auth_send_challenge(struct MHD_Connection *conn);
+
+/* Send HTTP 302 redirect for promo channel */
+int http_auth_send_redirect(struct MHD_Connection *conn, const char *url);
 
 /* Handle REST login/logout endpoints */
 int http_auth_handle_api(struct MHD_Connection *conn, const char *url, const char *method, const char *body);

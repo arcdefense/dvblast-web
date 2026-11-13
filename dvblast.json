@@ -117,6 +117,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "News",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -138,6 +139,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -159,6 +161,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -180,6 +183,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -201,6 +205,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -222,6 +227,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -243,6 +249,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -264,6 +271,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -285,6 +293,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -306,6 +315,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -327,6 +337,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -348,6 +359,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -369,6 +381,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -390,6 +403,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -411,6 +425,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -432,6 +447,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -453,6 +469,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -474,6 +491,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -495,6 +513,7 @@
       "is_rtp": false,
       "pacing": true,
       "biss_key": "",
+      "groups": "",
       "backup_url": "",
       "backup_type": 0,
       "backup_start_delay": 5,
@@ -535,7 +554,22 @@
     "udp_threads": true,
     "dvb_bind_by_mac": false
   },
-  "categories": [],
+  "categories": [
+    {
+      "name": "Entertainment",
+      "groups": [
+        {
+          "name": "Kids"
+        },
+        {
+          "name": "Movies"
+        },
+        {
+          "name": "Music"
+        }
+      ]
+    }
+  ],
   "http_play": {
     "enabled": true,
     "port": 8088,
@@ -545,24 +579,15 @@
     "m3u_header": "type=\"m3u\"",
     "xspf_title": "DVBlast Master Live Streams",
     "tv_logos_path": "/logos",
+    "screenshots_path": "",
+    "playlist_arrange": "",
     "allow_http": true,
     "allow_hls": true,
     "disable_tls": false,
-    "active_clients": 1,
-    "total_clients_served": 1,
-    "total_bytes_streamed": 5545248,
-    "clients": [
-      {
-        "id": 1,
-        "stream_id": "spts_30266",
-        "service_id": 30266,
-        "remote_ip": "10.10.10.206",
-        "user_agent": "VLC/3.0.24 LibVLC/3.0.24",
-        "connected_at": 1794593620,
-        "uptime_sec": 9,
-        "bytes_sent": 5545248
-      }
-    ]
+    "active_clients": 0,
+    "total_clients_served": 0,
+    "total_bytes_streamed": 0,
+    "clients": []
   },
   "http_auth": {
     "enabled": true,
@@ -578,18 +603,39 @@
     "users": [
       {
         "username": "admin",
+        "password": "gor3n6patut",
         "role": "admin",
-        "enabled": true
+        "enabled": true,
+        "comment": "",
+        "token": "",
+        "ip": "",
+        "expire": 0,
+        "conlimit": 0,
+        "packages": ""
       },
       {
         "username": "viewer",
+        "password": "viewer",
         "role": "viewer",
-        "enabled": true
+        "enabled": true,
+        "comment": "",
+        "token": "",
+        "ip": "",
+        "expire": 0,
+        "conlimit": 0,
+        "packages": ""
       },
       {
         "username": "operator1",
+        "password": "password",
         "role": "viewer",
-        "enabled": true
+        "enabled": true,
+        "comment": "",
+        "token": "",
+        "ip": "",
+        "expire": 0,
+        "conlimit": 0,
+        "packages": ""
       }
     ]
   },
@@ -598,8 +644,8 @@
     "segment_sec": 3,
     "window_size": 5,
     "storage_path": "/dev/shm/hls",
-    "total_segments_created": 14,
-    "active_streams": 7,
+    "total_segments_created": 4,
+    "active_streams": 1,
     "naming": "asc",
     "timeout_sec": 60,
     "round_duration": false,

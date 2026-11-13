@@ -374,6 +374,8 @@ void http_play_configure(const http_play_config_t *cfg) {
     if (cfg->m3u_header[0]) snprintf(g_cfg.m3u_header, sizeof(g_cfg.m3u_header), "%s", cfg->m3u_header);
     if (cfg->xspf_title[0]) snprintf(g_cfg.xspf_title, sizeof(g_cfg.xspf_title), "%s", cfg->xspf_title);
     if (cfg->tv_logos_path[0]) snprintf(g_cfg.tv_logos_path, sizeof(g_cfg.tv_logos_path), "%s", cfg->tv_logos_path);
+    if (cfg->screenshots_path[0]) snprintf(g_cfg.screenshots_path, sizeof(g_cfg.screenshots_path), "%s", cfg->screenshots_path);
+    if (cfg->playlist_arrange[0]) snprintf(g_cfg.playlist_arrange, sizeof(g_cfg.playlist_arrange), "%s", cfg->playlist_arrange);
     g_cfg.allow_http = cfg->allow_http;
     g_cfg.allow_hls = cfg->allow_hls;
     g_cfg.disable_tls = cfg->disable_tls;
@@ -602,7 +604,7 @@ static int handle_playlist_m3u(struct MHD_Connection *conn, const char *url, con
         if (!s->enabled) continue;
 
         web_adapter_t *ad = web_state_find_adapter_by_idx(s->adapter_idx);
-        const char *group = groups_get_category_for_stream(s->id, s->name);
+        const char *group = (s->groups[0]) ? s->groups : groups_get_category_for_stream(s->id, s->name);
         if (!group || !*group) group = ad ? ad->name : "DVBlast";
 
         char stream_url[256];
@@ -985,6 +987,8 @@ json_t *http_play_to_json(void) {
     json_object_set_new(root, "m3u_header", json_string(g_cfg.m3u_header));
     json_object_set_new(root, "xspf_title", json_string(g_cfg.xspf_title));
     json_object_set_new(root, "tv_logos_path", json_string(g_cfg.tv_logos_path));
+    json_object_set_new(root, "screenshots_path", json_string(g_cfg.screenshots_path));
+    json_object_set_new(root, "playlist_arrange", json_string(g_cfg.playlist_arrange));
     json_object_set_new(root, "allow_http", g_cfg.allow_http ? json_true() : json_false());
     json_object_set_new(root, "allow_hls", g_cfg.allow_hls ? json_true() : json_false());
     json_object_set_new(root, "disable_tls", g_cfg.disable_tls ? json_true() : json_false());
@@ -1099,6 +1103,16 @@ bool http_play_from_json(json_t *root) {
     json_t *j_logos = json_object_get(root, "tv_logos_path");
     if (j_logos && json_is_string(j_logos)) {
         snprintf(g_cfg.tv_logos_path, sizeof(g_cfg.tv_logos_path), "%s", json_string_value(j_logos));
+    }
+
+    json_t *j_screens = json_object_get(root, "screenshots_path");
+    if (j_screens && json_is_string(j_screens)) {
+        snprintf(g_cfg.screenshots_path, sizeof(g_cfg.screenshots_path), "%s", json_string_value(j_screens));
+    }
+
+    json_t *j_arrange = json_object_get(root, "playlist_arrange");
+    if (j_arrange && json_is_string(j_arrange)) {
+        snprintf(g_cfg.playlist_arrange, sizeof(g_cfg.playlist_arrange), "%s", json_string_value(j_arrange));
     }
 
     json_t *j_http = json_object_get(root, "allow_http");

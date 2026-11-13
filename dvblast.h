@@ -320,6 +320,9 @@ void dvb_string_clean(dvb_string_t *p_dvb_string);
 void dvb_string_copy(dvb_string_t *p_dst, const dvb_string_t *p_src);
 int dvb_string_cmp(const dvb_string_t *p_1, const dvb_string_t *p_2);
 
+/* Apply Network & Provider descriptors from Web General Settings */
+void dvblast_set_network_provider(const char *net_name, const char *prov_name);
+
 mtime_t mdate( void );
 void msleep( mtime_t delay );
 void hexDump( uint8_t *p_data, uint32_t i_len );

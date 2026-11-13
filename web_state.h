@@ -112,6 +112,7 @@ typedef struct {
     uint32_t cc_errors;
     bool     scrambled;
     char     biss_key[64];
+    char     groups[128];          /* Category / Group assignment */
     /* Stream Redundancy & Failover */
     char     backup_url[256];
     int      backup_type;          /* 0=disable, 1=passive, 2=active */

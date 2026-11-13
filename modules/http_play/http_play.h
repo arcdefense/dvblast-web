@@ -23,6 +23,8 @@ typedef struct {
     char     m3u_header[256];         /* Custom M3U header params */
     char     xspf_title[128];         /* XSPF playlist title */
     char     tv_logos_path[256];      /* Path to channel logos */
+    char     screenshots_path[256];   /* Path to TV screenshots */
+    char     playlist_arrange[64];    /* Arrange playlist by category */
     bool     allow_http;              /* Allow HTTP TS streaming */
     bool     allow_hls;               /* Allow HLS streaming */
     bool     disable_tls;             /* Disable TLS on playlist links */

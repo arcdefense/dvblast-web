@@ -437,6 +437,7 @@ bool web_state_add_or_update_stream(const web_stream_config_t *stream) {
     target->pacing = copy.pacing;
     target->bitrate_bps = copy.bitrate_bps;
     if (copy.biss_key[0]) snprintf(target->biss_key, sizeof(target->biss_key), "%s", copy.biss_key);
+    snprintf(target->groups, sizeof(target->groups), "%s", copy.groups);
     if (copy.backup_url[0]) snprintf(target->backup_url, sizeof(target->backup_url), "%s", copy.backup_url);
     target->backup_type = copy.backup_type;
     target->backup_start_delay = copy.backup_start_delay > 0 ? copy.backup_start_delay : 5;
@@ -788,6 +789,7 @@ bool web_state_save_json(const char *path) {
         json_object_set_new(s_obj, "is_rtp", json_boolean(s->is_rtp));
         json_object_set_new(s_obj, "pacing", json_boolean(s->pacing));
         json_object_set_new(s_obj, "biss_key", json_string(s->biss_key));
+        json_object_set_new(s_obj, "groups", json_string(s->groups));
         json_object_set_new(s_obj, "backup_url", json_string(s->backup_url));
         json_object_set_new(s_obj, "backup_type", json_integer(s->backup_type));
         json_object_set_new(s_obj, "backup_start_delay", json_integer(s->backup_start_delay));
@@ -931,6 +933,8 @@ bool web_state_load_json(const char *path) {
             if (out) snprintf(s->output_url, sizeof(s->output_url), "%s", out);
             if (ip) snprintf(s->ip, sizeof(s->ip), "%s", ip);
             if (bk) snprintf(s->biss_key, sizeof(s->biss_key), "%s", bk);
+            const char *grp = json_string_value(json_object_get(val, "groups"));
+            if (grp) snprintf(s->groups, sizeof(s->groups), "%s", grp);
             if (bu) snprintf(s->backup_url, sizeof(s->backup_url), "%s", bu);
 
             s->backup_type = (int)json_integer_value(json_object_get(val, "backup_type"));
@@ -1224,6 +1228,7 @@ json_t *web_state_streams_to_json(void) {
         json_object_set_new(obj, "bytes_sent", json_integer((json_int_t)s->bytes_sent));
         json_object_set_new(obj, "cc_errors", json_integer(s->cc_errors));
         json_object_set_new(obj, "biss_key", json_string(s->biss_key));
+        json_object_set_new(obj, "groups", json_string(s->groups));
         json_object_set_new(obj, "backup_url", json_string(s->backup_url));
         json_object_set_new(obj, "backup_type", json_integer(s->backup_type));
         json_object_set_new(obj, "backup_start_delay", json_integer(s->backup_start_delay));
@@ -1446,6 +1451,7 @@ json_t *web_state_config_to_json(void) {
         json_object_set_new(so, "is_rtp", json_boolean(s->is_rtp));
         json_object_set_new(so, "pacing", json_boolean(s->pacing));
         json_object_set_new(so, "biss_key", json_string(s->biss_key));
+        json_object_set_new(so, "groups", json_string(s->groups));
         json_object_set_new(so, "backup_url", json_string(s->backup_url));
         json_object_set_new(so, "backup_type", json_integer(s->backup_type));
         json_object_set_new(so, "backup_start_delay", json_integer(s->backup_start_delay));

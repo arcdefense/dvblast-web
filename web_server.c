@@ -43,7 +43,57 @@ static void add_cors_headers(struct MHD_Response *response) {
     MHD_add_response_header(response, "Access-Control-Allow-Origin", "*");
     MHD_add_response_header(response, "Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, HEAD");
     MHD_add_response_header(response, "Access-Control-Allow-Headers", "Content-Type, Authorization");
-    MHD_add_response_header(response, "Server", "DVBlast-Web-Gateway/2.0");
+    general_config_t gcfg = general_get_config();
+    const char *srv = (gcfg.http_server_name[0]) ? gcfg.http_server_name : "DVBlast-Web-Gateway/2.0";
+    MHD_add_response_header(response, "Server", srv);
+}
+
+static pthread_mutex_t g_access_log_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static void write_access_log(struct MHD_Connection *conn, const char *method, const char *url, int status_code) {
+    general_config_t gcfg = general_get_config();
+    if (!gcfg.http_access_log[0]) return;
+
+    char client_ip[64] = "127.0.0.1";
+    if (gcfg.allow_real_ip[0]) {
+        const char *rip = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "X-Real-IP");
+        if (!rip) rip = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "X-Forwarded-For");
+        if (rip && *rip) {
+            snprintf(client_ip, sizeof(client_ip), "%s", rip);
+            char *comma = strchr(client_ip, ',');
+            if (comma) *comma = '\0';
+        } else {
+            const union MHD_ConnectionInfo *ci = MHD_get_connection_info(conn, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
+            if (ci && ci->client_addr && ci->client_addr->sa_family == AF_INET) {
+                struct sockaddr_in *sin = (struct sockaddr_in *)ci->client_addr;
+                inet_ntop(AF_INET, &sin->sin_addr, client_ip, sizeof(client_ip));
+            }
+        }
+    } else {
+        const union MHD_ConnectionInfo *ci = MHD_get_connection_info(conn, MHD_CONNECTION_INFO_CLIENT_ADDRESS);
+        if (ci && ci->client_addr && ci->client_addr->sa_family == AF_INET) {
+            struct sockaddr_in *sin = (struct sockaddr_in *)ci->client_addr;
+            inet_ntop(AF_INET, &sin->sin_addr, client_ip, sizeof(client_ip));
+        }
+    }
+
+    const char *ua = MHD_lookup_connection_value(conn, MHD_HEADER_KIND, "User-Agent");
+    if (!ua) ua = "-";
+
+    time_t now = time(NULL);
+    struct tm tm_info;
+    localtime_r(&now, &tm_info);
+    char time_str[64];
+    strftime(time_str, sizeof(time_str), "%d/%b/%Y:%H:%M:%S %z", &tm_info);
+
+    pthread_mutex_lock(&g_access_log_mutex);
+    FILE *fp = fopen(gcfg.http_access_log, "a");
+    if (fp) {
+        fprintf(fp, "%s - - [%s] \"%s %s HTTP/1.1\" %d - \"-\" \"%s\"\n",
+                client_ip, time_str, method ? method : "GET", url ? url : "/", status_code, ua);
+        fclose(fp);
+    }
+    pthread_mutex_unlock(&g_access_log_mutex);
 }
 
 static int send_response(struct MHD_Connection *conn, int status_code,
@@ -431,6 +481,8 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         if (st.ttl <= 0) st.ttl = 16;
         st.is_rtp = json_is_true(json_object_get(payload, "is_rtp"));
         st.pacing = !json_is_false(json_object_get(payload, "pacing"));
+        const char *grp = json_string_value(json_object_get(payload, "groups"));
+        if (grp) snprintf(st.groups, sizeof(st.groups), "%s", grp);
 
         bool ok = web_manager_add_stream(&st);
         json_decref(payload);
@@ -588,6 +640,9 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
             return send_json_error(conn, 400, "Invalid JSON body");
         }
         general_from_json(payload);
+        extern void dvblast_set_network_provider(const char *net_name, const char *prov_name);
+        general_config_t gcfg = general_get_config();
+        dvblast_set_network_provider(gcfg.network_name, gcfg.service_provider);
         web_state_save_json(NULL);
         json_decref(payload);
         return send_json_ok(conn, "General settings saved");
@@ -602,6 +657,49 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         web_state_save_json(NULL);
         json_decref(payload);
         return send_json_ok(conn, "Categories & groups saved");
+    }
+
+    if (strcmp(url, "/api/v1/categories/assign") == 0 || strcmp(url, "/api/v1/groups/assign") == 0) {
+        if (!payload || !json_is_object(payload)) {
+            if (payload) json_decref(payload);
+            return send_json_error(conn, 400, "Invalid JSON body");
+        }
+        const char *group = json_string_value(json_object_get(payload, "group"));
+        const char *single_id = json_string_value(json_object_get(payload, "stream_id"));
+        json_t *sids = json_object_get(payload, "stream_ids");
+
+        pthread_mutex_lock(&g_gateway.lock);
+        if (single_id && *single_id) {
+            for (int i = 0; i < g_gateway.num_streams; i++) {
+                if (strcmp(g_gateway.streams[i].id, single_id) == 0) {
+                    snprintf(g_gateway.streams[i].groups, sizeof(g_gateway.streams[i].groups), "%s", group ? group : "");
+                    break;
+                }
+            }
+        }
+        if (json_is_array(sids)) {
+            for (int i = 0; i < g_gateway.num_streams; i++) {
+                size_t idx;
+                json_t *val;
+                bool match = false;
+                json_array_foreach(sids, idx, val) {
+                    const char *sid_str = json_string_value(val);
+                    if (sid_str && strcmp(g_gateway.streams[i].id, sid_str) == 0) {
+                        match = true;
+                        break;
+                    }
+                }
+                if (match) {
+                    snprintf(g_gateway.streams[i].groups, sizeof(g_gateway.streams[i].groups), "%s", group ? group : "");
+                } else if (group && *group && strcmp(g_gateway.streams[i].groups, group) == 0) {
+                    g_gateway.streams[i].groups[0] = '\0';
+                }
+            }
+        }
+        pthread_mutex_unlock(&g_gateway.lock);
+        web_state_save_json(NULL);
+        json_decref(payload);
+        return send_json_ok(conn, "Stream groups mapped");
     }
 
     if (strcmp(url, "/api/v1/servers") == 0 || strcmp(url, "/api/v1/modules/servers") == 0) {
@@ -716,6 +814,9 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
             else snprintf(st.id, sizeof(st.id), "stream_imp_%d", (int)idx + 1);
             if (nm && *nm) snprintf(st.name, sizeof(st.name), "%s", nm);
             else snprintf(st.name, sizeof(st.name), "Imported Stream %d", (int)idx + 1);
+            const char *grp = json_string_value(json_object_get(item, "groups"));
+            if (!grp) grp = json_string_value(json_object_get(item, "group"));
+            if (grp && *grp) snprintf(st.groups, sizeof(st.groups), "%s", grp);
             if (in && *in) snprintf(st.input_url, sizeof(st.input_url), "%s", in);
             if (out && *out) snprintf(st.output_url, sizeof(st.output_url), "%s", out);
             st.adapter_idx = (int)json_integer_value(json_object_get(item, "adapter_idx"));
@@ -814,8 +915,12 @@ static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
 
     /* HTTP Authentication Check */
     auth_result_t ares = http_auth_check(conn, url, method);
-    if (ares == AUTH_RES_UNAUTHORIZED) {
+    if (ares == AUTH_RES_REDIRECT) {
+        return http_auth_send_redirect(conn, url);
+    } else if (ares == AUTH_RES_UNAUTHORIZED) {
         return http_auth_send_challenge(conn);
+    } else if (ares == AUTH_RES_IP_DENIED) {
+        return send_json_error(conn, 403, "Access Forbidden: Client IP address is blocked by policy");
     } else if (ares == AUTH_RES_FORBIDDEN) {
         return send_json_error(conn, 403, "Access Forbidden: Administrative privileges required");
     }
@@ -871,9 +976,10 @@ static enum MHD_Result http_handler(void *cls, struct MHD_Connection *conn,
 
 static void request_completed(void *cls, struct MHD_Connection *conn,
                               void **con_cls, enum MHD_RequestTerminationCode toe) {
-    (void)cls; (void)conn; (void)toe;
+    (void)cls;
     http_request_ctx_t *ctx = (http_request_ctx_t *)*con_cls;
     if (ctx) {
+        write_access_log(conn, ctx->method, ctx->url, (toe == MHD_REQUEST_TERMINATED_COMPLETED_OK) ? 200 : 400);
         if (ctx->data) free(ctx->data);
         free(ctx);
         *con_cls = NULL;

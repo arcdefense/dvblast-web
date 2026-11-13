@@ -169,7 +169,8 @@ static void rotate_segment(hls_stream_ctx_t *ctx, double duration) {
     snprintf(stream_dir, sizeof(stream_dir), "%s/%s", g_hls.storage_path, ctx->stream_id);
     ensure_dir(stream_dir);
 
-    snprintf(ctx->current_filename, sizeof(ctx->current_filename), "segment_%lu.ts", (unsigned long)ctx->current_seq);
+    const char *ext = (g_hls.ts_ext[0]) ? g_hls.ts_ext : "ts";
+    snprintf(ctx->current_filename, sizeof(ctx->current_filename), "segment_%lu.%s", (unsigned long)ctx->current_seq, ext);
     snprintf(ctx->current_filepath, sizeof(ctx->current_filepath), "%s/%s", stream_dir, ctx->current_filename);
 
     ctx->current_fp = fopen(ctx->current_filepath, "wb");
@@ -299,7 +300,12 @@ int hls_handle_request(struct MHD_Connection *conn, const char *url) {
             int idx = (ctx->seg_head + i) % MAX_HLS_SEGMENTS;
             hls_segment_item_t *item = &ctx->segments[idx];
             char line[256];
-            int n = snprintf(line, sizeof(line), "#EXTINF:%.3f,\n%s\n", item->duration, item->filename);
+            int n;
+            if (g_hls.round_duration) {
+                n = snprintf(line, sizeof(line), "#EXTINF:%.0f,\n%s\n", item->duration, item->filename);
+            } else {
+                n = snprintf(line, sizeof(line), "#EXTINF:%.3f,\n%s\n", item->duration, item->filename);
+            }
             if (offset + n >= (int)alloc_sz - 64) {
                 alloc_sz *= 2;
                 char *newbuf = realloc(buf, alloc_sz);
@@ -320,6 +326,14 @@ int hls_handle_request(struct MHD_Connection *conn, const char *url) {
         MHD_add_response_header(resp, "Content-Type", "application/vnd.apple.mpegurl");
         MHD_add_response_header(resp, "Access-Control-Allow-Origin", "*");
         MHD_add_response_header(resp, "Cache-Control", "no-cache");
+        if (g_hls.expires_header) {
+            time_t exp_t = time(NULL) + (g_hls.segment_sec > 0 ? g_hls.segment_sec : 3);
+            struct tm gmt;
+            gmtime_r(&exp_t, &gmt);
+            char exp_buf[64];
+            strftime(exp_buf, sizeof(exp_buf), "%a, %d %b %Y %H:%M:%S GMT", &gmt);
+            MHD_add_response_header(resp, "Expires", exp_buf);
+        }
         int ret = MHD_queue_response(conn, 200, resp);
         MHD_destroy_response(resp);
         return ret;
@@ -357,7 +371,8 @@ int hls_handle_request(struct MHD_Connection *conn, const char *url) {
         return MHD_NO;
     }
 
-    MHD_add_response_header(resp, "Content-Type", "video/mp2t");
+    const char *mime = (g_hls.ts_mime[0]) ? g_hls.ts_mime : "video/mp2t";
+    MHD_add_response_header(resp, "Content-Type", mime);
     MHD_add_response_header(resp, "Access-Control-Allow-Origin", "*");
     int ret = MHD_queue_response(conn, 200, resp);
     MHD_destroy_response(resp);

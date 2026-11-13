@@ -54,6 +54,8 @@
 #include "en50221.h"
 #include "comm.h"
 #include "modules/softcam/softcam.h"
+#include "modules/general/general.h"
+#include "modules/epg/epg.h"
 #include "web_state.h"
 #include "web_manager.h"
 #include "web_server.h"
@@ -115,6 +117,39 @@ static void web_telemetry_cb(struct ev_loop *loop, struct ev_timer *w, int reven
     web_manager_poll_secondary_telemetry();
     web_state_calc_bitrates();
     web_server_broadcast_telemetry();
+
+    /* Periodic Background EPG Export */
+    static int s_epg_export_ticks = 0;
+    if (++s_epg_export_ticks >= 30) {
+        s_epg_export_ticks = 0;
+        general_config_t gcfg = general_get_config();
+        if (gcfg.epg_export[0]) {
+            if (strcasecmp(gcfg.epg_export_format, "json") == 0) {
+                json_t *ej = epg_to_json();
+                if (ej) {
+                    char tmp[300];
+                    snprintf(tmp, sizeof(tmp), "%s.tmp", gcfg.epg_export);
+                    if (json_dump_file(ej, tmp, JSON_INDENT(2)) == 0) {
+                        rename(tmp, gcfg.epg_export);
+                    }
+                    json_decref(ej);
+                }
+            } else {
+                char *xml = epg_generate_xmltv();
+                if (xml) {
+                    char tmp[300];
+                    snprintf(tmp, sizeof(tmp), "%s.tmp", gcfg.epg_export);
+                    FILE *fp = fopen(tmp, "w");
+                    if (fp) {
+                        fputs(xml, fp);
+                        fclose(fp);
+                        rename(tmp, gcfg.epg_export);
+                    }
+                    free(xml);
+                }
+            }
+        }
+    }
 }
 int i_fenum = 0;
 int i_canum = 0;
@@ -337,6 +372,18 @@ static void config_strdvb( dvb_string_t *p_dvb_string, const char *psz_string,
     p_dvb_string->p = dvb_string_set(p_iconv, i_iconv, psz_charset,
                                      &p_dvb_string->i);
     free(p_iconv);
+}
+
+void dvblast_set_network_provider(const char *net_name, const char *prov_name)
+{
+    if (net_name && *net_name)
+    {
+        config_strdvb(&network_name, net_name, psz_dvb_charset);
+    }
+    if (prov_name && *prov_name)
+    {
+        config_strdvb(&provider_name, prov_name, psz_dvb_charset);
+    }
 }
 
 bool config_ParseHost( output_config_t *p_config, char *psz_string )
@@ -1478,6 +1525,8 @@ int main( int i_argc, char **pp_argv )
     if ( b_web_enabled ) {
         web_state_init( i_web_port, psz_web_host, psz_json_config ? psz_json_config : "dvblast.json" );
         web_state_load_json( psz_json_config ? psz_json_config : "dvblast.json" );
+        general_config_t gcfg = general_get_config();
+        dvblast_set_network_provider(gcfg.network_name, gcfg.service_provider);
         web_manager_sync_outputs();
         web_server_start( i_web_port, psz_web_host );
 
