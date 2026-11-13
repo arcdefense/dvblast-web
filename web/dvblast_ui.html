@@ -5119,13 +5119,14 @@
             if (g_adapters && g_adapters.length) {
                 g_adapters.forEach(ad => {
                     const opt = document.createElement('option');
-                    opt.value = String(ad.adapter_idx !== undefined ? ad.adapter_idx : 0);
+                    opt.value = ad.id;
+                    opt.dataset.adapterIdx = (ad.adapter_idx !== undefined ? ad.adapter_idx : 0);
                     const freqStr = ad.frequency ? ` (${(ad.frequency / 1000000).toFixed(0)} MHz)` : '';
-                    opt.textContent = `Adapter ${ad.adapter_idx !== undefined ? ad.adapter_idx : 0}: ${ad.name || 'Tuner'}${freqStr}`;
+                    opt.textContent = `${ad.name || 'Adapter'} [Tuner ${ad.adapter_idx !== undefined ? ad.adapter_idx : 0}]${freqStr}`;
                     adSel.appendChild(opt);
                 });
             } else {
-                adSel.innerHTML = '<option value="0">Adapter 0 (Default Tuner)</option>';
+                adSel.innerHTML = '<option value="">Default Tuner</option>';
             }
         }
 
@@ -5133,7 +5134,10 @@
             const content = document.getElementById('import-content')?.value?.trim();
             if (!content) { showToast("Please paste playlist or config content", true); return; }
             const format = document.getElementById('import-format')?.value || 'm3u';
-            const adapterIdx = parseInt(document.getElementById('import-adapter')?.value || '0', 10);
+            const adapterIdVal = document.getElementById('import-adapter')?.value || '';
+            const matchedAd = g_adapters.find(a => a.id === adapterIdVal);
+            const adapterIdx = matchedAd ? (matchedAd.adapter_idx !== undefined ? matchedAd.adapter_idx : 0) : 0;
+            const adapterId = matchedAd ? matchedAd.id : adapterIdVal;
 
             showToast("Importing streams...");
 
@@ -5183,10 +5187,11 @@
                                 id: stId,
                                 name: curName || `Imported ${sid}`,
                                 type: 'spts',
+                                adapter_id: adapterId,
                                 adapter_idx: adapterIdx,
                                 service_id: sid,
                                 groups: curGroup,
-                                input_url: `dvb://#adapter=${adapterIdx}&pnr=${sid}`,
+                                input_url: `dvb://${adapterId}#adapter=${adapterIdx}&pnr=${sid}`,
                                 output_url: `${url.startsWith('rtp://') ? 'rtp' : 'udp'}://${ip}:${port}`,
                                 ip: ip,
                                 port: port,
@@ -5214,10 +5219,11 @@
                             id: stId,
                             name: s.name || `Imported ${sid}`,
                             type: s.type || 'spts',
+                            adapter_id: s.adapter_id || adapterId,
                             adapter_idx: s.adapter_idx !== undefined ? s.adapter_idx : adapterIdx,
                             service_id: sid,
                             groups: grp,
-                            input_url: s.input_url || `dvb://#adapter=${adapterIdx}&pnr=${sid}`,
+                            input_url: s.input_url || `dvb://${adapterId}#adapter=${adapterIdx}&pnr=${sid}`,
                             output_url: s.output_url || `udp://239.1.2.${sid % 200}:1234`,
                             ip: s.ip || `239.1.2.${sid % 200}`,
                             port: s.port || 1234,
@@ -5245,10 +5251,11 @@
                                 id: stId,
                                 name: nm,
                                 type: 'spts',
+                                adapter_id: adapterId,
                                 adapter_idx: adapterIdx,
                                 service_id: sid,
                                 groups: grp,
-                                input_url: `dvb://#adapter=${adapterIdx}&pnr=${sid}`,
+                                input_url: `dvb://${adapterId}#adapter=${adapterIdx}&pnr=${sid}`,
                                 output_url: outUrl,
                                 ip: ip,
                                 port: port,
@@ -5529,7 +5536,7 @@
 
             const currentKeys = `${hideDisabled}:${hideInactive}:${hideNoError}:${arrange}:${order}|` +
                                 filteredAdapters.map(a => `${a.id}:${a.name}:${a.frequency_hz||a.frequency||0}:${(a.channels||[]).length}`).join(',') + '|' +
-                                filteredStreams.map(s => `${s.id}:${s.adapter_idx}:${s.name}:${s.groups}`).join(',');
+                                filteredStreams.map(s => `${s.id}:${s.adapter_id||''}:${s.adapter_idx}:${s.name}:${s.groups}`).join(',');
 
             if (currentKeys !== g_renderedKeys) {
                 g_renderedKeys = currentKeys;
@@ -5590,7 +5597,10 @@
                 } else {
                     // Default: Group by Adapter
                     filteredAdapters.forEach(ad => {
-                        const adapterStreams = filteredStreams.filter(st => st.adapter_idx === ad.adapter_idx);
+                        const adapterStreams = filteredStreams.filter(st => {
+                            if (st.adapter_id) return st.adapter_id === ad.id;
+                            return st.adapter_idx === ad.adapter_idx;
+                        });
                         const fMhz = (ad.frequency_mhz || (ad.frequency_hz ? ad.frequency_hz / 1e6 : (ad.frequency > 1e6 ? ad.frequency / 1e6 : ad.frequency)) || 0).toFixed(1);
                         const inBr = (ad.bitrate_mbps || (ad.bitrate_bps ? ad.bitrate_bps / 1e6 : 0)).toFixed(2);
                         const isSatIp = (ad.delsys === 'SATIP');
@@ -5614,7 +5624,10 @@
                     });
 
                     // Unassigned / Standalone Streams
-                    const unassignedStreams = filteredStreams.filter(st => !g_adapters.some(ad => ad.adapter_idx === st.adapter_idx));
+                    const unassignedStreams = filteredStreams.filter(st => {
+                        if (st.adapter_id) return !g_adapters.some(ad => ad.id === st.adapter_id);
+                        return !g_adapters.some(ad => ad.adapter_idx === st.adapter_idx);
+                    });
                     if (unassignedStreams.length > 0) {
                         html += `
                             <div class="card-stack" data-header="IP INPUTS / STANDALONE STREAMS (${unassignedStreams.length} STREAMS)" id="stack-unassigned">
@@ -6560,6 +6573,7 @@
                     name: item.name || `Channel ${item.service_id}`,
                     enabled: true,
                     type: "spts",
+                    adapter_id: ad.id,
                     adapter_idx: ad.adapter_idx,
                     service_id: item.service_id,
                     ip: ip,
@@ -6579,7 +6593,7 @@
         }
 
         // Stream Modal Actions
-        function openStreamModal(defaultAdapterIdx) {
+        function openStreamModal(defaultAdapterIdOrIdx) {
             document.getElementById('modal-stream-title').textContent = 'Create Multicast Stream';
             const idInput = document.getElementById('st-id');
             idInput.readOnly = false;
@@ -6595,10 +6609,15 @@
             document.getElementById('st-backup-type').value = '0';
             document.getElementById('st-backup-start').value = '5';
             populateStreamSourceDropdown();
-            if (defaultAdapterIdx !== undefined) {
+            if (defaultAdapterIdOrIdx !== undefined) {
                 const sel = document.getElementById('st-source-select');
                 for (let i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].value.includes(`adapter=${defaultAdapterIdx}`)) {
+                    const opt = sel.options[i];
+                    if (opt.dataset && opt.dataset.adapterId === defaultAdapterIdOrIdx) {
+                        sel.selectedIndex = i;
+                        onStreamSourceChange();
+                        break;
+                    } else if (opt.value.includes(`adapter=${defaultAdapterIdOrIdx}`)) {
                         sel.selectedIndex = i;
                         onStreamSourceChange();
                         break;
@@ -6635,10 +6654,20 @@
             document.getElementById('st-input-url').value = inputUrl;
             let found = false;
             for (let i = 0; i < sel.options.length; i++) {
-                if (sel.options[i].value === inputUrl) {
+                const opt = sel.options[i];
+                if (opt.value === inputUrl) {
                     sel.selectedIndex = i;
                     found = true;
                     break;
+                }
+                if (st.adapter_id && opt.dataset && opt.dataset.adapterId === st.adapter_id) {
+                    const pnrMatch = inputUrl.match(/pnr=(\d+)/);
+                    const optPnr = opt.value.match(/pnr=(\d+)/);
+                    if (pnrMatch && optPnr && pnrMatch[1] === optPnr[1]) {
+                        sel.selectedIndex = i;
+                        found = true;
+                        break;
+                    }
                 }
             }
             if (!found) {
@@ -6660,14 +6689,18 @@
 
             g_adapters.forEach(ad => {
                 const optMux = document.createElement('option');
-                optMux.value = `dvb://#adapter=${ad.adapter_idx}&pnr=0`;
+                optMux.value = `dvb://${ad.id}#adapter=${ad.adapter_idx}&pnr=0`;
                 optMux.textContent = `${ad.name} - Full MPTS Transponder (All Channels)`;
+                optMux.dataset.adapterId = ad.id;
+                optMux.dataset.adapterIdx = ad.adapter_idx;
                 sel.appendChild(optMux);
 
                 (ad.channels || []).forEach(ch => {
                     const optCh = document.createElement('option');
-                    optCh.value = `dvb://#adapter=${ad.adapter_idx}&pnr=${ch.service_id}`;
+                    optCh.value = `dvb://${ad.id}#adapter=${ad.adapter_idx}&pnr=${ch.service_id}`;
                     optCh.textContent = `${ad.name} - [SID ${ch.service_id}] ${ch.name}`;
+                    optCh.dataset.adapterId = ad.id;
+                    optCh.dataset.adapterIdx = ad.adapter_idx;
                     sel.appendChild(optCh);
                 });
             });
@@ -6699,12 +6732,40 @@
             const isRtp = document.getElementById('st-protocol').value === 'rtp';
 
             const inputUrl = document.getElementById('st-input-url').value.trim();
+            let adapterId = "";
             let adapterIdx = 0;
-            const adMatch = inputUrl.match(/adapter=(\d+)/);
-            if (adMatch) {
-                adapterIdx = parseInt(adMatch[1]);
-            } else if (existingSt && existingSt.adapter_idx !== undefined) {
+
+            const selSource = document.getElementById('st-source-select');
+            if (selSource && selSource.selectedIndex >= 0) {
+                const selOpt = selSource.options[selSource.selectedIndex];
+                if (selOpt && selOpt.dataset && selOpt.dataset.adapterId) {
+                    adapterId = selOpt.dataset.adapterId;
+                    adapterIdx = parseInt(selOpt.dataset.adapterIdx) || 0;
+                }
+            }
+            if (!adapterId && existingSt && existingSt.adapter_id) {
+                adapterId = existingSt.adapter_id;
+            }
+            if (!adapterIdx && existingSt && existingSt.adapter_idx !== undefined) {
                 adapterIdx = existingSt.adapter_idx;
+            }
+            if (!adapterId) {
+                const adIdMatch = inputUrl.match(/dvb:\/\/([a-zA-Z0-9_\-]+)/);
+                if (adIdMatch) {
+                    const matchedAd = g_adapters.find(a => a.id === adIdMatch[1]);
+                    if (matchedAd) {
+                        adapterId = matchedAd.id;
+                        adapterIdx = matchedAd.adapter_idx;
+                    }
+                }
+            }
+            if (!adapterId) {
+                const adMatch = inputUrl.match(/adapter=(\d+)/);
+                if (adMatch) {
+                    adapterIdx = parseInt(adMatch[1]);
+                    const matchedAd = g_adapters.find(a => a.adapter_idx === adapterIdx && a.enabled);
+                    if (matchedAd) adapterId = matchedAd.id;
+                }
             }
 
             const payload = {
@@ -6712,6 +6773,7 @@
                 name: document.getElementById('st-name').value.trim(),
                 groups: document.getElementById('st-groups')?.value?.trim() || "",
                 enabled: isEnabled,
+                adapter_id: adapterId,
                 adapter_idx: adapterIdx,
                 type: sid === 0 ? 'mpts' : 'spts',
                 input_url: inputUrl,

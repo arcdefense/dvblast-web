@@ -139,8 +139,16 @@ void web_manager_sync_worker(int adapter_idx) {
     int active_streams = 0;
     web_stream_config_t streams_for_ad[MAX_WEB_STREAMS];
     for (int i = 0; i < g_gateway.num_streams; i++) {
-        if (g_gateway.streams[i].enabled && g_gateway.streams[i].adapter_idx == adapter_idx) {
-            streams_for_ad[active_streams++] = g_gateway.streams[i];
+        web_stream_config_t *st = &g_gateway.streams[i];
+        if (!st->enabled) continue;
+        bool match = false;
+        if (st->adapter_id[0]) {
+            match = (strcmp(st->adapter_id, ad->id) == 0);
+        } else {
+            match = (st->adapter_idx == adapter_idx);
+        }
+        if (match) {
+            streams_for_ad[active_streams++] = *st;
         }
     }
     pthread_mutex_unlock(&g_gateway.lock);
@@ -466,12 +474,14 @@ void web_manager_sync_secondary_epg(void) {
             sids[num_sids++] = ad->channels[c].service_id;
         }
         for (int s = 0; s < g_gateway.num_streams && num_sids < MAX_DISCOVERED_CHANNELS; s++) {
-            if (g_gateway.streams[s].adapter_idx == a_idx && g_gateway.streams[s].service_id > 0) {
+            web_stream_config_t *st = &g_gateway.streams[s];
+            bool match = st->adapter_id[0] ? (strcmp(st->adapter_id, ad->id) == 0) : (st->adapter_idx == a_idx);
+            if (match && st->service_id > 0) {
                 bool exists = false;
                 for (int k = 0; k < num_sids; k++) {
-                    if (sids[k] == g_gateway.streams[s].service_id) { exists = true; break; }
+                    if (sids[k] == st->service_id) { exists = true; break; }
                 }
-                if (!exists) sids[num_sids++] = g_gateway.streams[s].service_id;
+                if (!exists) sids[num_sids++] = st->service_id;
             }
         }
         pthread_mutex_unlock(&g_gateway.lock);
@@ -946,8 +956,10 @@ static bool web_manager_restart_adapter_internal(const char *id) {
             /* Re-add active streams on primary adapter */
             pthread_mutex_lock(&g_gateway.lock);
             for (int i = 0; i < g_gateway.num_streams; i++) {
-                if (g_gateway.streams[i].enabled && g_gateway.streams[i].adapter_idx == i_adapter) {
-                    web_manager_add_stream_internal(&g_gateway.streams[i], false);
+                web_stream_config_t *st = &g_gateway.streams[i];
+                bool match = st->adapter_id[0] ? (strcmp(st->adapter_id, ad->id) == 0) : (st->adapter_idx == i_adapter);
+                if (st->enabled && match) {
+                    web_manager_add_stream_internal(st, false);
                 }
             }
             pthread_mutex_unlock(&g_gateway.lock);
@@ -1167,9 +1179,18 @@ static bool web_manager_add_stream_internal(const web_stream_config_t *stream, b
         }
         config.i_config |= OUTPUT_WATCH | OUTPUT_VALID | OUTPUT_STILL_PRESENT;
 
+        web_adapter_t *ad = NULL;
+        if (stream->adapter_id[0]) {
+            ad = web_state_find_adapter(stream->adapter_id);
+        }
+        if (!ad) {
+            ad = web_state_find_adapter_by_idx(stream->adapter_idx);
+        }
+        bool ad_active = (!ad || ad->enabled);
+
         output_t *p_output = output_Find(&config);
 
-        if (stream->enabled) {
+        if (stream->enabled && ad_active) {
             if (!p_output) {
                 p_output = output_Create(&config);
             }
@@ -1272,17 +1293,22 @@ void web_manager_sync_outputs(void) {
     pthread_mutex_unlock(&g_gateway.lock);
 
     /* Tune primary adapter if any */
+    const char *primary_ad_id = NULL;
     for (int i = 0; i < ad_count; i++) {
         if (adapters_copy[i].enabled && adapters_copy[i].adapter_idx == i_adapter) {
+            primary_ad_id = adapters_copy[i].id;
             web_manager_tune_adapter(adapters_copy[i].id, adapters_copy[i].adapter_idx);
             break;
         }
     }
 
     /* Start active streams on primary adapter */
-    for (int i = 0; i < count; i++) {
-        if (streams_copy[i].enabled && streams_copy[i].adapter_idx == i_adapter) {
-            web_manager_add_stream_internal(&streams_copy[i], false);
+    if (primary_ad_id) {
+        for (int i = 0; i < count; i++) {
+            bool match = streams_copy[i].adapter_id[0] ? (strcmp(streams_copy[i].adapter_id, primary_ad_id) == 0) : (streams_copy[i].adapter_idx == i_adapter);
+            if (streams_copy[i].enabled && match) {
+                web_manager_add_stream_internal(&streams_copy[i], false);
+            }
         }
     }
 

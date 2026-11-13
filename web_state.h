@@ -98,6 +98,7 @@ typedef struct {
     char     type[16];          /* "spts" or "mpts" */
     char     input_url[256];    /* "dvb://#adapter=0&pnr=101" or "udp://@..." */
     char     output_url[256];   /* "udp://239.255.1.1:5000" or "rtp://..." */
+    char     adapter_id[64];    /* Logical parent adapter ID e.g. "adapter_0" */
     int      adapter_idx;       /* Source adapter if DVB */
     uint16_t service_id;        /* SID / PNR (0 for all/MPTS) */
     char     ip[64];            /* Parsed output IP */

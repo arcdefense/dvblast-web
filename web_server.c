@@ -438,6 +438,7 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         const char *tp = json_string_value(json_object_get(payload, "type"));
         const char *in = json_string_value(json_object_get(payload, "input_url"));
         const char *out = json_string_value(json_object_get(payload, "output_url"));
+        const char *ad_id = json_string_value(json_object_get(payload, "adapter_id"));
         const char *ip = json_string_value(json_object_get(payload, "ip"));
         const char *bk = json_string_value(json_object_get(payload, "biss_key"));
         const char *bu = json_string_value(json_object_get(payload, "backup_url"));
@@ -453,6 +454,7 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         snprintf(st.type, sizeof(st.type), "%s", (tp && *tp) ? tp : "spts");
         if (in) snprintf(st.input_url, sizeof(st.input_url), "%s", in);
         if (out) snprintf(st.output_url, sizeof(st.output_url), "%s", out);
+        if (ad_id && *ad_id) snprintf(st.adapter_id, sizeof(st.adapter_id), "%s", ad_id);
         if (bk) snprintf(st.biss_key, sizeof(st.biss_key), "%s", bk);
         if (bu) snprintf(st.backup_url, sizeof(st.backup_url), "%s", bu);
         if (bt) {
@@ -831,6 +833,8 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
             if (grp && *grp) snprintf(st.groups, sizeof(st.groups), "%s", grp);
             if (in && *in) snprintf(st.input_url, sizeof(st.input_url), "%s", in);
             if (out && *out) snprintf(st.output_url, sizeof(st.output_url), "%s", out);
+            const char *item_ad_id = json_string_value(json_object_get(item, "adapter_id"));
+            if (item_ad_id && *item_ad_id) snprintf(st.adapter_id, sizeof(st.adapter_id), "%s", item_ad_id);
             st.adapter_idx = (int)json_integer_value(json_object_get(item, "adapter_idx"));
             st.service_id = (uint16_t)json_integer_value(json_object_get(item, "service_id"));
             st.port = (int)json_integer_value(json_object_get(item, "port"));

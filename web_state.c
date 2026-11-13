@@ -252,7 +252,13 @@ bool web_state_delete_adapter(const char *id) {
         /* Cascading delete: Remove all child streams linked to this adapter */
         int deleted_streams = 0;
         for (int i = 0; i < g_gateway.num_streams; ) {
-            if (g_gateway.streams[i].adapter_idx == ad_idx) {
+            bool match = false;
+            if (g_gateway.streams[i].adapter_id[0]) {
+                match = (strcmp(g_gateway.streams[i].adapter_id, id) == 0);
+            } else {
+                match = (g_gateway.streams[i].adapter_idx == ad_idx);
+            }
+            if (match) {
                 for (int j = i; j < g_gateway.num_streams - 1; j++) {
                     g_gateway.streams[j] = g_gateway.streams[j + 1];
                 }
@@ -428,6 +434,13 @@ bool web_state_add_or_update_stream(const web_stream_config_t *stream) {
     snprintf(target->type, sizeof(target->type), "%s", copy.type[0] ? copy.type : (copy.service_id == 0 ? "mpts" : "spts"));
     snprintf(target->input_url, sizeof(target->input_url), "%s", copy.input_url);
     snprintf(target->output_url, sizeof(target->output_url), "%s", copy.output_url);
+    if (copy.adapter_id[0]) {
+        snprintf(target->adapter_id, sizeof(target->adapter_id), "%s", copy.adapter_id);
+    } else {
+        web_adapter_t *ad = web_state_find_adapter_by_idx(copy.adapter_idx);
+        if (ad) snprintf(target->adapter_id, sizeof(target->adapter_id), "%s", ad->id);
+        else snprintf(target->adapter_id, sizeof(target->adapter_id), "adapter_%d", copy.adapter_idx);
+    }
     target->adapter_idx = copy.adapter_idx;
     target->service_id = copy.service_id;
     snprintf(target->ip, sizeof(target->ip), "%s", copy.ip);
@@ -781,6 +794,7 @@ bool web_state_save_json(const char *path) {
         json_object_set_new(s_obj, "type", json_string(s->type));
         json_object_set_new(s_obj, "input_url", json_string(s->input_url));
         json_object_set_new(s_obj, "output_url", json_string(s->output_url));
+        json_object_set_new(s_obj, "adapter_id", json_string(s->adapter_id));
         json_object_set_new(s_obj, "adapter_idx", json_integer(s->adapter_idx));
         json_object_set_new(s_obj, "service_id", json_integer(s->service_id));
         json_object_set_new(s_obj, "ip", json_string(s->ip));
@@ -946,6 +960,14 @@ bool web_state_load_json(const char *path) {
 
             s->enabled = !json_is_false(json_object_get(val, "enabled"));
             s->adapter_idx = (int)json_integer_value(json_object_get(val, "adapter_idx"));
+            const char *ad_id = json_string_value(json_object_get(val, "adapter_id"));
+            if (ad_id && *ad_id) {
+                snprintf(s->adapter_id, sizeof(s->adapter_id), "%s", ad_id);
+            } else {
+                web_adapter_t *ad = web_state_find_adapter_by_idx(s->adapter_idx);
+                if (ad) snprintf(s->adapter_id, sizeof(s->adapter_id), "%s", ad->id);
+                else snprintf(s->adapter_id, sizeof(s->adapter_id), "adapter_%d", s->adapter_idx);
+            }
             s->service_id = (uint16_t)json_integer_value(json_object_get(val, "service_id"));
             s->port = (int)json_integer_value(json_object_get(val, "port"));
             s->ttl = (int)json_integer_value(json_object_get(val, "ttl"));
@@ -1215,6 +1237,7 @@ json_t *web_state_streams_to_json(void) {
         json_object_set_new(obj, "type", json_string(s->type));
         json_object_set_new(obj, "input_url", json_string(s->input_url));
         json_object_set_new(obj, "output_url", json_string(s->output_url));
+        json_object_set_new(obj, "adapter_id", json_string(s->adapter_id));
         json_object_set_new(obj, "adapter_idx", json_integer(s->adapter_idx));
         json_object_set_new(obj, "service_id", json_integer(s->service_id));
         json_object_set_new(obj, "ip", json_string(s->ip));
@@ -1444,6 +1467,7 @@ json_t *web_state_config_to_json(void) {
         json_object_set_new(so, "type", json_string(s->type));
         json_object_set_new(so, "input_url", json_string(s->input_url));
         json_object_set_new(so, "output_url", json_string(s->output_url));
+        json_object_set_new(so, "adapter_id", json_string(s->adapter_id));
         json_object_set_new(so, "adapter_idx", json_integer(s->adapter_idx));
         json_object_set_new(so, "service_id", json_integer(s->service_id));
         json_object_set_new(so, "ip", json_string(s->ip));
