@@ -57,6 +57,20 @@ static hls_config_t g_hls = {
 static hls_stream_ctx_t g_hls_streams[MAX_HLS_STREAMS];
 static pthread_mutex_t  g_hls_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static void clean_stream_dir(const char *path) {
+    DIR *d = opendir(path);
+    if (!d) return;
+    struct dirent *de;
+    while ((de = readdir(d)) != NULL) {
+        if (strstr(de->d_name, ".ts") != NULL) {
+            char fpath[768];
+            snprintf(fpath, sizeof(fpath), "%s/%s", path, de->d_name);
+            unlink(fpath);
+        }
+    }
+    closedir(d);
+}
+
 static void ensure_dir(const char *path) {
     char tmp[512];
     snprintf(tmp, sizeof(tmp), "%s", path);
@@ -132,6 +146,10 @@ static hls_stream_ctx_t *find_or_create_stream(uint16_t sid) {
             ctx->current_fp = NULL;
             ctx->seg_count = 0;
             ctx->seg_head = 0;
+            char sdir[300];
+            snprintf(sdir, sizeof(sdir), "%s/%s", g_hls.storage_path, ctx->stream_id);
+            ensure_dir(sdir);
+            clean_stream_dir(sdir);
             g_hls.active_streams++;
             return ctx;
         }

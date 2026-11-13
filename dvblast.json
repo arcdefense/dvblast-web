@@ -570,8 +570,8 @@
     "allow_hls": true,
     "disable_tls": false,
     "active_clients": 0,
-    "total_clients_served": 1,
-    "total_bytes_streamed": 2068,
+    "total_clients_served": 0,
+    "total_bytes_streamed": 0,
     "clients": []
   },
   "http_auth": {
@@ -629,7 +629,7 @@
     "segment_sec": 3,
     "window_size": 5,
     "storage_path": "/dev/shm/hls",
-    "total_segments_created": 119,
+    "total_segments_created": 14,
     "active_streams": 7,
     "naming": "asc",
     "timeout_sec": 60,
