@@ -648,7 +648,7 @@
     "segment_sec": 3,
     "window_size": 5,
     "storage_path": "/dev/shm/hls",
-    "total_segments_created": 133,
+    "total_segments_created": 371,
     "active_streams": 7,
     "naming": "asc",
     "timeout_sec": 60,
