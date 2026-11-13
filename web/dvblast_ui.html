@@ -5528,7 +5528,7 @@
             }
 
             const currentKeys = `${hideDisabled}:${hideInactive}:${hideNoError}:${arrange}:${order}|` +
-                                filteredAdapters.map(a => `${a.id}:${a.name}:${(a.channels||[]).length}`).join(',') + '|' +
+                                filteredAdapters.map(a => `${a.id}:${a.name}:${a.frequency_hz||a.frequency||0}:${(a.channels||[]).length}`).join(',') + '|' +
                                 filteredStreams.map(s => `${s.id}:${s.adapter_idx}:${s.name}:${s.groups}`).join(',');
 
             if (currentKeys !== g_renderedKeys) {
@@ -5919,11 +5919,18 @@
             const sel = document.getElementById('ad-device');
             sel.innerHTML = '';
 
+            // Placeholder option
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = '-- Select Available DVB Tuner --';
+            placeholder.disabled = true;
+            sel.appendChild(placeholder);
+
             const availGroup = document.createElement('optgroup');
             availGroup.label = 'Available';
 
             const takenGroup = document.createElement('optgroup');
-            takenGroup.label = 'Taken';
+            takenGroup.label = 'Taken (In Use)';
 
             let firstAvail = null;
 
@@ -5942,7 +5949,11 @@
                     const busyAdapter = g_adapters.find(a => a.adapter_idx === h.adapter_idx && a.enabled);
 
                     if (busyAdapter) {
-                        opt.textContent = `${h.adapter_idx}.0 : ${feName} (Taken: ${busyAdapter.name})`;
+                        const isCurrent = (preferredIdx !== undefined && preferredIdx !== null && preferredIdx === h.adapter_idx);
+                        opt.textContent = `${h.adapter_idx}.0 : ${feName} (In Use: ${busyAdapter.name})`;
+                        if (!isCurrent) {
+                            opt.disabled = true;
+                        }
                         takenGroup.appendChild(opt);
                     } else {
                         opt.textContent = `${h.adapter_idx}.0 : ${feName}`;
@@ -5959,8 +5970,8 @@
                 sel.value = preferredIdx;
             } else if (firstAvail !== null) {
                 sel.value = firstAvail;
-            } else if (sel.options.length > 0) {
-                sel.selectedIndex = 0;
+            } else {
+                sel.value = '';
             }
         }
 
@@ -6245,7 +6256,17 @@
                     targetAdapterIdx = idx;
                 }
             } else {
-                targetAdapterIdx = parseInt(document.getElementById('ad-device').value || 0);
+                const devVal = document.getElementById('ad-device').value;
+                if (devVal === "" || devVal === null || isNaN(parseInt(devVal))) {
+                    showToast("Please select an available physical DVB tuner device", true);
+                    return;
+                }
+                targetAdapterIdx = parseInt(devVal);
+                const busy = g_adapters.find(a => a.id !== adId && a.adapter_idx === targetAdapterIdx && a.enabled);
+                if (busy) {
+                    showToast(`Tuner /dev/dvb/adapter${targetAdapterIdx} is already in use by "${busy.name}"!`, true);
+                    return;
+                }
             }
 
             let freqNum = 0;

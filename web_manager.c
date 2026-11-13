@@ -175,6 +175,7 @@ void web_manager_sync_worker(int adapter_idx) {
         }
         /* Parameters changed or process dead: stop old worker before respawning */
         web_manager_stop_worker_internal(adapter_idx);
+        usleep(100000); /* 100ms pause to ensure frontend fd is cleanly released by kernel */
     }
 
     /* Write fresh worker configuration file */
@@ -530,9 +531,9 @@ void web_manager_poll_secondary_telemetry(void) {
         if (g_workers[i].running && g_workers[i].pid > 0) {
             int status = 0;
             pid_t res = waitpid(g_workers[i].pid, &status, WNOHANG);
-            if (res > 0 || (res < 0 && errno == ECHILD)) {
-                web_state_log("WARN", "Worker PID %d for adapter %d exited, restarting",
-                              g_workers[i].pid, g_workers[i].adapter_idx);
+            if (res == g_workers[i].pid || (res < 0 && errno == ECHILD && kill(g_workers[i].pid, 0) != 0)) {
+                web_state_log("WARN", "Worker PID %d for adapter %d exited (status=%d), restarting",
+                              g_workers[i].pid, g_workers[i].adapter_idx, status);
                 g_workers[i].running = false;
                 g_workers[i].pid = 0;
                 web_manager_sync_worker(g_workers[i].adapter_idx);
@@ -699,8 +700,13 @@ static void *scan_secondary_adapter_thread(void *arg) {
     bool worker_running = false;
     for (int i = 0; i < MAX_WEB_ADAPTERS; i++) {
         if (g_workers[i].adapter_idx == adapter_idx && g_workers[i].running && g_workers[i].pid > 0) {
-            if (kill(g_workers[i].pid, 0) == 0 && access(sock_path, F_OK) == 0) {
-                worker_running = true;
+            for (int wait_ms = 0; wait_ms < 2500; wait_ms += 50) {
+                if (kill(g_workers[i].pid, 0) == 0 && access(sock_path, F_OK) == 0) {
+                    worker_running = true;
+                    break;
+                }
+                if (kill(g_workers[i].pid, 0) != 0) break;
+                usleep(50000);
             }
             break;
         }
@@ -873,6 +879,7 @@ static bool web_manager_tune_adapter_internal(const char *adapter_id, int adapte
                                ad->modulation, NULL, NULL, (int)ad->symbol_rate,
                                ad->voltage, ad->diseqc, ad->tone);
     if (ok) {
+        web_manager_sync_outputs();
         demux_TriggerScan();
     }
     return ok;

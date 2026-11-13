@@ -288,6 +288,18 @@ static int handle_post_request(struct MHD_Connection *conn, const char *url, con
         ad.frontend_idx = (int)json_integer_value(json_object_get(payload, "frontend_idx"));
         snprintf(ad.delsys, sizeof(ad.delsys), "%s", (del && *del) ? del : "DVBT2");
 
+        /* Prevent duplicate adapter_idx conflict across different physical adapters */
+        if (ad.enabled && strcasecmp(ad.delsys, "SATIP") != 0 && (!sat_url || !*sat_url)) {
+            web_adapter_t *existing = web_state_find_adapter_by_idx(ad.adapter_idx);
+            if (existing && strcmp(existing->id, ad.id) != 0 && existing->enabled) {
+                char err_msg[256];
+                snprintf(err_msg, sizeof(err_msg), "Physical DVB adapter %d is already in use by adapter '%s'",
+                         ad.adapter_idx, existing->name);
+                json_decref(payload);
+                return send_json_error(conn, 400, err_msg);
+            }
+        }
+
         json_t *j_freq = json_object_get(payload, "frequency");
         double freq_val = 0.0;
         if (json_is_string(j_freq)) {

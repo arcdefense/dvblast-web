@@ -96,8 +96,8 @@
       "lof1": 9750,
       "lof2": 10600,
       "slof": 11700,
-      "fec": 999,
-      "rolloff": 35,
+      "fec": 0,
+      "rolloff": 0,
       "buffer_size": 64
     }
   ],
@@ -629,7 +629,7 @@
     "segment_sec": 3,
     "window_size": 5,
     "storage_path": "/dev/shm/hls",
-    "total_segments_created": 14,
+    "total_segments_created": 35,
     "active_streams": 7,
     "naming": "asc",
     "timeout_sec": 60,

@@ -1055,6 +1055,7 @@ json_t *web_state_adapters_to_json(void) {
         json_object_set_new(obj, "adapter_idx", json_integer(ad->adapter_idx));
         json_object_set_new(obj, "frontend_idx", json_integer(ad->frontend_idx));
         json_object_set_new(obj, "delsys", json_string(ad->delsys));
+        json_object_set_new(obj, "frequency", json_integer((json_int_t)ad->frequency));
         json_object_set_new(obj, "frequency_hz", json_integer((json_int_t)ad->frequency));
         json_object_set_new(obj, "frequency_mhz", json_real((double)ad->frequency / 1000000.0));
         json_object_set_new(obj, "symbol_rate", json_integer(ad->symbol_rate));
