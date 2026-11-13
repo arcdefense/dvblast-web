@@ -567,7 +567,7 @@ static int handle_playlist_m3u(struct MHD_Connection *conn, const char *url, con
     bool mode_hls = flags[1];
     bool mode_udp = flags[2];
 
-    /* Auto-format fallback matching aia / http_serve.c:
+    /* Auto-format fallback logic:
      * If neither is specified in query parameters:
      * 1. allow_hls -> HLS
      * 2. else if allow_http -> HTTP MPEG-TS

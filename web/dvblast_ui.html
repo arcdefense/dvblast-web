@@ -1892,7 +1892,7 @@
                                 <div class="form-grid">
                                     <div class="form-group">
                                         <label class="form-label">Service Provider</label>
-                                        <input type="text" class="form-input" id="gen-service-provider" placeholder="Provider name for SDT (e.g. AIA Headend)">
+                                        <input type="text" class="form-input" id="gen-service-provider" placeholder="Provider name for SDT (e.g. DVB Headend)">
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Network Name</label>
@@ -2576,7 +2576,7 @@
                         <div class="settings-section-header">
                             <div>
                                 <div class="settings-section-title">Import Channels &amp; Configuration</div>
-                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Bulk import streams from M3U/M3U8 playlists, AiaStudio JSON, or CSV tables.</div>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Bulk import streams from M3U/M3U8 playlists, Gateway JSON, or CSV tables.</div>
                             </div>
                             <span class="badge badge-success">MODULE: IMPORT</span>
                         </div>
@@ -2587,7 +2587,7 @@
                                     <label class="form-label">Import Format</label>
                                     <select class="form-select" id="import-format">
                                         <option value="m3u">M3U / M3U8 Playlist</option>
-                                        <option value="aiastudio">AiaStudio JSON (aiastudio.json)</option>
+                                        <option value="json">Gateway JSON (dvblast.json)</option>
                                         <option value="csv">CSV Spreadsheet</option>
                                     </select>
                                 </div>
@@ -2601,7 +2601,7 @@
 
                             <div class="form-group">
                                 <label class="form-label">Playlist Content / File Text</label>
-                                <textarea class="form-input" id="import-content" rows="10" placeholder="Paste #EXTM3U playlist or AiaStudio JSON configuration here..." style="font-family: monospace; font-size: 12px;"></textarea>
+                                <textarea class="form-input" id="import-content" rows="10" placeholder="Paste #EXTM3U playlist or Gateway JSON configuration here..." style="font-family: monospace; font-size: 12px;"></textarea>
                             </div>
 
                             <div style="display: flex; justify-content: flex-end; gap: 8px;">
@@ -3875,7 +3875,7 @@
             });
         }
 
-        // Live playlist preview links updater matching aia.html setLink()
+        // Live playlist preview links updater
         function updateHttpPlayLinks() {
             const proto = document.getElementById('cfg-http-play-disable-tls')?.checked ? 'http:' : (window.location.protocol || 'http:');
             const portInput = document.getElementById('cfg-http-play-port')?.value;
@@ -4229,8 +4229,8 @@
                 backup_start_delay: parseInt(document.getElementById('gen-backup-start')?.value || "5", 10),
                 backup_return_delay: parseInt(document.getElementById('gen-backup-return')?.value || "30", 10),
                 textcode: document.getElementById('gen-codepage')?.value || "UTF-8",
-                service_provider: document.getElementById('gen-service-provider')?.value || "AIA Headend",
-                network_name: document.getElementById('gen-network-name')?.value || "AIA Network",
+                service_provider: document.getElementById('gen-service-provider')?.value || "DVB Headend",
+                network_name: document.getElementById('gen-network-name')?.value || "DVB Network",
                 http_congestion: document.getElementById('gen-congestion')?.value || "bbr",
                 cc_limit: parseInt(document.getElementById('gen-cc-limit')?.value || "0", 10),
                 udp_threads: !!document.getElementById('gen-udp-threads')?.checked,
@@ -5200,7 +5200,7 @@
                             curGroup = '';
                         }
                     }
-                } else if (format === 'aiastudio') {
+                } else if (format === 'json' || format === 'gateway') {
                     const parsed = JSON.parse(content);
                     const rawList = Array.isArray(parsed) ? parsed : (parsed.streams || []);
                     rawList.forEach((s, idx) => {

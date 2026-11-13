@@ -5,13 +5,13 @@
 #include <pthread.h>
 
 static general_config_t g_gen = {
-    .instance_name = "AIA-Gateway-01",
+    .instance_name = "DVBlast-Gateway-01",
     .tsdb_url = "http://127.0.0.1:8086",
-    .tsdb_org = "aiastudio",
+    .tsdb_org = "dvblast",
     .tsdb_token = "",
     .tsdb_interval = 60,
-    .event_request = "https://bill.aiastudio.my.id/webhook/telegram?tenant_id=1",
-    .sessions_url = "https://bill.aiastudio.my.id/webhook/telegram?tenant_id=1",
+    .event_request = "",
+    .sessions_url = "",
     .sessions_time = 10,
 
     .http_server_name = "DVBlast Web Gateway",
@@ -31,7 +31,7 @@ static general_config_t g_gen = {
     .backup_start_delay = 5,
     .backup_return_delay = 30,
     .textcode = "UTF-8",
-    .service_provider = "AIA Broadcast",
+    .service_provider = "DVB Broadcast",
     .network_name = "DVB-T2 Network",
     .http_congestion = "cubic",
     .cc_limit = 0,
